@@ -42,7 +42,7 @@ const Footer = () => {
                                     key={i}
                                     className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md hover:bg-grtext-gray-200 transition-colors"
                                 >
-                                    <i className={`bx bxl-${icon} text-[22px] text-[#484848]`}></i>
+                                    <i className={`bx bxl-${icon} text-[22px] text-black`}></i>
                                 </div>
                             ))}
                         </div>
@@ -56,7 +56,7 @@ const Footer = () => {
                                 <li key={idx}>
                                     <Link
                                         to={link.path}
-                                        className="text-[#8A8A8A] text-sm hover:text-gray-200 transition-colors"
+                                        className="text-[#8A8A8A] text-sm hover:text-white transition-colors"
                                     >
                                         {link.name}
                                     </Link>
@@ -73,7 +73,7 @@ const Footer = () => {
                                 <li key={idx}>
                                     <Link
                                         to={link.path}
-                                        className="text-[#8A8A8A] text-sm hover:text-gray-200 transition-colors"
+                                        className="text-[#8A8A8A] text-sm hover:text-white transition-colors"
                                     >
                                         {link.name}
                                     </Link>
@@ -90,7 +90,7 @@ const Footer = () => {
                                 <li key={idx}>
                                     <Link
                                         to={link.path}
-                                        className="text-[#8A8A8A] text-sm hover:text-gray-200 transition-colors"
+                                        className="text-[#8A8A8A] text-sm hover:text-white transition-colors"
                                     >
                                         {link.name}
                                     </Link>

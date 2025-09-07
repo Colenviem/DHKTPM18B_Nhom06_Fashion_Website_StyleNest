@@ -1,15 +1,15 @@
 import React from "react";
 import "boxicons/css/boxicons.min.css";
 
-const ProductCard = ({ variant = "home" }) => {
+const ProductCard = ({ product ,variant = "home" }) => {
     return (
         <div className="bg-white rounded-xl overflow-hidden max-w-xs w-full border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
             <div className="p-4 space-y-3">
                 {/* Product Image */}
                 <div className="relative rounded-lg overflow-hidden h-64">
                     <img
-                        src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/07/hinh-dep-19.jpg"
-                        alt="Shiny Dress"
+                        src={product.image}
+                        alt={product.name}
                         className="w-full h-full object-cover"
                     />
                 </div>
@@ -17,7 +17,7 @@ const ProductCard = ({ variant = "home" }) => {
                 {/* Product Info */}
                 <div className="space-y-3">
                     {/* Title */}
-                    <h2 className="text-xl font-medium text-[#484848]">Shiny Dress</h2>
+                    <h2 className="text-xl font-medium text-[#484848]">{product.name}</h2>
 
                     {/* Reviews */}
                     <div className="flex justify-between items-center my-3">
@@ -36,7 +36,7 @@ const ProductCard = ({ variant = "home" }) => {
                     {/* Price + Status */}
                     <div className="flex items-baseline justify-between">
                         <p className="text-2xl font-medium text-[#484848] flex items-baseline gap-1">
-                            100.000
+                            {product.price}
                             <span className="text-base text-gray-600 underline">đ</span>
                         </p>
                         <span className="text-[12px] text-red-500 font-normal">
