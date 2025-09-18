@@ -58,7 +58,21 @@ const Header = () => {
             <div className="flex items-center gap-1 sm:gap-2 cursor-pointer hover:text-white/90 transition-colors">
               <i className="bx bx-user text-white text-[16px]"></i>
               <span className="text-white text-[14px] sm:text-sm">
-                <span className="hidden sm:inline">Đăng nhập / Đăng ký</span>
+                <div className="hidden sm:inline space-x-2">
+                  <Link 
+                    to="/login" 
+                    className="text-white font-bold no-underline hover:text-gray-200 cursor-pointer"
+                  >
+                    Đăng nhập
+                  </Link>
+                  <span className="text-white font-bold">/</span>
+                  <Link 
+                    to="/register" 
+                    className="text-white font-bold no-underline hover:text-gray-200 cursor-pointer"
+                  >
+                    Đăng ký
+                  </Link>
+                </div>
                 <span className="sm:hidden">Đăng nhập</span>
               </span>
             </div>
