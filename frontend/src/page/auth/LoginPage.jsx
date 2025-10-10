@@ -1,11 +1,42 @@
+import { useState, useContext } from "react";
+import { UserContext } from "../../context/UserContext";
+import axios from "axios";
 import Button from "../../components/ui/Button";
 import { FcGoogle } from "react-icons/fc";
 import { AiOutlineMail } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function LoginPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { login } = useContext(UserContext);
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); // chặn reload trang
+
+    try {
+      const res = await axios.post("http://localhost:8080/api/auth/login", {
+        username,
+        password,
+      });
+
+      if (res.data.status === "success") {
+        login(res.data.user); // cập nhật context
+        // Chuyển hướng sang trang chính (ví dụ /home hoặc /dashboard)
+        navigate("/");
+      } else {
+        setError("Sai tên đăng nhập hoặc mật khẩu!");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Không thể kết nối đến server!");
+    }
+  };
+
   return (
-    <div className="flex items-center justify-center bg-gray-50">
+    <div className="flex items-center justify-center bg-gray-50 min-h-screen">
       <div className="p-10 bg-white shadow-md rounded-2xl overflow-hidden flex w-full max-w-5xl">
         {/* Left Image */}
         <div className="hidden md:block w-1/2">
@@ -45,11 +76,14 @@ function LoginPage() {
           </div>
 
           {/* Form */}
-          <form className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <input
-                type="email"
-                placeholder="Email"
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
                 className="w-full border-b border-gray-300 focus:outline-none focus:border-black py-2"
               />
             </div>
@@ -57,9 +91,16 @@ function LoginPage() {
               <input
                 type="password"
                 placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
                 className="w-full border-b border-gray-300 focus:outline-none focus:border-black py-2"
               />
             </div>
+
+            {error && (
+              <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
+            )}
 
             <Button text="Sign In" variant="default" />
 
@@ -68,10 +109,7 @@ function LoginPage() {
             </Link>
 
             <div className="text-right">
-              <a
-                href="#"
-                className="text-blue-500 text-sm hover:underline"
-              >
+              <a href="#" className="text-blue-500 text-sm hover:underline">
                 Forget Password?
               </a>
             </div>

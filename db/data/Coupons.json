@@ -1,0 +1,13 @@
+[
+    {
+        "id": 1,
+        "code": "SALE20",
+        "type": "percentage",
+        "value": 20,
+        "minimumOrderAmount": 300000,
+        "expirationDate": { "$date": "2024-12-31T23:59:59Z" },
+        "usageLimit": 500,
+        "usedCount": 150,
+        "isActive": true
+    }
+]

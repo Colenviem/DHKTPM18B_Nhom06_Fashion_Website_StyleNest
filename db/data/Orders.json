@@ -1,0 +1,33 @@
+[
+    {
+        "id": 1,
+        "user": { 
+            "id": 1, 
+            "username": "Nguyễn Văn A" 
+        },
+        "orderNumber": "ORD-20241009-0001",
+        "status": "Delivered",
+        "shippingAddress": {
+            "name": "Nguyễn Văn A",
+            "street": "123 Đường Hai Bà Trưng, Phường Bến Nghé, TP. Hồ Chí Minh",
+            "phoneNumber": "0901234567"
+        },
+        "items": [
+            {
+                "productId": { "$oid": "6523a6b8c9d1e0f4a7b5c3d3" },
+                "name": "Áo Thun Cotton Oversize",
+                "variantId": "ATOS-DE-L",
+                "quantity": 2,
+                "unitPrice": 199000
+            }
+        ],
+        "subtotal": 398000, 
+        "shippingFee": 30000,
+        "couponCode": "SALE20",
+        "discountAmount": 79600, 
+        "totalAmount": 348400,
+        "paymentMethod": "Card",
+        "createdAt": { "$date": "2024-10-08T14:00:00Z" },
+        "updatedAt": { "$date": "2024-10-09T09:00:00Z" }
+    }
+]

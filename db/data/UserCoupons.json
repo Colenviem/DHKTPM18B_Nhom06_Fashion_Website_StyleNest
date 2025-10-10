@@ -1,0 +1,12 @@
+[
+     {
+        "id": 1,
+        "userId": 1,
+        "couponId": 1, 
+        "code": "VIP100K",
+        "isUsed": false,
+        "usedCount": 0,
+        "expirationDate": { "$date": "2025-06-30T23:59:59Z" },
+        "orderUsed": null
+    }
+]

@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "user": { 
+        "id": 1,
+        "username": "Nguyễn Văn A"
+    },
+    "items": [
+      {
+        "product": { 
+            "id": 1,
+            "name": "Áo Thun Cotton Oversize",
+            "image": "url/image/aothun1.jpg",
+            "price": 225000,
+            "discount": 10
+        },
+        "quantity": 1,
+        "priceAtTime": 199000
+      }
+    ],
+    "totalQuantity": 1,
+    "totalPrice": 199000,
+    "updatedAt": { "$date": "2024-10-09T10:30:00Z" }
+  }
+]

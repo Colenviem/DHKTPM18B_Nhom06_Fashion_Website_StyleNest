@@ -1,10 +1,16 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import "boxicons/css/boxicons.min.css";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FaUserCircle } from "react-icons/fa";
+import { useContext } from "react";
+import { UserContext } from "../../context/UserContext";
 
 const Header = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const { user, logout } = useContext(UserContext);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navItems = [
     { name: "Giới thiệu", to: "/" },
@@ -55,27 +61,62 @@ const Header = () => {
                 <span className="sm:hidden">@</span>gianghuy.com
               </span>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2 cursor-pointer hover:text-white/90 transition-colors">
-              <i className="bx bx-user text-white text-[16px]"></i>
-              <span className="text-white text-[14px] sm:text-sm">
-                <div className="hidden sm:inline space-x-2">
-                  <Link 
-                    to="/login" 
-                    className="text-white font-bold no-underline hover:text-gray-200 cursor-pointer"
-                  >
-                    Đăng nhập
-                  </Link>
-                  <span className="text-white font-bold">/</span>
-                  <Link 
-                    to="/register" 
-                    className="text-white font-bold no-underline hover:text-gray-200 cursor-pointer"
-                  >
-                    Đăng ký
-                  </Link>
-                </div>
-                <span className="sm:hidden">Đăng nhập</span>
-              </span>
-            </div>
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="flex items-center gap-2 text-gray-700 hover:text-black"
+                >
+                  <FaUserCircle className="w-6 h-6" />
+                  <span>{user.username}</span>
+                </button>
+
+                {menuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    <div className="flex flex-col">
+                      <button
+                        onClick={() => {}}
+                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 text-left"
+                      >
+                        Trang cá nhân
+                      </button>
+                      <button
+                        onClick={() => {
+                          logout();
+                          navigate("/");
+                          setMenuOpen(false);
+                        }}
+                        className="px-4 py-2 text-red-600 hover:bg-gray-100 text-left"
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 sm:gap-2 cursor-pointer hover:text-white/90 transition-colors">
+                <i className="bx bx-user text-white text-[16px]"></i>
+                <span className="text-white text-[14px] sm:text-sm">
+                  <div className="hidden sm:inline space-x-2">
+                    <Link
+                      to="/login"
+                      className="text-white font-bold no-underline hover:text-gray-200 cursor-pointer"
+                    >
+                      Đăng nhập
+                    </Link>
+                    <span className="text-white font-bold">/</span>
+                    <Link
+                      to="/register"
+                      className="text-white font-bold no-underline hover:text-gray-200 cursor-pointer"
+                    >
+                      Đăng ký
+                    </Link>
+                  </div>
+                  <span className="sm:hidden">Đăng nhập</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

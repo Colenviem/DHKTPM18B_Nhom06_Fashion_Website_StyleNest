@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "user": { 
+        "id": 1, 
+        "fullName": "Nguyễn Văn A" 
+    },
+    "productId": 1,
+    "rating": 5,
+    "comment": "Áo rất đẹp, vải mát và form chuẩn. Giao hàng nhanh.",
+    "images": ["url/review/anh1.jpg"],
+    "isApproved": true,
+    "createdAt": { "$date": "2024-10-10T12:00:00Z" }
+  }
+]
