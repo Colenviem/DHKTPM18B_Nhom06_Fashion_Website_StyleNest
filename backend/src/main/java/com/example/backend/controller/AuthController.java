@@ -1,28 +1,58 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.LoginRequest;
-import com.example.backend.dto.LoginResponse;
 import com.example.backend.entity.User;
 import com.example.backend.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Cho phép frontend gọi API
-//@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public AuthController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/login")
-    public Object login(@RequestBody LoginRequest loginRequest) {
-        User user = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
-        if (user != null) {
-            return new LoginResponse("success", user);
+    public ResponseEntity<?> login(@RequestBody UserLogin login, HttpSession session) {
+        Optional<User> user = userService.login(login.getUsername(), login.getPassword());
+        if (!user.isPresent()) {
+            return ResponseEntity.status(401).body("Invalid username or password");
         }
-        return new LoginResponse("fail", null);
+        // Lưu user vào session
+        session.setAttribute("user", user.get());
+        return ResponseEntity.ok("Login successful");
+    }
+
+    @GetMapping("/current-user")
+    public ResponseEntity<?> currentUser(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user != null) {
+            return ResponseEntity.ok(user);
+        } else {
+            return ResponseEntity.status(401).body("No active session");
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok("Logged out successfully");
     }
 }
 
+class UserLogin {
+    private String username;
+    private String password;
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+}

@@ -1,5 +1,4 @@
-import { useState, useContext } from "react";
-import { UserContext } from "../../context/UserContext";
+import { useState } from "react";
 import axios from "axios";
 import Button from "../../components/ui/Button";
 import { FcGoogle } from "react-icons/fc";
@@ -11,32 +10,29 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login } = useContext(UserContext);
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // chặn reload trang
+  e.preventDefault();
 
-    try {
-      const res = await axios.post("http://localhost:8080/api/auth/login", {
-        username,
-        password,
-      });
+  try {
+    const res = await axios.post(
+      "http://localhost:8080/api/auth/login",
+      { username, password },
+      { withCredentials: true } // quan trọng: để cookie session được gửi
+    );
 
-      if (res.data.status === "success") {
-        login(res.data.user); // cập nhật context
-        // Chuyển hướng sang trang chính (ví dụ /home hoặc /dashboard)
-        navigate("/");
-      } else {
-        setError("Sai tên đăng nhập hoặc mật khẩu!");
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("Không thể kết nối đến server!");
+    if (res.status === 200) {
+      // Đăng nhập thành công, chuyển hướng
+      navigate("/");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setError(err.response?.data?.message || "Invalid username or password!");
+  }
+};
 
   return (
-    <div className="flex items-center justify-center bg-gray-50 min-h-screen">
+    <div className="flex items-center justify-center bg-gray-50 min-h-[70vh] px-4">
       <div className="p-10 bg-white shadow-md rounded-2xl overflow-hidden flex w-full max-w-5xl">
         {/* Left Image */}
         <div className="hidden md:block w-1/2">
@@ -116,9 +112,7 @@ function LoginPage() {
           </form>
 
           {/* Footer */}
-          <p className="text-xs text-gray-500 mt-8">
-            FASCO Terms & Conditions
-          </p>
+          <p className="text-xs text-gray-500 mt-8">FASCO Terms & Conditions</p>
         </div>
       </div>
     </div>

@@ -1,16 +1,44 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
-import { useContext } from "react";
-import { UserContext } from "../../context/UserContext";
+import axios from "axios";
 
 const Header = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { user, logout } = useContext(UserContext);
+  const [user, setUser] = useState(null);
+  const location = useLocation();  
+
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:8080/api/auth/current-user",
+          {
+            withCredentials: true,
+          }
+        );
+        setUser(res.data);
+      } catch (err) {
+        setUser(null); // chưa đăng nhập
+      }
+    };
+    fetchUser();
+  }, [location]);
+
+  const handleLogout = async () => {
+    await axios.post(
+      "http://localhost:8080/api/auth/logout",
+      {},
+      { withCredentials: true }
+    );
+    setUser(null);
+    navigate("/login");
+  };
 
   const navItems = [
     { name: "Giới thiệu", to: "/" },
@@ -82,7 +110,7 @@ const Header = () => {
                       </button>
                       <button
                         onClick={() => {
-                          logout();
+                          handleLogout();
                           navigate("/");
                           setMenuOpen(false);
                         }}

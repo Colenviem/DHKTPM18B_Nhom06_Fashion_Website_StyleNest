@@ -23,6 +23,10 @@ public class User {
     private List<Address> addresses;
     private LocalDateTime createdAt;
 
+    public boolean isPresent() {
+        return this.id != null;
+    }
+
     // --- Inner class ---
     public static class Address {
         private String street;
