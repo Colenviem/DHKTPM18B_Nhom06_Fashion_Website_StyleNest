@@ -1,10 +1,10 @@
 [
     {
-        "id": 1,
-        "orderId": 1,
+        "_id": "PAY001",
+        "orderId": "ORD001",
         "user": { 
-            "id": 1, 
-            "fullName": "Nguyễn Văn A"
+            "id": "USR001", 
+            "userName": "Nguyễn Văn A"
         },
         "transactionId": "TXN-VNPY-20241008-ABCDEFG",
         "amount": 348400,

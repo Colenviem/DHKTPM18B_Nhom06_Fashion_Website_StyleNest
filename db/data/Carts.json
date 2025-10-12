@@ -1,25 +1,37 @@
 [
-  {
-    "id": 1,
-    "user": { 
-        "id": 1,
-        "username": "Nguyễn Văn A"
-    },
-    "items": [
-      {
-        "product": { 
-            "id": 1,
-            "name": "Áo Thun Cotton Oversize",
-            "image": "url/image/aothun1.jpg",
-            "price": 225000,
-            "discount": 10
+    {
+        "_id": "CART001",
+        "user": { 
+          "id": "U001",
+          "userName": "Nguyễn Văn A"
         },
-        "quantity": 1,
-        "priceAtTime": 199000
-      }
-    ],
-    "totalQuantity": 1,
-    "totalPrice": 199000,
-    "updatedAt": { "$date": "2024-10-09T10:30:00Z" }
-  }
+        "items": [
+          {
+            "product": { 
+              "id": "P001",
+              "name": "Áo Thun Cotton Oversize",
+              "image": "https://example.com/images/aothun1.jpg",
+              "price": 225000,
+              "discount": 10
+            },
+            "quantity": 1,
+            "priceAtTime": 199000
+          },
+          {
+            "product": { 
+              "id": "P002",
+              "name": "Quần Jeans Slim Fit",
+              "image": "https://example.com/images/jeans1.jpg",
+              "price": 350000,
+              "discount": 0
+            },
+            "quantity": 2,
+            "priceAtTime": 350000
+          }
+        ],
+        "totalQuantity": 3,
+        "totalPrice": 899000,
+        "createdAt": { "$date": "2024-09-01T10:00:00Z" },
+        "updatedAt": { "$date": "2024-09-01T10:00:00Z" }
+    }
 ]

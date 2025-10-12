@@ -1,24 +1,40 @@
 [
     {
-        "id": 1,
+        "_id": "USR001",
         "firstName": "Nguyễn",
         "lastName": "Văn A",
         "fullName": "Nguyễn Văn A",
         "email": "vana@example.com",
         "username": "vana",
         "password": "$2a$10$HASHED_PASSWORD_FOR_VANA",
-        "role": "customer",
-        "phoneNumber": "0901234567",
+        "role": "CUSTOMER",
         "addresses": [
             {
-                "street": "123 Đường Hai Bà Trưng, Phường Bến Nghé",
-                "city": "TP. Hồ Chí Minh",
+                "id": "ADDR001",
+                "name": "Nguyễn Văn A",
+                "street": "123 Đường Hai Bà Trưng, Phường Bến Nghé, TP. Hồ Chí Minh",
+                "phoneNumber": "0901234567",
                 "isDefault": true
             },
             {
+                "id": "ADDR002",
                 "street": "456 Đường Cầu Giấy",
                 "city": "Hà Nội",
+                "phoneNumber": "0901234567",
                 "isDefault": false
+            }
+        ],
+        "coupons": [
+            {
+                "id": "CPN001",
+                "code": "SALE20",
+                "discount": 10,
+                "description": "Giảm 20% cho đơn hàng từ 300,000 VND",
+                "type": "ORDER",
+                "minimumOrderAmount": 300000,
+                "expirationDate": { "$date": "2024-12-31T23:59:59Z" },
+                "isUsed": false,
+                "isActive": true
             }
         ],
         "createdAt": { "$date": "2023-01-15T08:00:00Z" }

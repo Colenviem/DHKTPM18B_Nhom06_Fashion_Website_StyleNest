@@ -1,15 +1,24 @@
 [
-  {
-    "id": 1,
-    "user": { 
-        "id": 1, 
-        "fullName": "Nguyễn Văn A" 
-    },
-    "productId": 1,
-    "rating": 5,
-    "comment": "Áo rất đẹp, vải mát và form chuẩn. Giao hàng nhanh.",
-    "images": ["url/review/anh1.jpg"],
-    "isApproved": true,
-    "createdAt": { "$date": "2024-10-10T12:00:00Z" }
-  }
+    {
+        "_id": "REV001",
+        "user": {
+            "id": "USR001",
+            "userName": "Nguyễn Văn A"
+        },
+        "product": {
+            "id": "PRD001",
+            "name": "Áo Thun Cotton Oversize",
+            "image": "https://example.com/images/aothun-white-1.jpg",
+            "price": 250000,
+            "discount": 10
+        },
+        "rating": 5,
+        "comment": "Áo rất đẹp, vải mát và form chuẩn. Giao hàng nhanh.",
+        "images": [
+          "https://example.com/reviews/anh1.jpg"
+        ],
+        "isApproved": true,
+        "likes": 12,
+        "createdAt": { "$date": "2024-10-10T12:00:00Z" }
+    }
 ]

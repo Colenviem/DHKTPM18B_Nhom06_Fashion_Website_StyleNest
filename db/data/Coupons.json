@@ -1,9 +1,10 @@
 [
     {
-        "id": 1,
+        "_id": "CPN001",
         "code": "SALE20",
-        "type": "percentage",
-        "value": 20,
+        "type": "ORDER",
+        "discount": 20,
+        "description": "Giảm 20% cho đơn hàng từ 300,000 VND",
         "minimumOrderAmount": 300000,
         "expirationDate": { "$date": "2024-12-31T23:59:59Z" },
         "usageLimit": 500,
