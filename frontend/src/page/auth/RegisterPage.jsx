@@ -1,7 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import Button from "../../components/ui/Button";
-import { Link, useNavigate } from "react-router-dom";
 
 function RegisterPage() {
 
@@ -65,7 +64,7 @@ function RegisterPage() {
         { withCredentials: true }
       );
 
-      setMessage(res.data.message || "User registered successfully!");
+      setMessage(res.data.message || "Đăng ký thành công!");
       setIsSuccess(true);
       setFormData({
         userName: "",
@@ -78,7 +77,7 @@ function RegisterPage() {
       });
     } catch (err) {
       setMessage(
-        err.response?.data?.message || "Registration failed. Please try again."
+        err.response?.data?.message || "Đăng ký không thành công. Vui lòng thử lại."
       );
       setIsSuccess(false);
     }
@@ -149,7 +148,7 @@ function RegisterPage() {
             </div>
           </form>
 
-          {/* ✅ Message color: green if success, red if error */}
+          {/* ✅ Message color: xanh nếu thành công, đỏ nếu lỗi */}
           {message && (
             <p
               className={`text-center mt-4 text-lg font-medium ${

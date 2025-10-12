@@ -18,16 +18,31 @@ function LoginPage() {
     const res = await axios.post(
       "http://localhost:8080/api/auth/login",
       { username, password },
-      { withCredentials: true } // quan trọng: để cookie session được gửi
+      { withCredentials: true } // gửi cookie session
     );
 
     if (res.status === 200) {
-      // Đăng nhập thành công, chuyển hướng
-      navigate("/");
+      navigate("/"); // đăng nhập thành công
     }
   } catch (err) {
-    console.error(err);
-    setError(err.response?.data?.message || "Invalid username or password!");
+    console.error("Login error:", err);
+
+    // Nếu server có phản hồi (HTTP status khác 2xx)
+    if (err.response) {
+      if (err.response.status === 401) {
+        setError("Sai tên đăng nhập hoặc mật khẩu!");
+      } else {
+        setError(`Lỗi từ server: ${err.response.data || err.response.statusText}`);
+      }
+
+    // Nếu request đã gửi nhưng không nhận được phản hồi (server không phản hồi)
+    } else if (err.request) {
+      setError("Không thể kết nối đến server. Vui lòng thử lại sau!");
+
+    // Lỗi khác (ví dụ lỗi cú pháp, lỗi JS, v.v.)
+    } else {
+      setError("Đã xảy ra lỗi không xác định: " + err.message);
+    }
   }
 };
 
