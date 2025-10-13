@@ -1,48 +1,30 @@
 package modules.controller;
 
 import modules.entity.User;
-import modules.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import modules.service.UserService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:5173" , allowCredentials = "true")
 public class UserController {
+    private final UserService service;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        // Kiểm tra username đã tồn tại chưa
-        Optional<User> existingUsername = userRepository.findByUsername(user.getUsername());
-        if (existingUsername.isPresent()) {
-            return ResponseEntity.badRequest().body(new Response("Username already exists!"));
-        }
-
-        // Kiểm tra email đã tồn tại chưa
-        Optional<User> existingEmail = userRepository.findByEmail(user.getEmail());
-        if (existingEmail.isPresent()) {
-            return ResponseEntity.badRequest().body(new Response("Email already exists!"));
-        }
-
-        // Hash mật khẩu
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setCreatedAt(Instant.now());
-        user.setFullName(user.getFirstName() + " " + user.getLastName());
-
-        // Lưu
-        userRepository.save(user);
-        return ResponseEntity.ok(new Response("User registered successfully!"));
+    public UserController(UserService service) {
+        this.service = service;
     }
 
-    record Response(String message) {}
+    @GetMapping
+    public List<User> findAll() {
+        return service.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public User findById(@PathVariable String id) {
+        return service.findById(id);
+    }
 }

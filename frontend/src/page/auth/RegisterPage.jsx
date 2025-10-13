@@ -17,7 +17,7 @@ function RegisterPage() {
 
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
-  const [isSuccess, setIsSuccess] = useState(null); //true = success, false = error
+  const [isSuccess, setIsSuccess] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

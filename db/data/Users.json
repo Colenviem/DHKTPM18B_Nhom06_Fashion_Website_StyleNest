@@ -3,11 +3,7 @@
         "_id": "USR001",
         "firstName": "Nguyễn",
         "lastName": "Văn A",
-        "fullName": "Nguyễn Văn A",
         "email": "vana@example.com",
-        "username": "vana",
-        "password": "$2a$10$HASHED_PASSWORD_FOR_VANA",
-        "role": "CUSTOMER",
         "addresses": [
             {
                 "id": "ADDR001",
