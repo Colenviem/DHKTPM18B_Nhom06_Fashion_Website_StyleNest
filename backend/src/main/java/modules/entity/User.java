@@ -19,12 +19,7 @@ public class User {
     private String id;
     private String firstName;
     private String lastName;
-    private String fullName;
     private String email;
-    private String username;
-    private String password;
-    private String role;
-    private String phoneNumber;
     private List<Address> addresses;
     private List<CouponEmbedded> coupons;
     @CreatedDate
