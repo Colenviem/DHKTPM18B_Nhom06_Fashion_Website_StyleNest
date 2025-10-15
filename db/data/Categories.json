@@ -1,0 +1,10 @@
+[
+    {
+        "_id": "CAT001",
+        "name": "Áo Nam",
+        "description": "Các loại áo dành cho nam giới: T-shirt, Polo, Sơ mi.",
+        "imageUrl": "https://example.com/banners/men-shirts.jpg",
+        "createdAt": { "$date": "2024-09-01T10:00:00Z" },
+        "updatedAt": { "$date": "2024-10-01T15:30:00Z" }
+    }
+]

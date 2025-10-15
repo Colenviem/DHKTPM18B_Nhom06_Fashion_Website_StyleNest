@@ -1,0 +1,16 @@
+[
+    {
+        "_id": "PAY001",
+        "orderId": "ORD001",
+        "user": { 
+            "id": "USR001", 
+            "userName": "Nguyễn Văn A"
+        },
+        "transactionId": "TXN-VNPY-20241008-ABCDEFG",
+        "amount": 348400,
+        "currency": "VND",
+        "status": "Success",
+        "method": "Card",
+        "createdAt": { "$date": "2024-10-08T14:05:00Z" }
+    }
+]

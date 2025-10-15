@@ -1,0 +1,69 @@
+[
+    {
+        "_id": "PRD001",
+        "name": "Áo Thun Cotton Oversize",
+        "description": "Áo thun 100% cotton, phom oversize thoải mái, thích hợp cho mùa hè.",
+        "shortDescription": "Áo thun cotton phom rộng, nhiều màu.",
+        "category": { 
+        "id": "CAT001", 
+        "name": "Áo Nam" 
+        },
+        "price": 250000,
+        "discount": 10,
+        "sold": 32,
+        "variants": [
+        {
+            "sku": "ATOS-W-M",
+            "color": "white",
+            "size": "M",
+            "inStock": 30,
+            "images": [
+            "https://example.com/images/aothun-white-1.jpg",
+            "https://example.com/images/aothun-white-2.jpg"
+            ]
+        },
+        {
+            "sku": "ATOS-W-L",
+            "color": "white",
+            "size": "L",
+            "inStock": 25,
+            "images": [
+            "https://example.com/images/aothun-white-1.jpg",
+            "https://example.com/images/aothun-white-2.jpg"
+            ]
+        },
+        {
+            "sku": "ATOS-B-M",
+            "color": "black",
+            "size": "M",
+            "inStock": 20,
+            "images": [
+            "https://example.com/images/aothun-black-1.jpg",
+            "https://example.com/images/aothun-black-2.jpg"
+            ]
+        },
+        {
+            "sku": "ATOS-B-L",
+            "color": "black",
+            "size": "L",
+            "inStock": 20,
+            "images": [
+            "https://example.com/images/aothun-black-1.jpg",
+            "https://example.com/images/aothun-black-2.jpg"
+            ]
+        }
+        ],
+        "tags": ["cotton", "oversize", "sale"],
+        "isAvailable": true,
+        "rating": {
+        "average": 4.7,
+        "count": 86
+        },
+        "brand": "Coolmate",
+        "material": "100% Cotton",
+        "origin": "Vietnam",
+        "views": 1542,
+        "createdAt": { "$date": "2024-09-01T10:00:00Z" },
+        "updatedAt": { "$date": "2024-10-01T15:30:00Z" }
+    }
+]

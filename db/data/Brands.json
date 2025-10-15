@@ -1,0 +1,12 @@
+[
+    {
+        "_id": "BR001",
+        "name": "Adidas",
+        "logoUrl": "https://example.com/logos/adidas.png",
+        "description": "Thương hiệu đồ thể thao và phong cách sống hàng đầu thế giới.",
+        "isFeatured": true,
+        "isActive": true,
+        "createdAt": "2024-10-10T12:00:00.000Z",
+        "updatedAt": "2024-10-10T12:00:00.000Z"
+    }
+]

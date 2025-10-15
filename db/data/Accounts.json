@@ -1,0 +1,10 @@
+[
+    {
+        "_id": "ACC001",
+        "userName": "vana",
+        "passWord": "$2a$10$HASHED_PASSWORD_FOR_VANA",
+        "role": "CUSTOMER",
+        "isActive": true,
+        "userId": "USR001" 
+    }
+]
