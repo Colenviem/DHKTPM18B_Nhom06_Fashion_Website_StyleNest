@@ -1,237 +1,78 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
-import axios from "axios";
+import React from "react";
+import { FiSearch, FiShoppingBag, FiMenu } from "react-icons/fi";
+import { Link } from "react-router-dom";
 
 const Header = () => {
-  const [activeDropdown, setActiveDropdown] = useState(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const [user, setUser] = useState(null);
-  const location = useLocation();  
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(
-          "http://localhost:8080/api/auth/current-user",
-          {
-            withCredentials: true,
-          }
-        );
-        setUser(res.data);
-      } catch (err) {
-        setUser(null); // chưa đăng nhập
-      }
-    };
-    fetchUser();
-  }, [location]);
-
-  const handleLogout = async () => {
-    await axios.post(
-      "http://localhost:8080/api/auth/logout",
-      {},
-      { withCredentials: true }
-    );
-    setUser(null);
-    navigate("/login");
-  };
-
-  const navItems = [
-    { name: "Giới thiệu", to: "/" },
-    {
-      name: "Dịch vụ",
-      to: "/",
-      hasDropdown: true,
-      dropdownItems: ["Dịch vụ 1", "Dịch vụ 2", "Dịch vụ 3"],
-    },
-    {
-      name: "Biểu phí",
-      to: "/",
-      hasDropdown: true,
-      dropdownItems: ["Biểu phí 1", "Biểu phí 2"],
-    },
-    {
-      name: "Tin tức",
-      to: "/",
-      hasDropdown: true,
-      dropdownItems: ["Tin mới", "Tin cũ"],
-    },
-    { name: "Hướng dẫn", to: "/" },
-    { name: "Chính sách", to: "/" },
-    { name: "Tuyển dụng", to: "/" },
-    { name: "Liên hệ", to: "/" },
-  ];
+  const hoverClasses =
+    "hover:text-black hover:scale-[1.03] transition-all duration-300";
+  const iconHoverClasses =
+    "hover:text-black hover:scale-110 transition-transform duration-300";
+  
+  const navItemHoverClasses =
+    "relative font-medium cursor-pointer transition-colors duration-300 text-gray-700 " +
+    "hover:text-black " +
+    "after:content-[''] after:absolute after:w-0 after:h-[3px] after:bg-black after:left-1/2 after:bottom-[-8px] after:rounded-full " +
+    "hover:after:w-full hover:after:left-0 after:transition-all after:duration-300 after:ease-out";
 
   return (
-    <header className="bg-white text-[#484848] w-full border-b border-gray-200 shadow-sm">
-      {/* Top bar */}
-      <div className="bg-[#d64d3c] px-2 sm:px-4 py-1.5 sm:py-2">
-        <div className="max-w-7xl mx-auto flex justify-between items-center text-xs sm:text-sm">
-          {/* Left */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            <i className="bx bx-phone text-white text-[16px]"></i>
-            <span className="text-white text-[14px] sm:text-sm">
-              <span className="hidden xs:inline">Hotline 24/7: </span>
-              <span className="font-medium">0965.54.54.64</span>
+    <header className="bg-white text-black shadow-lg shadow-gray-200/50 fixed w-full top-0 left-0 z-100 border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        
+        <Link to="/" className="flex items-center space-x-2 cursor-pointer group">
+          <img
+            src="/imgs/plant-icon.png"
+            alt="Planto logo"
+            className="w-10 h-10 object-contain transition-transform duration-500 group-hover:rotate-6" 
+          />
+          <h1 className="text-3xl font-black tracking-wider text-black transition-colors duration-300 group-hover:text-gray-800">
+            Planto.
+          </h1>{" "}
+        </Link>
+
+        <nav className="hidden md:block">
+          <ul className="flex space-x-8 text-[17px]">
+            {["Home", "Plants Type", "More", "Contact"].map((item) => (
+              <li key={item} className={navItemHoverClasses}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="flex items-center space-x-6 text-2xl">
+          
+          <FiSearch className={"cursor-pointer text-gray-700 " + iconHoverClasses} />
+          
+          <div className="relative">
+            <FiShoppingBag className={"cursor-pointer text-gray-700 " + iconHoverClasses} />
+            <span className="absolute -top-2 -right-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-black text-[11px] font-bold text-white leading-none ring-1 ring-gray-200">
+              3
             </span>
           </div>
 
-          {/* Right */}
-          <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
-            <div className="flex items-center gap-1 sm:gap-2 cursor-pointer hover:text-white/90 transition-colors">
-              <i className="bx bx-envelope text-white text-[16px]"></i>
-              <span className="text-white text-[14px] sm:text-sm">
-                <span className="hidden sm:inline">cskh@</span>
-                <span className="sm:hidden">@</span>gianghuy.com
-              </span>
-            </div>
-            {user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="flex items-center gap-2 text-gray-700 hover:text-black"
-                >
-                  <FaUserCircle className="w-6 h-6" />
-                  <span>{user.username}</span>
-                </button>
-
-                {menuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                    <div className="flex flex-col">
-                      <button
-                        onClick={() => {}}
-                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 text-left"
-                      >
-                        Trang cá nhân
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          navigate("/");
-                          setMenuOpen(false);
-                        }}
-                        className="px-4 py-2 text-red-600 hover:bg-gray-100 text-left"
-                      >
-                        Đăng xuất
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-1 sm:gap-2 cursor-pointer hover:text-white/90 transition-colors">
-                <i className="bx bx-user text-white text-[16px]"></i>
-                <span className="text-white text-[14px] sm:text-sm">
-                  <div className="hidden sm:inline space-x-2">
-                    <Link
-                      to="/login"
-                      className="text-white font-bold no-underline hover:text-gray-200 cursor-pointer"
-                    >
-                      Đăng nhập
-                    </Link>
-                    <span className="text-white font-bold">/</span>
-                    <Link
-                      to="/register"
-                      className="text-white font-bold no-underline hover:text-gray-200 cursor-pointer"
-                    >
-                      Đăng ký
-                    </Link>
-                  </div>
-                  <span className="sm:hidden">Đăng nhập</span>
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main nav */}
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 py-3">
-        {/* Logo */}
-        <Link to="/" className="text-xl font-bold text-[#d64d3c]">
-          STYLENET
-        </Link>
-
-        {/* Desktop nav */}
-        <div className="hidden lg:flex items-center gap-6 flex-1 justify-center">
-          {navItems.map((item) => (
-            <div
-              key={item.name}
-              className="relative group"
-              // bỏ onMouseEnter/onMouseLeave, dùng group-hover thay
+          <div className="hidden lg:flex items-center space-x-3 ml-4">
+            
+            <Link
+              to="/login"
+              className={"text-[15px] font-semibold cursor-pointer py-2 px-3 rounded-full text-gray-700 transition-colors " + hoverClasses}
             >
-              <Link
-                to={item.to}
-                className="flex items-center gap-1 py-2 text-[#484848] hover:text-[#d64d3c] transition-colors relative"
-              >
-                <span className="relative whitespace-nowrap">
-                  {item.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full bg-[#FF682B]"></span>
-                </span>
-                {item.hasDropdown && <i className="bx bx-chevron-down"></i>}
-              </Link>
-
-              {/* Dropdown menu */}
-              {item.hasDropdown && (
-                <div
-                  className="absolute top-full left-0 mt-1 bg-white text-[#484848] border border-gray-200 rounded-lg shadow-lg py-2 min-w-48 z-50 
-                  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
-                >
-                  {item.dropdownItems?.map((dropdownItem) => (
-                    <a
-                      key={dropdownItem}
-                      href="/"
-                      className="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                    >
-                      {dropdownItem}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Search */}
-        <div className="hidden md:flex items-center gap-2 sm:gap-4 flex-shrink-0">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Tìm kiếm..."
-              className="bg-gray-100 border border-gray-300 rounded-lg px-3 py-1.5 pr-9 lg:px-4 lg:py-2 lg:pr-10 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d64d3c]/40 focus:bg-white transition-all duration-200 w-32 lg:w-48 xl:w-56 text-sm"
-            />
-            <i className="bx bx-search absolute right-2 lg:right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
+              Đăng nhập
+            </Link>
+            
+            <Link
+              to="/register"
+              className={
+                "cursor-pointer text-[15px] font-bold py-2.5 px-6 rounded-full bg-black text-white shadow-md shadow-gray-700/30 " +
+                "transition-all duration-300 hover:bg-gray-800 hover:shadow-lg hover:shadow-gray-800/40 transform hover:scale-[1.05]"
+              }
+            >
+              Đăng ký
+            </Link>
           </div>
-        </div>
 
-        {/* Mobile menu button */}
-        <button
-          className="lg:hidden text-2xl"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          <i className={`bx ${isMobileMenuOpen ? "bx-x" : "bx-menu"}`}></i>
-        </button>
+          <FiMenu className={"md:hidden cursor-pointer text-gray-700 " + iconHoverClasses} />
+        </div>
       </div>
-
-      {/* Mobile menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-200">
-          {navItems.map((item) => (
-            <div key={item.name} className="border-b border-gray-100">
-              <Link
-                to={item.to}
-                className="block px-4 py-2 hover:bg-gray-50 text-gray-800"
-              >
-                {item.name}
-              </Link>
-            </div>
-          ))}
-        </div>
-      )}
     </header>
   );
 };
