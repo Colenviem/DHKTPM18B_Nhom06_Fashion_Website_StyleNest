@@ -1,63 +1,84 @@
 import React from "react";
-import "boxicons/css/boxicons.min.css";
+import { FiShoppingBag, FiStar } from "react-icons/fi"; 
+import RenderStars from "../ui/RenderStars";
 
-const ProductCard = ({ product ,variant = "home" }) => {
+const ProductCard = ({ product }) => {
+    const formatVND = (price) => {
+        if (typeof price === 'number') {
+            return price.toLocaleString('vi-VN') + '₫';
+        }
+        return price || '0₫'; 
+    };
+
+    const salePrice = product.price ? formatVND(product.price) : '799.000₫'; 
+
+    const originalPrice = product.originalPrice ? formatVND(product.originalPrice) : '1.299.000₫';
+
+    const discountPercentage = (product.price && product.originalPrice && typeof product.price === 'number' && typeof product.originalPrice === 'number')
+        ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+        : null;
+
     return (
-        <div className="bg-white rounded-xl overflow-hidden max-w-xs w-full border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
-            <div className="p-4 space-y-3">
-                {/* Product Image */}
-                <div className="relative rounded-lg overflow-hidden h-64">
-                    <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                    />
+        <div className="group bg-white border border-gray-200 rounded-2xl overflow-hidden max-w-xs w-full shadow-lg hover:shadow-gray-300 transition duration-500 ease-in-out transform hover:-translate-y-2 cursor-pointer">
+            
+            <div className="relative h-64 overflow-hidden rounded-t-2xl">
+                <img
+                    src={
+                        product.image ||
+                        "https://via.placeholder.com/400x400?text=SALE" 
+                    }
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+                />
+                
+                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {(product.isNew || discountPercentage) && (
+                    <span className={`absolute top-3 left-3 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md ${
+                        discountPercentage ? 'bg-red-600' : 'bg-black' 
+                    }`}>
+                        {discountPercentage ? `-${discountPercentage}%` : 'NEW'}
+                    </span>
+                )}
+            </div>
+
+            <div className="p-5 space-y-3 text-black">
+                <h2 className="text-2xl font-bold text-black line-clamp-1">{product.name || "Stylish Product Name"}</h2>
+                
+                <p className="text-sm text-gray-600 leading-normal line-clamp-2">
+                    {product.description ||
+                        "Experience the best in modern design and quality materials."}
+                </p>
+
+                <div className="flex items-center gap-1 text-yellow-500 text-sm">
+                    <RenderStars rating={product.rating} />
+                    <span className="text-gray-500 text-xs ml-1">(120 Reviews)</span>
                 </div>
 
-                {/* Product Info */}
-                <div className="space-y-3">
-                    {/* Title */}
-                    <h2 className="text-xl font-medium text-[#484848]">{product.name}</h2>
-
-                    {/* Reviews */}
-                    <div className="flex justify-between items-center my-3">
-                        <p className="text-[#484848] text-[12px] font-normal">
-                            (4.1k) Đánh giá
+                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                    <div className="flex flex-col items-start">
+                        <p className="text-3xl font-extrabold text-black leading-none">
+                            {salePrice}
                         </p>
-                        <div className="flex items-center text-yellow-400 text-sm">
-                            <i className="bx bxs-star"></i>
-                            <i className="bx bxs-star"></i>
-                            <i className="bx bxs-star"></i>
-                            <i className="bx bxs-star"></i>
-                            <i className="bx bx-star"></i>
+                        
+                        <div className="flex items-center gap-3">
+                            <p className="text-sm text-gray-500 line-through mt-1">
+                                {originalPrice}
+                            </p>
+                            {discountPercentage && (
+                                <p className="text-sm text-red-600 font-bold mt-1">
+                                    -{discountPercentage}%
+                                </p>
+                            )}
                         </div>
                     </div>
-
-                    {/* Price + Status */}
-                    <div className="flex items-baseline justify-between">
-                        <p className="text-2xl font-medium text-[#484848] flex items-baseline gap-1">
-                            {product.price}
-                            <span className="text-base text-gray-600 underline">đ</span>
-                        </p>
-                        <span className="text-[12px] text-red-500 font-normal">
-                            Gần bán hết
-                        </span>
-                    </div>
-
-                    {/* Button */}
-                    {variant === "home" ? (
-                        <button className="w-full bg-black text-white py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium tracking-wide 
-                                            border border-transparent hover:bg-white hover:text-[#484848] hover:border-gray-300 hover:shadow-md transition-all duration-300">
-                            <i className="bx bx-show text-lg"></i>
-                            Xem chi tiết
-                        </button>
-                        ) : (
-                        <button className="w-full bg-black text-white py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium tracking-wide 
-                                            border border-transparent hover:bg-white hover:text-[#484848] hover:border-gray-300 hover:shadow-md transition-all duration-300">
-                            <i className="bx bx-cart-alt text-lg"></i>
-                            Thêm vào giỏ
-                        </button>
-                    )}
+                    
+                    <button 
+                        className="p-3 bg-transparent border-2 border-black text-black rounded-full hover:bg-black hover:text-white transition-all duration-300 transform group-hover:scale-105 shadow-md shadow-black/10"
+                        aria-label="Add to cart"
+                    >
+                        <FiShoppingBag className="text-xl" />
+                    </button>
                 </div>
             </div>
         </div>
