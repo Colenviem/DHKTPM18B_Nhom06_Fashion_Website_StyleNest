@@ -1,5 +1,6 @@
 import React from "react";
-import { FiInstagram } from "react-icons/fi"; 
+import { FiInstagram } from "react-icons/fi";
+import { Link } from "react-router-dom"; 
 
 const InstagramFeedSection = () => {
     const instagramPosts = [
@@ -18,14 +19,14 @@ const InstagramFeedSection = () => {
                         <span className="block text-lg font-medium text-gray-500 uppercase tracking-widest mb-1">
                             #FashionInLight
                         </span>
-                        Follow Us On Instagram
+                        Theo dõi chúng tôi trên Instagram
                     </h2>
                     <p className="text-gray-700 max-w-3xl mx-auto text-pretty text-lg leading-relaxed">
                         Hãy theo dõi chúng tôi để cập nhật những bộ sưu tập mới nhất, tin tức thời trang và những ưu đãi độc quyền!
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-10">
                     {instagramPosts.map((post, index) => (
                         <div
                         key={index}
@@ -40,13 +41,13 @@ const InstagramFeedSection = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out">
-                            <a 
-                                href="#"
+                            <Link 
+                                to="#"
                                 className="bg-black/80 backdrop-blur-sm p-4 rounded-full border border-white/30 hover:scale-110 transition-transform duration-300"
                                 aria-label="View on Instagram"
                             >
                                 <FiInstagram className="text-white text-xl" />
-                            </a>
+                            </Link>
                         </div>
                         </div>
                     ))}

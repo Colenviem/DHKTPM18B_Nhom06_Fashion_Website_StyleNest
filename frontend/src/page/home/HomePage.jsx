@@ -17,11 +17,8 @@ const HomePage = () => {
     return (
         <div className="min-h-screen w-full space-y-10">
             <DealsSection products={products} />
-
             <NewArrivalsSection products={products} />
-
             <InstagramFeedSection/>
-            
             <TestimonialsSection/>
         </div>
     )

@@ -47,14 +47,13 @@ const DealsSection = ({ products }) => {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#0b0014] via-[#130026] to-[#0b0014] text-white py-42">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(187,134,252,0.15),transparent_60%)] pointer-events-none"></div>
-
       <div className="relative max-w-7xl mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div className="z-10">
           <span className="text-sm font-semibold uppercase tracking-widest text-purple-300 mb-3 inline-block">
             Ưu Đãi Hàng Tháng
           </span>
           <h2 className="text-5xl font-extrabold mb-4 text-white leading-tight">
-            Deals Of The Month
+            Ưu đãi của tháng
           </h2>
           <p className="text-gray-400 mb-8 max-w-lg leading-relaxed">
             Khám phá các ưu đãi độc quyền chỉ có trong tháng này!

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import ProductCard from './ProductCard';
+import ListProduct from './ListProduct'; 
 
 const NewArrivalsSection = ({ 
     products,
@@ -19,7 +19,7 @@ const NewArrivalsSection = ({
 
     return (
         <div className="bg-white text-black">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-2">
                 <div className="text-center mb-8">
                     <h2 className="text-5xl font-bold text-black mb-4 text-balance">
                         {title}
@@ -45,21 +45,11 @@ const NewArrivalsSection = ({
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
-                    {filteredProducts.length > 0 ? (
-                        filteredProducts.map((product) => (
-                            <ProductCard key={product.id} product={product} variant={"light"} /> 
-                        ))
-                    ) : (
-                        <div className="col-span-full text-center py-10">
-                            <p className="text-xl text-gray-700">Không tìm thấy sản phẩm nào trong danh mục **{activeCategory}**.</p>
-                        </div>
-                    )}
-                </div>
+                <ListProduct products={filteredProducts} activeCategory={activeCategory} />
 
                 <div className="text-center">
                     <button className="bg-transparent border-2 border-black text-black font-semibold hover:bg-black hover:text-white px-10 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.03] shadow-lg shadow-black/10">
-                        View More
+                        Xem Thêm Sản Phẩm
                     </button>
                 </div>
             </div>
