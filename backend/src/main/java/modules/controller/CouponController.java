@@ -1,7 +1,7 @@
 package modules.controller;
 
 import modules.entity.Coupon;
-import modules.service.CouponService;
+import modules.service.impl.CouponServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,9 +12,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/coupons")
 public class CouponController {
-    private final CouponService service;
+    private final CouponServiceImpl service;
 
-    public CouponController(CouponService service) {
+    public CouponController(CouponServiceImpl service) {
         this.service = service;
     }
 

@@ -1,7 +1,7 @@
 package modules.controller;
 
 import modules.entity.Brand;
-import modules.service.BrandService;
+import modules.service.impl.BrandServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,9 +12,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/brands")
 public class BrandController {
-    private final BrandService service;
+    private final BrandServiceImpl service;
 
-    public BrandController(BrandService service) {
+    public BrandController(BrandServiceImpl service) {
         this.service = service;
     }
 
