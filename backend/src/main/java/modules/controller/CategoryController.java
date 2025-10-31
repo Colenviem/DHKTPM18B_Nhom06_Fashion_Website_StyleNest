@@ -1,7 +1,7 @@
 package modules.controller;
 
 import modules.entity.Category;
-import modules.service.CategoryService;
+import modules.service.impl.CategoryServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,9 +12,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
-    private final CategoryService service;
+    private final CategoryServiceImpl service;
 
-    public CategoryController(CategoryService service) {
+    public CategoryController(CategoryServiceImpl service) {
         this.service = service;
     }
 

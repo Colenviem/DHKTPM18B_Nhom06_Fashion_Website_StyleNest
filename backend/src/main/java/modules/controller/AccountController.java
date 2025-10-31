@@ -1,7 +1,7 @@
 package modules.controller;
 
 import modules.entity.Account;
-import modules.service.AccountService;
+import modules.service.impl.AccountServiceImpl;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -9,9 +9,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountController {
-    private final AccountService service;
+    private final AccountServiceImpl service;
 
-    public AccountController(AccountService service) {
+    public AccountController(AccountServiceImpl service) {
         this.service = service;
     }
 

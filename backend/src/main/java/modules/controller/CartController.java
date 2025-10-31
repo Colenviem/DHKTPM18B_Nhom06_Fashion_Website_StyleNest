@@ -1,7 +1,7 @@
 package modules.controller;
 
 import modules.entity.Cart;
-import modules.service.CartService;
+import modules.service.impl.CartServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,9 +12,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/carts")
 public class CartController {
-    private final CartService service;
+    private final CartServiceImpl service;
 
-    public CartController(CartService service) {
+    public CartController(CartServiceImpl service) {
         this.service = service;
     }
 

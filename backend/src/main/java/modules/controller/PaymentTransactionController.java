@@ -1,7 +1,7 @@
 package modules.controller;
 
 import modules.entity.PaymentTransaction;
-import modules.service.PaymentTransactionService;
+import modules.service.impl.PaymentTransactionServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,9 +12,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/payment")
 public class PaymentTransactionController {
-    private final PaymentTransactionService service;
+    private final PaymentTransactionServiceImpl service;
 
-    public PaymentTransactionController(PaymentTransactionService service) {
+    public PaymentTransactionController(PaymentTransactionServiceImpl service) {
         this.service = service;
     }
 
