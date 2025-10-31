@@ -21,7 +21,7 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public Account findById(String id) {
+    public Account findById(@PathVariable String id) {
         return service.findById(id);
     }
 }
