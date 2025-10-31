@@ -17,12 +17,12 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 group">
             <img
-              src="/imgs/plant-icon.png"
+              src="../../assets/logo.png"
               alt="Logo"
               className="w-10 h-10 transition-transform duration-500 group-hover:rotate-6"
             />
             <h1 className="text-3xl font-semibold text-[#6F47EB]">
-              Planto
+              STYLENEST
             </h1>
           </Link>
 

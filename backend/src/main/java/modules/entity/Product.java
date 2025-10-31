@@ -18,6 +18,7 @@ public class Product {
     private String description;
     private String shortDescription;
     private CategoryRef category;
+    private String image;
     private double price;
     private double discount;
     private int sold;
@@ -33,6 +34,14 @@ public class Product {
     private Instant createdAt;
     @LastModifiedDate
     private Instant updatedAt;
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
 
     public String getId() {
         return id;
