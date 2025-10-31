@@ -45,7 +45,7 @@ function LoginPage() {
         <div className="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-center">
           <h1 className="text-4xl font-bold text-gray-900">Chào mừng trở lại</h1>
           <p className="text-gray-600 mt-1 mb-8">
-            Đăng nhập vào <span className="font-semibold text-[#6F47EB]">Planto</span>
+            Đăng nhập vào <span className="font-semibold text-[#6F47EB]">StyleNest</span>
           </p>
 
           <button className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2.5 rounded-xl hover:bg-gray-100 transition">

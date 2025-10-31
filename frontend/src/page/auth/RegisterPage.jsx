@@ -126,7 +126,7 @@ function RegisterPage() {
           </h1>
           <p className="text-gray-600 mt-1 mb-10 text-lg">
             Tham gia cộng đồng{" "}
-            <span className="font-bold text-[#6F47EB]">Planto</span>
+            <span className="font-bold text-[#6F47EB]">StyleNest</span>
           </p>
 
           <form

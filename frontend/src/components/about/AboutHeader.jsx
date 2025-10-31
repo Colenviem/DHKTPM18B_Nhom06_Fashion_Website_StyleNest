@@ -17,7 +17,7 @@ const AboutHeader = () => (
             variants={item}
             className="text-lg font-semibold uppercase tracking-widest mb-3"
             >
-            VỀ PLANTO
+            VỀ STYLENEST
         </motion.h2>
 
         <motion.h1

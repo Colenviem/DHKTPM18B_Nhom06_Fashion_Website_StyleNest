@@ -28,7 +28,7 @@ const AboutPage = () => {
                 >
                     <p className="text-xl font-medium leading-relaxed text-[#4B5563]">
                         Tại{" "}
-                        <span className="text-black font-semibold">Planto</span>, chúng tôi tin rằng thời trang
+                        <span className="text-black font-semibold">StyleNest</span>, chúng tôi tin rằng thời trang
                         không chỉ là quần áo — mà là sự tự tin và phong cách sống.
                     </p>
 
