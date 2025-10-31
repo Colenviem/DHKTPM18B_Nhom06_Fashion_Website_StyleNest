@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Navigation from "../ui/Navigation";
 import AuthIcons from "../ui/AuthIcons";
 import SearchBar from "../ui/SearchBar";
+import logo from "../../assets/logo.png";
 
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -17,12 +18,12 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 group">
             <img
-              src="../../assets/logo.png"
+              src={logo}
               alt="Logo"
               className="w-10 h-10 transition-transform duration-500 group-hover:rotate-6"
             />
             <h1 className="text-3xl font-semibold text-[#6F47EB]">
-              STYLENEST
+              StyleNest
             </h1>
           </Link>
 
