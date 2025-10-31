@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { FiEdit2, FiTrash2, FiSearch, FiCheckCircle, FiXCircle } from "react-icons/fi";
 import { Link } from "react-router-dom";
 
-// 1. Dữ liệu Sản phẩm MỚI (chỉ lấy 2 mẫu cho gọn)
 const detailedProductsData = [
     {
         _id: "PRD001",

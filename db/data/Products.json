@@ -1,69 +1,305 @@
-[
+[{
+  "_id": "PRD001",
+  "name": "Áo Thun Cotton Oversize",
+  "description": "Áo thun 100% cotton, phom oversize thoải mái, thích hợp cho mùa hè.",
+  "shortDescription": "Áo thun cotton phom rộng, nhiều màu.",
+  "category": {
+    "id": "CAT001",
+    "name": "Áo Nam"
+  },
+  "price": 250000,
+  "discount": 10,
+  "sold": 32,
+  "variants": [
     {
-        "_id": "PRD001",
-        "name": "Áo Thun Cotton Oversize",
-        "description": "Áo thun 100% cotton, phom oversize thoải mái, thích hợp cho mùa hè.",
-        "shortDescription": "Áo thun cotton phom rộng, nhiều màu.",
-        "category": { 
-        "id": "CAT001", 
-        "name": "Áo Nam" 
-        },
-        "price": 250000,
-        "discount": 10,
-        "sold": 32,
-        "variants": [
-        {
-            "sku": "ATOS-W-M",
-            "color": "white",
-            "size": "M",
-            "inStock": 30,
-            "images": [
-            "https://example.com/images/aothun-white-1.jpg",
-            "https://example.com/images/aothun-white-2.jpg"
-            ]
-        },
-        {
-            "sku": "ATOS-W-L",
-            "color": "white",
-            "size": "L",
-            "inStock": 25,
-            "images": [
-            "https://example.com/images/aothun-white-1.jpg",
-            "https://example.com/images/aothun-white-2.jpg"
-            ]
-        },
-        {
-            "sku": "ATOS-B-M",
-            "color": "black",
-            "size": "M",
-            "inStock": 20,
-            "images": [
-            "https://example.com/images/aothun-black-1.jpg",
-            "https://example.com/images/aothun-black-2.jpg"
-            ]
-        },
-        {
-            "sku": "ATOS-B-L",
-            "color": "black",
-            "size": "L",
-            "inStock": 20,
-            "images": [
-            "https://example.com/images/aothun-black-1.jpg",
-            "https://example.com/images/aothun-black-2.jpg"
-            ]
-        }
-        ],
-        "tags": ["cotton", "oversize", "sale"],
-        "isAvailable": true,
-        "rating": {
-        "average": 4.7,
-        "count": 86
-        },
-        "brand": "Coolmate",
-        "material": "100% Cotton",
-        "origin": "Vietnam",
-        "views": 1542,
-        "createdAt": { "$date": "2024-09-01T10:00:00Z" },
-        "updatedAt": { "$date": "2024-10-01T15:30:00Z" }
+      "sku": "ATOS-W-L",
+      "color": "white",
+      "size": "L",
+      "inStock": 30,
+      "images": [
+        "https://product.hstatic.net/200000386961/product/nls_2328_6e090ea9cc0340d79a7b5b355992438e_master.jpg",
+        "https://product.hstatic.net/200000386961/product/nls_2331_ef9f89a0213645dbaf2ef51de1b37434_master.jpg"
+      ],
+      "isAvailable": "true"
+    },
+    {
+      "sku": "ATOS-W-M",
+      "color": "white",
+      "size": "M",
+      "inStock": 25,
+      "images": [
+        "https://product.hstatic.net/200000386961/product/nls_2329_7ff1b2dde91f42d0a9bbd446b60acb47_compact.jpg",
+        "https://product.hstatic.net/200000386961/product/nls_2329_7ff1b2dde91f42d0a9bbd446b60acb47_compact.jpg"
+      ],
+      "isAvailable": "true"
+    },
+    {
+      "sku": "ATOS-B-M",
+      "color": "black",
+      "size": "M",
+      "inStock": 20,
+      "images": [
+        "https://product.hstatic.net/200000386961/product/nls_2321_33560145f010438aa5befbf2d969ae0f_master.jpg",
+        "https://product.hstatic.net/200000386961/product/nls_2327_33a21f08d865437e8d6a2c4f44d8c638_master.jpg"
+      ],
+      "isAvailable": "true"
+    },
+    {
+      "sku": "ATOS-B-L",
+      "color": "black",
+      "size": "L",
+      "inStock": 20,
+      "images": [
+        "https://product.hstatic.net/200000386961/product/nls_2324_b0308d790e254be391f34717def3d229_master.jpg",
+        "https://product.hstatic.net/200000386961/product/nls_2325_0a83b63d9f8e4fa7905f9895b2c3688c_master.jpg"
+      ],
+      "isAvailable": "true"
     }
-]
+  ],
+  "tags": [
+    "cotton",
+    "oversize",
+    "sale"
+  ],
+  "isAvailable": true,
+  "rating": {
+    "average": 4.7,
+    "count": 86
+  },
+  "brand": "Coolmate",
+  "material": "100% Cotton",
+  "origin": "Vietnam",
+  "views": 1542,
+  "createdAt": {
+    "$date": "2024-09-01T10:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2024-10-01T15:30:00.000Z"
+  }
+},
+{
+  "_id": "PRD002",
+  "name": "Áo tập thể dục oversize Cotton",
+  "description": "Áo thun 100% cotton, phom bigsize thoải mái, thích hợp cho mùa hè.",
+  "shortDescription": "Áo thun cotton phom rộng, nhiều màu.",
+  "category": {
+    "id": "CAT001",
+    "name": "Áo Nam"
+  },
+  "price": 250000,
+  "discount": 10,
+  "sold": 32,
+  "variants": [
+    {
+      "sku": "ATOS-W-M",
+      "color": "orange",
+      "size": "M",
+      "inStock": 30,
+      "images": [
+        "https://product.hstatic.net/200000386961/product/83f9b3c4-daac-4996-9488-748fa36f29cf_1d8e4fb7579640eea8b266644ea1e1bb_master.jpeg",
+        "https://cdn.hstatic.net/products/200000386961/512d0c7b-45f8-4270-ab42-5199273f65ab_acbec8e2dc5c4b1f9c4906c71585a51c_master.jpeg",
+        "https://product.hstatic.net/200000386961/product/ec1c7582-8b87-4e77-baa0-9aeb05dedafb_1857afafbded46c68744c203c03c89dd_master.jpeg"
+      ]
+    },
+    {
+      "sku": "ATOS-W-L",
+      "color": "black",
+      "size": "L",
+      "inStock": 25,
+      "images": [
+        "https://product.hstatic.net/200000386961/product/f3d74a35-111f-4983-b527-62bb6c602d8e_add2f7b7e8754cd48ec2e14ec76fa781_master.jpeg",
+        "https://cdn.hstatic.net/products/200000386961/8c8add18-872e-4fde-9228-35d7a08888e0_d6fc93b021be4a98a1d45bee64b7ae7e_master.jpeg",
+        "https://cdn.hstatic.net/products/200000386961/ab349a0e-4b20-4742-92c3-1ceac968d719_b0fc9068633e4c3992691a8ddfc793a4_master.jpeg"
+      ]
+    }
+  ],
+  "tags": [
+    "cotton",
+    "oversize",
+    "sale"
+  ],
+  "isAvailable": true,
+  "rating": {
+    "average": 4.5,
+    "count": 1110
+  },
+  "brand": "Coolmate",
+  "material": "100% Cotton",
+  "origin": "Vietnam",
+  "views": 1542,
+  "createdAt": {
+    "$date": "2024-09-01T10:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2024-10-01T15:30:00.000Z"
+  }
+},
+{
+  "_id": "PRD003",
+  "name": "Quần Jeans Nữ Lưng Cao Cổ Điển",
+  "description": "Quần jeans nữ dáng skinny, chất liệu denim co giãn thoải mái, tôn dáng, thích hợp mặc hàng ngày.",
+  "shortDescription": "Quần jeans skinny lưng cao, phong cách cổ điển.",
+  "category": {
+    "id": "CAT002",
+    "name": "Quần Nữ"
+  },
+  "price": 599000,
+  "discount": 15,
+  "sold": 150,
+  "variants": [
+    {
+      "sku": "JNS-BLU-S",
+      "color": "blue",
+      "size": "S",
+      "inStock": 50,
+      "images": [
+        "https://content.pancake.vn/1/s2050x2735/d5/0f/19/09/3241ab3412e36ae098b13c6ccaf07aeb223c0c51ab59fd4764c4cef7-w:4480-h:5976-l:10143562-t:image/jpeg.jpeg",
+        "https://content.pancake.vn/1/s2050x2735/a9/88/27/97/f62fe7cb4e373b1c5d3b36080bc1f8510f7187a32b0e5191db6aec0a-w:4480-h:5976-l:10663821-t:image/jpeg.jpeg"
+      ]
+    },
+    {
+      "sku": "JNS-BLU-M",
+      "color": "black",
+      "size": "M",
+      "inStock": 45,
+      "images": [
+        "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/480746/sub/goods_480746_sub14_3x4.jpg?width=369",
+        "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/480746/sub/goods_480746_sub15_3x4.jpg?width=369"
+      ]
+    }
+  ],
+  "tags": [
+    "jeans",
+    "skinny",
+    "nữ",
+    "denim"
+  ],
+  "isAvailable": true,
+  "rating": {
+    "average": 4.8,
+    "count": 312
+  },
+  "brand": "Levi's",
+  "material": "Denim Co Giãn",
+  "origin": "Cambodia",
+  "views": 4120,
+  "createdAt": {
+    "$date": "2024-10-10T08:30:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2024-10-25T12:00:00.000Z"
+  }
+},
+{
+  "_id": "PRD004",
+  "name": "Giày Sneaker Thể Thao Đa Năng",
+  "description": "Giày sneaker nhẹ, đế đàn hồi tốt, phù hợp cho chạy bộ, tập gym hoặc đi lại hàng ngày. Thiết kế hiện đại, thoáng khí.",
+  "shortDescription": "Sneaker chạy bộ, thoáng khí, đế êm.",
+  "category": {
+    "id": "CAT004",
+    "name": "Giày Dép"
+  },
+  "price": 1200000,
+  "discount": 0,
+  "sold": 88,
+  "variants": [
+    {
+      "sku": "SNK-GRY-40",
+      "color": "gray",
+      "size": "40",
+      "inStock": 20,
+      "images": [
+        "https://supersports.com.vn/cdn/shop/files/2063072028-2.jpg?v=1739865702",
+        "https://supersports.com.vn/cdn/shop/files/2063072028-3.jpg?v=1739865702&width=1000"
+      ]
+    },
+    {
+      "sku": "SNK-GRY-41",
+      "color": "blue",
+      "size": "41",
+      "inStock": 15,
+      "images": [
+        "https://supersports.com.vn/cdn/shop/files/2063041466-1.jpg?v=1718680530&width=1000",
+        "https://supersports.com.vn/cdn/shop/files/2063041466-3.jpg?v=1718680530&width=1000"
+      ]
+    }
+  ],
+  "tags": [
+    "sneaker",
+    "thể thao",
+    "unisex"
+  ],
+  "isAvailable": true,
+  "rating": {
+    "average": 4.6,
+    "count": 550
+  },
+  "brand": "Adidas",
+  "material": "Vải lưới, Đế cao su",
+  "origin": "Indonesia",
+  "views": 3500,
+  "createdAt": {
+    "$date": "2024-05-20T12:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2024-10-30T10:10:00.000Z"
+  }
+},
+{
+  "_id": "PRD005",
+  "name": "Thắt Lưng Da Bò Cao Cấp",
+  "description": "Thắt lưng da bò thật 100%, thiết kế khóa tự động, kiểu dáng lịch lãm, phù hợp với trang phục công sở và casual.",
+  "shortDescription": "Thắt lưng da bò, khóa tự động.",
+  "category": {
+    "id": "CAT003",
+    "name": "Phụ kiện"
+  },
+  "price": 750000,
+  "discount": 0,
+  "sold": 68,
+  "variants": [
+    {
+      "sku": "TL-BLK-110",
+      "color": "black",
+      "size": "110cm",
+      "inStock": 40,
+      "images": [
+        "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/478707/item/goods_09_478707_3x4.jpg?width=369",
+        "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/478707/sub/goods_478707_sub1_3x4.jpg?width=369",
+        "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/478707/sub/goods_478707_sub13_3x4.jpg?width=369",
+        "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/478707/sub/goods_478707_sub2_3x4.jpg?width=369"
+      ]
+    },
+    {
+      "sku": "TL-BRW-115",
+      "color": "brown",
+      "size": "115cm",
+      "inStock": 35,
+      "images": [
+        "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/476853/item/goods_37_476853_3x4.jpg?width=369",
+        "https://api.fastretailing.com/ugc/v1/uq/jp/SR_IMAGES/ugc_stylehint_uq_jp_photo_250904_1708718_c-480-640"
+      ]
+    }
+  ],
+  "tags": [
+    "da",
+    "thắt lưng",
+    "nam",
+    "cao cấp"
+  ],
+  "isAvailable": true,
+  "rating": {
+    "average": 4.9,
+    "count": 140
+  },
+  "brand": "Montblanc",
+  "material": "Da bò thật",
+  "origin": "Italy",
+  "views": 2100,
+  "createdAt": {
+    "$date": "2024-08-05T15:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2024-10-28T09:00:00.000Z"
+  }
+}]

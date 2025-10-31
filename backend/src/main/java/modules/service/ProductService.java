@@ -8,4 +8,6 @@ public interface ProductService {
     List<Product> findAll();
 
     Product findById(String id);
+
+    List<Product> getProductsByCategoryId(String categoryId);
 }

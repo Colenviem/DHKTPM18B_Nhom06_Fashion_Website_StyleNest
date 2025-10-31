@@ -23,4 +23,10 @@ public class ProductServiceImpl implements modules.service.ProductService {
     public Product findById(String id) {
         return repository.findById(id).orElse(null);
     }
+
+    @Override
+    public List<Product> getProductsByCategoryId(String categoryId) {
+        return repository.findByCategory_Id(categoryId);
+    }
+
 }
