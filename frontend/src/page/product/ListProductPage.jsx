@@ -13,7 +13,7 @@ const ListProductPage = () => {
     ];
 
     return (
-        <div className="py-6 bg-white min-h-screen">
+        <div className="py-10 bg-white min-h-screen">
             <div className="max-w-full mx-auto flex px-4 sm:px-6 lg:px-8 space-x-8">
                 <div className="w-full lg:w-1/4 hidden lg:block">
                     <div className="sticky top-28"> 

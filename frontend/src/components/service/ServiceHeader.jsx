@@ -1,4 +1,3 @@
-// src/pages/Services/components/ServiceHeader.jsx
 import { motion } from "framer-motion";
 
 const headerVariants = {
@@ -7,8 +6,8 @@ const headerVariants = {
 };
 
 const ServiceHeader = () => (
-  <motion.header variants={headerVariants} className="text-center mb-16">
-    <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-3">
+  <motion.header variants={headerVariants} className="text-center">
+    <h2 className="text-sm font-semibold uppercase tracking-widest text-[#4B5563] mb-4">
       DỊCH VỤ ĐẶC QUYỀN
     </h2>
     <h1 className="text-5xl font-extrabold text-black leading-tight max-w-4xl mx-auto">
