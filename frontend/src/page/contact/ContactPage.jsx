@@ -11,11 +11,11 @@ const containerVariants = {
 
 const ContactPage = () => {
   return (
-    <motion.section initial="hidden" animate="visible" variants={containerVariants} className="py-6 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <motion.section initial="hidden" animate="visible" variants={containerVariants} className="py-10 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 font-[Manrope] space-y-6">
 
-        <motion.header className="text-center mb-16">
-          <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-3">KẾT NỐI VỚI CHÚNG TÔI</h2>
+        <motion.header className="text-center">
+          <h2 className="text-lg font-semibold uppercase tracking-widest text-gray-500 mb-2">KẾT NỐI VỚI CHÚNG TÔI</h2>
           <h1 className="text-5xl font-extrabold text-black leading-tight">Chúng Tôi Luôn Sẵn Sàng Trợ Giúp</h1>
         </motion.header>
 

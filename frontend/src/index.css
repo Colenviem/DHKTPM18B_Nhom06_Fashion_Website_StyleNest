@@ -1,6 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200..800&display=swap');
 @import "tailwindcss";
 
 body {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Inter', sans-serif;
+}
+
+.bg-animated-gradient {
+  background: linear-gradient(135deg, #0B0014 0%, #130026 50%, #0B0014 100%);
+  animation: gradientShift 8s ease infinite alternate;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.btn-glow {
+  position: relative;
+  box-shadow: 0 0 15px rgba(111, 71, 235, 0.4);
+}
+.btn-glow:hover {
+  box-shadow: 0 0 25px rgba(111, 71, 235, 0.6);
+}
+
+.card-float {
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.timer-box {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { text-shadow: 0 0 8px rgba(111, 71, 235, 0.7); }
+  50% { text-shadow: 0 0 15px rgba(166, 124, 255, 0.8); }
 }

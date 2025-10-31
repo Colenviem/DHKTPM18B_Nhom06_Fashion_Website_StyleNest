@@ -1,68 +1,96 @@
 import React, { useState } from "react";
-
-const CloseIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>
-  </svg>
-);
-
-const MessageIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-  </svg>
-);
+import { FiX, FiMessageSquare, FiSend } from "react-icons/fi";
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { from: "bot", text: "👋 Chào bạn! Mình là trợ lý ảo của FASCO. Bạn cần hỗ trợ về vấn đề gì?" },
+  ]);
+  const [input, setInput] = useState("");
 
-  const primaryColor = "bg-indigo-600 hover:bg-indigo-700";
+  const primaryColor = "bg-gradient-to-r from-indigo-600 to-purple-600";
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+    setMessages([...messages, { from: "user", text: input }]);
+    setInput("");
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
+      {/* Chat Box */}
       {isOpen && (
-        <div className="w-80 h-96 md:h-[450px] bg-white shadow-xl rounded-xl flex flex-col border border-gray-100 overflow-hidden transform transition-all duration-300 ease-out">
-          <div className="flex justify-between items-center bg-indigo-600 text-white px-4 py-3 shadow-md">
+        <div
+          className={`w-80 h-[460px] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden transform transition-all duration-300 ease-in-out ${
+            isOpen ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+          }`}
+        >
+          {/* Header */}
+          <div
+            className={`flex justify-between items-center px-4 py-3 text-white ${primaryColor} shadow-md`}
+          >
             <div className="flex items-center space-x-2">
               <span className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></span>
-              <span className="font-bold text-lg">Hỗ trợ từ FASCO</span>
+              <span className="font-semibold text-lg tracking-wide">
+                Hỗ trợ FASCO
+              </span>
             </div>
-            
-            <button 
+            <button
               onClick={() => setIsOpen(false)}
-              className="p-1 rounded-full hover:bg-indigo-700 transition"
-              aria-label="Đóng cửa sổ chat"
+              className="p-1.5 rounded-full hover:bg-white/20 transition"
+              aria-label="Đóng chat"
             >
-              <CloseIcon className="text-xl" />
+              <FiX size={20} />
             </button>
           </div>
 
-          <div className="flex-1 p-4 overflow-y-auto bg-gray-50 text-sm">
-            <div className="flex justify-start mb-4">
-              <div className="bg-indigo-100 text-indigo-800 p-3 rounded-xl rounded-tl-sm max-w-[85%] shadow-sm">
-                <p className="font-medium">👋 Chào bạn!</p>
-                <p className="mt-1">Mình là trợ lý ảo của FASCO. Bạn cần hỗ trợ về vấn đề gì?</p>
-              </div>
-            </div>
+          {/* Chat body */}
+          <div className="flex-1 p-4 overflow-y-auto bg-gray-50 text-sm space-y-4">
+            {messages.map((msg, i) =>
+              msg.from === "bot" ? (
+                <div key={i} className="flex justify-start">
+                  <div className="bg-indigo-100 text-gray-800 px-4 py-3 rounded-2xl rounded-tl-sm max-w-[85%] shadow-sm">
+                    {msg.text}
+                  </div>
+                </div>
+              ) : (
+                <div key={i} className="flex justify-end">
+                  <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm max-w-[80%] shadow-md">
+                    {msg.text}
+                  </div>
+                </div>
+              )
+            )}
           </div>
 
-          <div className="p-3 border-t border-gray-200 bg-white">
+          {/* Input */}
+          <div className="p-3 border-t border-gray-200 bg-white flex items-center gap-2">
             <input
               type="text"
               placeholder="Nhập tin nhắn..."
-              className="w-full px-4 py-2 text-sm border-2 border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150"
             />
+            <button
+              onClick={handleSend}
+              className={`p-2.5 rounded-full text-white ${primaryColor} hover:scale-105 transition`}
+            >
+              <FiSend size={18} />
+            </button>
           </div>
         </div>
       )}
 
+      {/* Floating Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className={`w-14 h-14 rounded-full text-white flex items-center justify-center shadow-2xl transition duration-300 ease-in-out transform hover:scale-105 ${primaryColor}`}
+          className={`w-14 h-14 rounded-full text-white flex items-center justify-center shadow-xl ${primaryColor} hover:scale-110 active:scale-95 transition-transform`}
           aria-label="Mở chat"
         >
-          <MessageIcon className="text-2xl" />
+          <FiMessageSquare size={26} />
         </button>
       )}
     </div>

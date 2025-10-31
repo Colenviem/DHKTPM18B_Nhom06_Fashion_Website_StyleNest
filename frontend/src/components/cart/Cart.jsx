@@ -36,21 +36,22 @@ const Cart = () => {
 
   const isEmpty = demoCart.length === 0;
   const selectedCount = demoCart.length;
-  const subtotal = demoCart.reduce((sum, item) => {
-    return sum + item.price * (1 - item.discount / 100) * item.quantity;
-  }, 0);
+  const subtotal = demoCart.reduce(
+    (sum, item) => sum + item.price * (1 - item.discount / 100) * item.quantity,
+    0
+  );
   const shippingFee = 30000;
   const total = subtotal + shippingFee;
 
   return (
-    <div className="bg-gray-100 px-4 sm:px-8 lg:px-16 text-gray-900 py-6">
+    <div className="px-4 sm:px-8 lg:px-16 text-gray-700">
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 mb-4"
+        className="flex items-center gap-3 mb-8"
       >
-        <FiShoppingCart className="text-4xl text-black" />
-        <h1 className="text-4xl font-semibold font-['roboto']">
+        <FiShoppingCart className="text-4xl text-[#6F47EB]" />
+        <h1 className="text-4xl font-extrabold tracking-tight">
           Giỏ Hàng Của Bạn
         </h1>
       </motion.div>

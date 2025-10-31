@@ -3,13 +3,13 @@ import ProductCard from './ProductCard';
 
 const ListProduct = ({ products, activeCategory }) => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {products.length > 0 ? (
                 products.map((product) => (
-                    <ProductCard key={product.id} product={product} variant={"light"} /> 
+                    <ProductCard key={product.id} product={product}/> 
                 ))
             ) : (
-                <div className="col-span-full text-center py-10">
+                <div className="col-span-4 text-center py-10">
                     <p className="text-xl text-gray-700">
                         Không tìm thấy sản phẩm nào trong danh mục {activeCategory}
                     </p>
