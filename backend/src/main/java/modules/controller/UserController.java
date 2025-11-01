@@ -1,7 +1,7 @@
 package modules.controller;
 
 import modules.entity.User;
-import modules.service.impl.UserServiceImpl;
+import modules.service.UserService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,9 +12,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    private final UserServiceImpl service;
+    private final UserService service;
 
-    public UserController(UserServiceImpl service) {
+    public UserController(UserService service) {
         this.service = service;
     }
 
