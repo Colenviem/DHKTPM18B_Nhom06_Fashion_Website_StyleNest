@@ -1,5 +1,6 @@
 package modules.service.impl;
 
+import modules.entity.Account;
 import modules.entity.Address;
 import modules.entity.User;
 import modules.repository.UserRepository;
@@ -88,7 +89,6 @@ public class UserServiceImpl implements modules.service.UserService {
         repository.save(user);
         return toEdit;
     }
-
 
 
 }
