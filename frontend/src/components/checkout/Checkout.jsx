@@ -7,6 +7,7 @@ import {
     FiX,
     FiPlus,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 const demoCartItems = [
     {
@@ -62,6 +63,7 @@ const TEXT_COLOR = "#4B5563"; // Dark slate gray
 
 const Checkout = () => {
     const [note, setNote] = useState("");
+    const navigate = useNavigate();
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cod");
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [showNewAddressModal, setShowNewAddressModal] = useState(false);
@@ -306,12 +308,20 @@ const Checkout = () => {
                         Khi nhấn <span className="font-medium">'Đặt hàng'</span>, bạn đồng ý
                         với <a href="#" className="text-blue-500 hover:underline">Điều khoản StyleNest</a>.
                     </p>
-                    <button
-                        className={`bg-[${PRIMARY_COLOR}] hover:bg-[${PRIMARY_HOVER}] text-white font-medium py-3 px-4 rounded transition-all duration-200 hover:scale-105 hover:shadow-lg`}
-                        onClick={handleCheckout}
-                    >
-                        Đặt hàng
-                    </button>
+                    <div>
+                        <button
+                            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-3 px-4 rounded transition-all duration-200 mr-2 hover:scale-105 hover:shadow-lg"
+                            onClick={() => navigate('/cart')}
+                        >
+                            Trở Lại
+                        </button>
+                        <button
+                            className={`bg-[${PRIMARY_COLOR}] hover:bg-[${PRIMARY_HOVER}] text-white font-medium py-3 px-4 rounded transition-all duration-200 hover:scale-105 hover:shadow-lg`}
+                            onClick={handleCheckout}
+                        >
+                            Đặt hàng
+                        </button>
+                    </div>
                 </div>
 
             </div>

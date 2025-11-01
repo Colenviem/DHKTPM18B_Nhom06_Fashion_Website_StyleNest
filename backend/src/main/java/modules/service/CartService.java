@@ -8,4 +8,6 @@ public interface CartService {
     List<Cart> findAll();
 
     Cart findById(String id);
+
+    Cart findByUserId(String userId);
 }

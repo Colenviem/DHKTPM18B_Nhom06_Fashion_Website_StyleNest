@@ -1,11 +1,29 @@
-import React from "react";
 import { FiTrash2, FiPlus, FiMinus } from "react-icons/fi";
 import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
 
-const CartItem = ({ item, index }) => {
+const CartItem = ({ item = {}, index, onChange }) => {
+    const [quantity, setQuantity] = useState(item.quantity || 1);
+
+    const thumbnails = item.thumbnails || [];
+    const colors = item.colors || ["Trắng", "Đen"];
+    const sizes = item.size || ["M", "L"];
+    const selectedColor = item.selectedColor || colors[0];
+    const selectedSize = item.selectedSize || sizes[0];
+    const price = item.price || 0;
+    const discount = item.discount || 0;
+    const name = item.name || "Sản phẩm";
+
+    const handleIncrease = () => setQuantity(prev => prev + 1);
+    const handleDecrease = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+
+    useEffect(() => {
+        onChange && onChange({ ...item, quantity });
+    }, [quantity, item, onChange]);
+
     return (
         <motion.div
-            key={item.id}
+            key={item.id || index}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -13,38 +31,73 @@ const CartItem = ({ item, index }) => {
             className="flex flex-col px-4 py-4 sm:flex-row bg-white rounded-2xl border border-gray-200 overflow-hidden"
         >
             <div className="w-full sm:w-40 h-50 overflow-hidden relative">
-                <img src={item.thumbnails[0]} alt={item.name}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+                <img
+                    src={thumbnails[0] || ""}
+                    alt={name}
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                />
                 <button className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-sm hover:bg-red-500 hover:text-white text-gray-600 transition">
-                <FiTrash2 />
+                    <FiTrash2 />
                 </button>
             </div>
 
             <div className="flex flex-col justify-start p-6 flex-grow gap-4">
-                <h3 className="text-xl font-semibold">{item.name}</h3>
+                <h3 className="text-xl font-semibold">{name}</h3>
+
                 <div className="flex gap-3 text-sm text-gray-700">
-                    <select defaultValue={item.selectedColor}
-                            className="border border-gray-300 rounded-md py-1 px-3">
-                        {item.colors.map((color) => <option key={color}>{color}</option>)}
+                    <select
+                        value={selectedColor}
+                        onChange={() => {}}
+                        className="border border-gray-300 rounded-md py-1 px-3"
+                    >
+                        {colors.map(color => (
+                            <option key={color} value={color}>{color}</option>
+                        ))}
                     </select>
-                    <select defaultValue={item.selectedSize}
-                            className="border border-gray-300 rounded-md py-1 px-3">
-                        {item.size.map((s) => <option key={s}>{s}</option>)}
+
+                    <select
+                        value={selectedSize}
+                        onChange={() => {}}
+                        className="border border-gray-300 rounded-md py-1 px-3"
+                    >
+                        {sizes.map(s => (
+                            <option key={s} value={s}>{s}</option>
+                        ))}
                     </select>
                 </div>
 
                 <div className="flex justify-between items-center">
-                    <div className="flex items-center border border-gray-300 rounded-md">
-                        <button className="px-2 py-1 text-gray-600 hover:bg-gray-100"><FiMinus /></button>
-                        <span className="px-2 font-semibold">{item.quantity}</span>
-                        <button className="px-2 py-1 text-gray-600 hover:bg-gray-100"><FiPlus /></button>
+                    <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
+                        <button
+                            className="px-2 py-1 text-gray-600 hover:bg-gray-100"
+                            onClick={handleDecrease}
+                        >
+                            <FiMinus />
+                        </button>
+
+                        <input
+                            type="number"
+                            min={1}
+                            value={quantity}
+                            onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                            className="w-16 text-center border-none outline-none font-semibold no-spin"
+                        />
+
+                        <button
+                            className="px-2 py-1 text-gray-600 hover:bg-gray-100"
+                            onClick={handleIncrease}
+                        >
+                            <FiPlus />
+                        </button>
                     </div>
 
                     <div className="text-right">
                         <p className="text-lg font-bold text-black">
-                        {(item.price * (1 - item.discount / 100) * item.quantity).toLocaleString("vi-VN")} đ
+                            {(price * (1 - discount / 100) * quantity).toLocaleString("vi-VN")} đ
                         </p>
-                        <p className="text-sm line-through text-gray-400">{item.price.toLocaleString("vi-VN")} đ</p>
+                        <p className="text-sm line-through text-gray-400">
+                            {price.toLocaleString("vi-VN")} đ
+                        </p>
                     </div>
                 </div>
             </div>
