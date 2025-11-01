@@ -36,7 +36,10 @@ const CartItem = ({ item = {}, index, onChange }) => {
                     alt={name}
                     className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                 />
-                <button className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-sm hover:bg-red-500 hover:text-white text-gray-600 transition">
+                <button
+                    className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-sm hover:bg-red-500 hover:text-white text-gray-600 transition"
+                    onClick={() => onChange && onChange({ ...item, quantity: 0, delete: true })}
+                >
                     <FiTrash2 />
                 </button>
             </div>

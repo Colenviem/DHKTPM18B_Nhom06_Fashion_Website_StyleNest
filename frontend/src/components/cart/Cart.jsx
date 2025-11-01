@@ -1,46 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { FiShoppingCart } from "react-icons/fi";
 import { motion } from "framer-motion";
-import axios from "axios";
-
+import { CartContext } from "../../context/CartContext.jsx";
 import CartItem from "./CartItem";
 import CartSummary from "./CartSummary";
 import EmptyCart from "./EmptyCart";
 
 const Cart = () => {
-    const [cartItems, setCartItems] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    const userId = "USR001"; // Lấy từ auth context hoặc localStorage
-
-    useEffect(() => {
-        axios
-            .get(`http://localhost:8080/api/carts/user/${userId}`)
-            .then((res) => {
-                const cart = res.data;
-                if (cart?.items) {
-                    const items = cart.items.map((item) => ({
-                        id: item.product?.id || item.id,
-                        name: item.product?.name || "Unknown",
-                        thumbnails: item.product?.image ? [item.product.image] : [],
-                        price: item.product?.price || 0,
-                        discount: item.product?.discount || 0,
-                        quantity: item.quantity || 1,
-                        colors: item.product?.colors || ["Trắng", "Đen"],
-                        selectedColor: item.product?.colors?.[0] || "Trắng",
-                        size: item.product?.sizes || ["M", "L"],
-                        selectedSize: item.product?.sizes?.[0] || "M",
-                    }));
-                    setCartItems(items);
-                }
-            })
-            .catch((err) => console.error(err))
-            .finally(() => setLoading(false));
-    }, [userId]);
-
-    const isEmpty = cartItems.length === 0;
+    const { cartItems, setCartItems, loading } = useContext(CartContext);
 
     if (loading) return <div>Đang tải giỏ hàng...</div>;
+
+    const isEmpty = !cartItems || cartItems.length === 0;
 
     return (
         <div className="px-4 sm:px-8 lg:px-16 text-gray-700">
@@ -60,13 +31,17 @@ const Cart = () => {
                     <div className="lg:col-span-2 space-y-6">
                         {cartItems.map((item, index) => (
                             <CartItem
-                                key={item.id}
+                                key={item.id || index} // fallback index nếu id undefined
                                 item={item}
                                 index={index}
                                 onChange={(updatedItem) => {
-                                    setCartItems(prev =>
-                                        prev.map(ci => ci.id === updatedItem.id ? updatedItem : ci)
-                                    );
+                                    if (updatedItem.delete) {
+                                        setCartItems(prev => prev.filter(ci => ci.id !== updatedItem.id));
+                                    } else {
+                                        setCartItems(prev =>
+                                            prev.map(ci => ci.id === updatedItem.id ? updatedItem : ci)
+                                        );
+                                    }
                                 }}
                             />
                         ))}

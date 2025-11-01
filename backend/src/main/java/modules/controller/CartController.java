@@ -2,9 +2,11 @@ package modules.controller;
 
 import modules.entity.Cart;
 import modules.service.impl.CartServiceImpl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/carts")
@@ -31,4 +33,28 @@ public class CartController {
     public Cart getCartByUser(@PathVariable String userId) {
         return service.findByUserId(userId);
     }
+
+    @PutMapping("/user/{userId}")
+    public ResponseEntity<Cart> updateCartByUser(
+            @PathVariable String userId,
+            @RequestBody Cart cart) {
+        Cart existingCart = service.findByUserId(userId);
+        if (existingCart == null) return ResponseEntity.notFound().build();
+
+        existingCart.setItems(cart.getItems());
+        existingCart.setTotalQuantity(cart.getTotalQuantity());
+        existingCart.setTotalPrice(cart.getTotalPrice());
+
+        Cart updatedCart = service.save(existingCart);
+        return ResponseEntity.ok(updatedCart);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCartItem(@PathVariable String id) {
+        Cart cart = service.findById(id);
+        if (cart == null) return ResponseEntity.notFound().build();
+        service.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

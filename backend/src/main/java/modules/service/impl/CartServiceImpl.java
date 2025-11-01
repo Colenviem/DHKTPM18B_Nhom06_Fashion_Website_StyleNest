@@ -28,4 +28,15 @@ public class CartServiceImpl implements modules.service.CartService {
     public Cart findByUserId(String userId) {
         return repository.findByUserId(userId).orElse(null);
     }
+
+    @Override
+    public Cart save(Cart cart) {
+        return repository.save(cart);
+    }
+
+    @Override
+    public void deleteById(String id) {
+        repository.deleteById(id);
+    }
+
 }

@@ -14,10 +14,7 @@ const CartSummary = ({ cartItems = [] }) => {
     const shippingFee = 30000;
     const total = subtotal + shippingFee;
 
-    const handleCheckout = () => {
-        console.log("Navigate clicked!");
-        navigate("/checkout");
-    };
+
 
     return (
         <motion.div
@@ -48,7 +45,10 @@ const CartSummary = ({ cartItems = [] }) => {
 
             <button
                 type="button"
-                onClick={handleCheckout}
+                onClick={() => {
+                    console.log("Navigating...");
+                    navigate("/checkout");
+                }}
                 className="w-full mt-8 py-3 rounded-xl bg-black text-white font-semibold flex items-center justify-center gap-2
       hover:bg-[#6F47EB] hover:scale-105 transition duration-300 ease-in-out shadow-md hover:shadow-lg hover:cursor-pointer"
             >

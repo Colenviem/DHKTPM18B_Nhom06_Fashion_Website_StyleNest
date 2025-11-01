@@ -10,4 +10,8 @@ public interface CartService {
     Cart findById(String id);
 
     Cart findByUserId(String userId);
+
+    void deleteById(String id);
+
+    Cart save(Cart cart);
 }

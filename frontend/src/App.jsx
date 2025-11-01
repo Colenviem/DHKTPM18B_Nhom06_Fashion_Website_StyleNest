@@ -6,18 +6,18 @@ import AdminPage from "./page/admin/AdminPage";
 
 
 function App() {
-  return (
-      <Routes>
-        <Route path="/*" element={<UserPage />} />
+    return (
+        <Routes>
+            <Route path="/*" element={<UserPage />} />
 
-        <Route
-          path="/admin/*"
-          element={
-              <AdminPage />
-          }
-        />
-      </Routes>
-  );
+            <Route
+                path="/admin/*"
+                element={
+                    <AdminPage />
+                }
+            />
+        </Routes>
+    );
 }
 
 export default App;
