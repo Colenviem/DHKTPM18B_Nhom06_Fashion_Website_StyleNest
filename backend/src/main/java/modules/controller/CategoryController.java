@@ -2,10 +2,7 @@ package modules.controller;
 
 import modules.entity.Category;
 import modules.service.impl.CategoryServiceImpl;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,5 +23,23 @@ public class CategoryController {
     @GetMapping("/{id}")
     public Category findById(@PathVariable String id) {
         return service.findById(id);
+    }
+
+    @PostMapping
+    public Category addCategory(@RequestBody Category category) {
+        if (category.getId() == null) {
+            category.setId(category.getName());
+        }
+        return service.addCategory(category);
+    }
+
+    @PutMapping("/{id}")
+    public Category updateCategory(@PathVariable String id, @RequestBody Category updatedCategory) {
+        return service.updateCategory(id, updatedCategory);
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleteCategory(@PathVariable String id) {
+        return service.deleteCategory(id).getBody();
     }
 }
