@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext , useCallback } from "react";
 import { FiShoppingCart } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { CartContext } from "../../context/CartContext.jsx";
@@ -12,6 +12,14 @@ const Cart = () => {
     if (loading) return <div>Đang tải giỏ hàng...</div>;
 
     const isEmpty = !cartItems || cartItems.length === 0;
+
+    const handleChange = useCallback((updatedItem) => {
+        setCartItems(prev =>
+            updatedItem.delete
+                ? prev.filter(ci => ci.id !== updatedItem.id)
+                : prev.map(ci => ci.id === updatedItem.id ? updatedItem : ci)
+        );
+    }, [setCartItems]);
 
     return (
         <div className="px-4 sm:px-8 lg:px-16 text-gray-700">
@@ -34,15 +42,7 @@ const Cart = () => {
                                 key={item.id || index} // fallback index nếu id undefined
                                 item={item}
                                 index={index}
-                                onChange={(updatedItem) => {
-                                    if (updatedItem.delete) {
-                                        setCartItems(prev => prev.filter(ci => ci.id !== updatedItem.id));
-                                    } else {
-                                        setCartItems(prev =>
-                                            prev.map(ci => ci.id === updatedItem.id ? updatedItem : ci)
-                                        );
-                                    }
-                                }}
+                                onChange={handleChange}
                             />
                         ))}
                     </div>

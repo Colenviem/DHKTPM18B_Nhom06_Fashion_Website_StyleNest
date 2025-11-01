@@ -5,21 +5,23 @@ import React, { useState, useEffect } from "react";
 const CartItem = ({ item = {}, index, onChange }) => {
     const [quantity, setQuantity] = useState(item.quantity || 1);
 
-    const thumbnails = item.thumbnails || [];
+    // ✅ SỬA Ở ĐÂY — không dùng item.product nữa
+    const price = item.price || 0;
+    const discount = item.discount || 0;
+    const name = item.name || "Sản phẩm";
+    const thumbnails = item.thumbnails?.length ? item.thumbnails : [""];
+
     const colors = item.colors || ["Trắng", "Đen"];
     const sizes = item.size || ["M", "L"];
     const selectedColor = item.selectedColor || colors[0];
     const selectedSize = item.selectedSize || sizes[0];
-    const price = item.price || 0;
-    const discount = item.discount || 0;
-    const name = item.name || "Sản phẩm";
 
     const handleIncrease = () => setQuantity(prev => prev + 1);
     const handleDecrease = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
     useEffect(() => {
         onChange && onChange({ ...item, quantity });
-    }, [quantity, item, onChange]);
+    }, [quantity, onChange]);
 
     return (
         <motion.div
@@ -32,7 +34,7 @@ const CartItem = ({ item = {}, index, onChange }) => {
         >
             <div className="w-full sm:w-40 h-50 overflow-hidden relative">
                 <img
-                    src={thumbnails[0] || ""}
+                    src={thumbnails[0]}
                     alt={name}
                     className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                 />

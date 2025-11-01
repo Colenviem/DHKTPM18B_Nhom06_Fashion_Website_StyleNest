@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import { FiChevronRight } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { CartContext } from "../../context/CartContext.jsx"; // 🧩 import thêm dòng này
 
 const CartSummary = ({ cartItems = [] }) => {
     const navigate = useNavigate();
+    const { saveCart } = useContext(CartContext); // 🧩 lấy hàm lưu giỏ hàng từ context
 
     const subtotal = cartItems.reduce(
         (sum, item) => sum + (item.price || 0) * (1 - (item.discount || 0)/100) * (item.quantity || 1),
@@ -14,7 +16,14 @@ const CartSummary = ({ cartItems = [] }) => {
     const shippingFee = 30000;
     const total = subtotal + shippingFee;
 
-
+    const handleCheckout = async () => {
+        try {
+            await saveCart(); // lưu cart lên server
+            navigate("/checkout"); // chuyển sang checkout
+        } catch (err) {
+            console.error("❌ Lỗi khi lưu giỏ hàng trước khi thanh toán:", err);
+        }
+    };
 
     return (
         <motion.div
@@ -45,17 +54,13 @@ const CartSummary = ({ cartItems = [] }) => {
 
             <button
                 type="button"
-                onClick={() => {
-                    console.log("Navigating...");
-                    navigate("/checkout");
-                }}
+                onClick={handleCheckout}
                 className="w-full mt-8 py-3 rounded-xl bg-black text-white font-semibold flex items-center justify-center gap-2
       hover:bg-[#6F47EB] hover:scale-105 transition duration-300 ease-in-out shadow-md hover:shadow-lg hover:cursor-pointer"
             >
                 <span>Thanh Toán Ngay</span>
                 <FiChevronRight size={22} />
             </button>
-
         </motion.div>
     );
 };

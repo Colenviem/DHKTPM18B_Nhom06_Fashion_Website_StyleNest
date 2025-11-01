@@ -1,6 +1,8 @@
 package modules.controller;
 
 import modules.entity.Cart;
+import modules.entity.Product;
+import modules.entity.ProductRef;
 import modules.service.impl.CartServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,17 +39,37 @@ public class CartController {
     @PutMapping("/user/{userId}")
     public ResponseEntity<Cart> updateCartByUser(
             @PathVariable String userId,
-            @RequestBody Cart cart) {
+            @RequestBody Cart incomingCart) {
+
         Cart existingCart = service.findByUserId(userId);
         if (existingCart == null) return ResponseEntity.notFound().build();
 
-        existingCart.setItems(cart.getItems());
-        existingCart.setTotalQuantity(cart.getTotalQuantity());
-        existingCart.setTotalPrice(cart.getTotalPrice());
+        if (incomingCart.getItems() != null) {
+            existingCart.getItems().clear();
+            for (var item : incomingCart.getItems()) {
+                if (item.getProduct() != null && item.getProduct().getId() != null) {
+                    ProductRef p = new ProductRef();
+                    p.setId(item.getProduct().getId());
+                    p.setName(item.getProduct().getName());
+                    p.setImage(item.getProduct().getImage());
+                    p.setPrice(item.getProduct().getPrice());
+                    p.setDiscount(item.getProduct().getDiscount());
+                    item.setProduct(p);
+                } else {
+                    item.setProduct(new ProductRef());
+                }
+                existingCart.getItems().add(item);
+            }
+        }
+
+        existingCart.setTotalQuantity(incomingCart.getTotalQuantity());
+        existingCart.setTotalPrice(incomingCart.getTotalPrice());
 
         Cart updatedCart = service.save(existingCart);
         return ResponseEntity.ok(updatedCart);
     }
+
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCartItem(@PathVariable String id) {

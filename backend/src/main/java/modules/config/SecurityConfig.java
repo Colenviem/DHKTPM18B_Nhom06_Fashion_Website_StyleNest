@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .cors(cors -> {}) // Cho phép React domain
                 .authenticationProvider(authProvider())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/carts/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/carts/**", "/api/users/**", "/api/orders/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())
