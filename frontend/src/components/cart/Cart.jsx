@@ -7,19 +7,30 @@ import CartSummary from "./CartSummary";
 import EmptyCart from "./EmptyCart";
 
 const Cart = () => {
-    const { cartItems, setCartItems, loading } = useContext(CartContext);
+    const { cartItems, setCartItems, saveCart, loading } = useContext(CartContext);
 
-    if (loading) return <div>Đang tải giỏ hàng...</div>;
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center h-64">
+            <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent border-solid rounded-full animate-spin"></div>
+            <p className="mt-4 text-lg text-gray-600 font-medium">Đang tải giỏ hàng...</p>
+        </div>
+    );
+
 
     const isEmpty = !cartItems || cartItems.length === 0;
 
-    const handleChange = useCallback((updatedItem) => {
-        setCartItems(prev =>
-            updatedItem.delete
+    const handleChange = (updatedItem) => {
+        setCartItems(prev => {
+            const updatedCart = updatedItem.delete
                 ? prev.filter(ci => ci.id !== updatedItem.id)
-                : prev.map(ci => ci.id === updatedItem.id ? updatedItem : ci)
-        );
-    }, [setCartItems]);
+                : prev.map(ci => ci.id === updatedItem.id ? updatedItem : ci);
+
+            saveCart(updatedCart);
+            return updatedCart;
+        });
+    };
+
+
 
     return (
         <div className="px-4 sm:px-8 lg:px-16 text-gray-700">
@@ -37,14 +48,14 @@ const Cart = () => {
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                     <div className="lg:col-span-2 space-y-6">
-                        {cartItems.map((item, index) => (
+                        {cartItems.map((item) => (
                             <CartItem
-                                key={item.id || index} // fallback index nếu id undefined
+                                key={item.id}
                                 item={item}
-                                index={index}
                                 onChange={handleChange}
                             />
                         ))}
+
                     </div>
 
                     <CartSummary cartItems={cartItems} />

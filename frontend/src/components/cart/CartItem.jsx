@@ -21,7 +21,7 @@ const CartItem = ({ item = {}, index, onChange }) => {
 
     useEffect(() => {
         onChange && onChange({ ...item, quantity });
-    }, [quantity, onChange]);
+    }, [quantity]);
 
     return (
         <motion.div

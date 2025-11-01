@@ -2,11 +2,12 @@ import React, { useContext } from "react";
 import { FiChevronRight } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { CartContext } from "../../context/CartContext.jsx"; // 🧩 import thêm dòng này
+import { CartContext } from "../../context/CartContext.jsx";
 
 const CartSummary = ({ cartItems = [] }) => {
     const navigate = useNavigate();
-    const { saveCart } = useContext(CartContext); // 🧩 lấy hàm lưu giỏ hàng từ context
+    const { saveCart } = useContext(CartContext);
+    const { userId } = useContext(CartContext);
 
     const subtotal = cartItems.reduce(
         (sum, item) => sum + (item.price || 0) * (1 - (item.discount || 0)/100) * (item.quantity || 1),
@@ -17,13 +18,21 @@ const CartSummary = ({ cartItems = [] }) => {
     const total = subtotal + shippingFee;
 
     const handleCheckout = async () => {
+        if (!userId) {
+            alert("Vui lòng đăng nhập trước khi thanh toán!");
+            navigate("/login");
+            return;
+        }
+
         try {
-            await saveCart(); // lưu cart lên server
-            navigate("/checkout"); // chuyển sang checkout
+            await saveCart();
+            navigate("/checkout");
         } catch (err) {
             console.error("❌ Lỗi khi lưu giỏ hàng trước khi thanh toán:", err);
+            alert("Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
+
 
     return (
         <motion.div

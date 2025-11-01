@@ -10,7 +10,7 @@ const PRIMARY_HOVER = "#5E3FB9";
 const TEXT_COLOR = "#4B5563";
 
 const Checkout = () => {
-    const { cartItems, userId } = useContext(CartContext);
+    const { cartItems, userId, setCartItems } = useContext(CartContext);
     const [note, setNote] = useState("");
     const navigate = useNavigate();
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cod");
@@ -60,7 +60,7 @@ const Checkout = () => {
                 phoneNumber: selectedAddress.phone,
             },
             items: cartItems.map(item => ({
-                productId: item.id, // chắc chắn là ID DB
+                productId: item.id,
                 variantId: item.variantId || null,
                 quantity: item.quantity,
                 unitPrice: Math.round(item.price * (1 - (item.discount || 0)/100)),
@@ -71,18 +71,29 @@ const Checkout = () => {
             paymentMethod: selectedPaymentMethod
         };
 
-        console.log(payload.items);
-
         try {
             const res = await axios.post(`http://localhost:8080/api/orders`, payload);
             alert("Đặt hàng thành công! Mã đơn: " + res.data.orderNumber);
-            navigate('/orders'); // hoặc trang chi tiết đơn hàng
+
+            setCartItems([]);
+
+            if (userId) {
+                try {
+                    await axios.put(`http://localhost:8080/api/carts/user/${userId}`, { items: [] });
+                } catch (err) {
+                    console.error("❌ Lỗi xóa giỏ hàng trên server:", err.response?.data || err.message);
+                }
+            } else {
+                sessionStorage.removeItem('cartItems'); // guest
+            }
+
+
+            navigate('/orders'); // chuyển sang trang đơn hàng
         } catch (err) {
             console.error("Lỗi đặt hàng:", err.response?.data || err.message);
             alert("Đặt hàng thất bại, vui lòng thử lại!");
         }
     };
-
 
     const handleNewAddressChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -107,8 +118,8 @@ const Checkout = () => {
                 // map sang định dạng frontend cần
                 const mappedAddresses = addrs.map(a => ({
                     id: a.id,
-                    name: user.firstName + " " + user.lastName,     // nếu backend chưa có name
-                    phone: a.phoneNumber || "Chưa có",         // nếu backend chưa có phone
+                    name: user.firstName + " " + user.lastName,
+                    phone: a.phoneNumber || "Chưa có",
                     address: a.street,
                     city: a.city || "",
                     isDefault: a.isDefault

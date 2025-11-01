@@ -61,10 +61,13 @@ export const CartProvider = ({ children }) => {
     }, [userId]);
 
     // ----------- Hàm lưu giỏ hàng (chỉ gọi khi cần) -----------
-    const saveCart = async () => {
+    const saveCart = async (updatedCart = cartItems) => {
+        // cập nhật state ngay để UI phản ứng
+        setCartItems(updatedCart);
+
         try {
             const payload = {
-                items: cartItems.map(item => ({
+                items: updatedCart.map(item => ({
                     product: {
                         id: item.id,
                         name: item.name,
@@ -75,9 +78,9 @@ export const CartProvider = ({ children }) => {
                     quantity: item.quantity,
                     priceAtTime: Math.round(item.price * (1 - item.discount / 100)),
                 })),
-                totalQuantity: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+                totalQuantity: updatedCart.reduce((sum, item) => sum + item.quantity, 0),
                 totalPrice: Math.round(
-                    cartItems.reduce((sum, item) => sum + item.quantity * (item.price * (1 - item.discount / 100)), 0)
+                    updatedCart.reduce((sum, item) => sum + item.quantity * (1 - item.discount / 100) * item.price, 0)
                 ),
             };
 
@@ -87,6 +90,7 @@ export const CartProvider = ({ children }) => {
             console.error("❌ Lỗi khi lưu giỏ hàng:", err);
         }
     };
+
 
     return (
         <CartContext.Provider value={{
