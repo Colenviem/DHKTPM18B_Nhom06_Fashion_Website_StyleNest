@@ -24,16 +24,16 @@ public class SecurityConfig {
         this.accountService = accountService;
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+//    @Bean
+//    public PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
 
     @Bean
     public DaoAuthenticationProvider authProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(accountService);
-        provider.setPasswordEncoder(passwordEncoder());
+    //    provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
