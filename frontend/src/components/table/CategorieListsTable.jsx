@@ -37,8 +37,7 @@ const rowVariants = {
 };
 
 const CategorieListsTable = () => {
-  const { categoriesData, setCategoriesData, loading } =
-    useContext(CategoriesContext);
+  const { categoriesData, setCategoriesData, loading } = useContext(CategoriesContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
 

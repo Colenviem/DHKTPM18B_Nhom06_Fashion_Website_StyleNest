@@ -4,20 +4,21 @@ import ListProduct from './ListProduct';
 const NewArrivalsSection = ({ products, title, subtitle }) => {
     const [activeCategory, setActiveCategory] = useState("All");
 
+    console.log("NewArrivalsSection products:", products);
+
     const categories = [
         "All", 
         "Men's Fashion", 
         "Women's Fashion", 
-        "Women Accessories", 
-        "Men Accessories", 
-        "Discount Deals"
+        "Accessories", 
+        "Footwear"
     ];
 
     const filteredProducts = useMemo(() => {
         if (activeCategory === "All") {
             return products;
         }
-        return products.filter(product => product.category === activeCategory);
+        return products.filter(product => product.category.name === activeCategory);
     }, [products, activeCategory]);
 
     return (
