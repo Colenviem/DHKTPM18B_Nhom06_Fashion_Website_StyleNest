@@ -6,18 +6,20 @@ import { ProductsContext } from "../../context/ProductsContext";
 const ListProductPage = () => {
   const { productsData, loading } = useContext(ProductsContext);
   const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedStockStatus, setSelectedStockStatus] = useState(["Có sẵn"]);
+  const [selectedStockStatus, setSelectedStockStatus] = useState("Có sẵn");
+  const [selectedColors, setSelectedColors] = useState([]);
+  const [selectedSizes, setSelectedSizes] = useState([]);
+  const [priceRange, setPriceRange] = useState({ min: 100000, max: 5000000 });
 
   // 🔍 Lọc sản phẩm theo các bộ lọc (gọi hook ở mọi render, kể cả khi loading)
   const filteredProducts = useMemo(() => {
     if (loading || !productsData) return [];
     return productsData.filter((product) => {
+      // Lọc theo thương hiệu
       const brandMatch =
-        selectedBrands.length === 0 ||
-        selectedBrands.includes(product.brand);
+        selectedBrands.length === 0 || selectedBrands.includes(product.brand);
 
-    console.log("Filtering product:", product.name, "Brand match:", brandMatch);
-
+      // Lọc theo trạng thái tồn kho
       const totalStock =
         product.variants?.reduce((sum, v) => sum + (v.inStock || 0), 0) || 0;
       const isAvailable = product.available && totalStock > 0;
@@ -26,11 +28,40 @@ const ListProductPage = () => {
         (isAvailable && selectedStockStatus.includes("Có sẵn")) ||
         (!isAvailable && selectedStockStatus.includes("Hết hàng"));
 
-      return brandMatch && stockMatch;
-    });
-  }, [productsData, loading, selectedBrands, selectedStockStatus]);
+      // Lọc theo màu
+      const colorMatch =
+        selectedColors.length === 0 ||
+        product.variants?.some((v) =>
+          selectedColors.includes(v.color?.toLowerCase())
+        );
 
-  // ✅ Chỉ điều kiện hóa phần JSX
+      // Lọc theo kích cỡ
+      const sizeMatch =
+        selectedSizes.length === 0 ||
+        product.variants?.some((v) => selectedSizes.includes(v.size));
+
+      // Tính giá sau khi discount
+      const priceAfterDiscount =
+        product.price * (1 - (product.discount || 0) / 100);
+
+      // Lọc theo khoảng giá
+      const priceMatch =
+        priceAfterDiscount >= priceRange.min &&
+        priceAfterDiscount <= priceRange.max;
+
+      return brandMatch && stockMatch && colorMatch && sizeMatch && priceMatch;
+    });
+  }, [
+    productsData,
+    loading,
+    selectedBrands,
+    selectedStockStatus,
+    selectedColors,
+    selectedSizes,
+    priceRange,
+  ]);
+
+  // Chỉ điều kiện hóa phần JSX
   if (loading) {
     return <div>Đang tải dữ liệu...</div>;
   }
@@ -45,6 +76,12 @@ const ListProductPage = () => {
               setSelectedBrands={setSelectedBrands}
               selectedStockStatus={selectedStockStatus}
               setSelectedStockStatus={setSelectedStockStatus}
+              selectedColors={selectedColors}
+              setSelectedColors={setSelectedColors}
+              selectedSizes={selectedSizes}
+              setSelectedSizes={setSelectedSizes}
+              priceRange={priceRange}
+              setPriceRange={setPriceRange}
             />
           </div>
         </div>

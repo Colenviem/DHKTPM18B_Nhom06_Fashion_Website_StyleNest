@@ -10,8 +10,6 @@ const formatVND = (price) => {
   return price || "0₫";
 };
 
-const priceRange = { min: 100000, max: 50000000 };
-
 const colorMap = {
   grey: "bg-gray-400",
   red: "bg-red-500",
@@ -34,13 +32,11 @@ const COLORS = [
   { name: "Hồng", color: "pink" },
 ];
 
-const SIZES = ["Nhỏ", "Vừa", "Lớn", "XL", "XXL"];
-
-const PRODUCT_CONDITIONS = [
-  { name: "Mới", count: 9, selected: false },
-  { name: "Tân trang", count: 5, selected: true },
-  { name: "Đã qua sử dụng", count: 6, selected: false },
-];
+// const PRODUCT_CONDITIONS = [
+//   { name: "Mới", count: 9, selected: false },
+//   { name: "Tân trang", count: 5, selected: true },
+//   { name: "Đã qua sử dụng", count: 6, selected: false },
+// ];
 
 const inputClasses =
   "rounded border-gray-400 text-black focus:ring-black checked:bg-black checked:border-transparent";
@@ -50,6 +46,12 @@ const FilterSidebar = ({
   setSelectedBrands,
   selectedStockStatus,
   setSelectedStockStatus,
+  selectedColors,
+  setSelectedColors,
+  selectedSizes,
+  setSelectedSizes,
+  priceRange,
+  setPriceRange,
 }) => {
   const { brandsData, loading: brandsLoading } = useContext(BrandsContext);
   const { productsData, loading: productsLoading } =
@@ -91,6 +93,8 @@ const FilterSidebar = ({
     ];
   }, [productsData, productsLoading]);
 
+  const SIZES = ["S", "M", "L", "XL", "XXL"];
+
   // Xử lý click chọn thương hiệu
   const handleBrandChange = (brandName) => {
     setSelectedBrands((prev) =>
@@ -102,11 +106,27 @@ const FilterSidebar = ({
 
   // Xử lý click chọn tình trạng hàng
   const handleStockStatusChange = (status) => {
-    setSelectedStockStatus((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status]
+    setSelectedStockStatus((prev) => (prev === status ? "" : status));
+  };
+
+  // Hàm xử lý chọn màu
+  const handleColorChange = (color) => {
+    setSelectedColors((prev) =>
+      prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
     );
+  };
+
+  // Hàm xử lý chọn kích cỡ
+  const handleSizeChange = (size) => {
+    setSelectedSizes((prev) =>
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+    );
+  };
+
+  // Hàm xử lý thay đổi khoảng giá
+  const handlePriceChange = (e) => {
+    const newMax = Number(e.target.value);
+    setPriceRange((prev) => ({ ...prev, max: newMax }));
   };
 
   return (
@@ -124,11 +144,15 @@ const FilterSidebar = ({
         </h4>
         <div className="space-y-4">
           {STOCK_STATUS.map((item) => (
-            <label key={item.name} className="flex items-center gap-3 cursor-pointer">
+            <label
+              key={item.name}
+              className="flex items-center gap-3 cursor-pointer"
+            >
               <input
-                type="checkbox"
+                type="radio"
+                name="stockStatus"
                 className={inputClasses}
-                checked={selectedStockStatus.includes(item.name)}
+                checked={selectedStockStatus === item.name}
                 onChange={() => handleStockStatusChange(item.name)}
               />
               <span className="text-gray-800 text-base">{item.name}</span>
@@ -153,8 +177,8 @@ const FilterSidebar = ({
               <input
                 type="checkbox"
                 className={inputClasses}
-                readOnly
-                defaultChecked={size === "Vừa"}
+                checked={selectedSizes.includes(size)}
+                onChange={() => handleSizeChange(size)}
               />
               <span className="text-gray-800 text-base">{size}</span>
               <span className="text-gray-500 text-sm ml-auto font-medium">
@@ -171,39 +195,43 @@ const FilterSidebar = ({
         </h4>
         <div className="flex flex-wrap gap-x-4 gap-y-4">
           {COLORS.map((c) => (
-            <div key={c.name} className="flex items-center">
-              <label
-                className={`relative w-7 h-7 rounded-full ${
-                  colorMap[c.color]
-                } cursor-pointer transition-all duration-200 hover:scale-110 ${
-                  c.selected
-                    ? "ring-2 ring-offset-2 ring-black"
-                    : "border border-gray-300"
-                }`}
-                title={c.name}
-              ></label>
-            </div>
+            <label
+              key={c.color}
+              title={c.name}
+              className={`relative w-7 h-7 rounded-full ${
+                colorMap[c.color]
+              } cursor-pointer transition-all duration-200 hover:scale-110 ${
+                selectedColors.includes(c.color)
+                  ? "ring-2 ring-offset-2 ring-black"
+                  : "border border-gray-300"
+              }`}
+              onClick={() => handleColorChange(c.color)}
+            ></label>
           ))}
         </div>
       </div>
 
+      {/* Giá */}
       <div className="p-5 border-b border-gray-200">
         <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
           Giá
         </h4>
+
         <div className="mb-4 text-center">
           <span className="text-xl font-extrabold text-black">
             {formatVND(priceRange.min)} - {formatVND(priceRange.max)}
           </span>
         </div>
+
         <input
           type="range"
           min="100000"
-          max="50000000"
-          defaultValue={priceRange.max}
-          readOnly
+          max="5000000"
+          value={priceRange.max}
+          onChange={handlePriceChange}
           className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-black"
         />
+
         <div className="flex justify-between text-sm text-gray-600 mt-2">
           <span className="font-medium">
             Tối thiểu: {formatVND(priceRange.min)}
@@ -214,14 +242,17 @@ const FilterSidebar = ({
         </div>
       </div>
 
-    {/* Thương hiệu */}
-    <div className="p-5 border-b border-gray-200">
+      {/* Thương hiệu */}
+      <div className="p-5 border-b border-gray-200">
         <h4 className="font-bold mb-4 text-sm uppercase text-black tracking-wide">
           Thương hiệu
         </h4>
         <div className="space-y-4">
           {BRANDS.map((brand) => (
-            <label key={brand.name} className="flex items-center gap-3 cursor-pointer">
+            <label
+              key={brand.name}
+              className="flex items-center gap-3 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 className={inputClasses}
@@ -237,7 +268,7 @@ const FilterSidebar = ({
         </div>
       </div>
 
-      <div className="p-5 border-b border-gray-200">
+      {/* <div className="p-5 border-b border-gray-200">
         <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
           Tình trạng sản phẩm
         </h4>
@@ -260,7 +291,7 @@ const FilterSidebar = ({
             </label>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
