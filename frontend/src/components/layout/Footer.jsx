@@ -37,7 +37,7 @@ const Footer = () => {
           {/* Logo + Mạng xã hội */}
           <div className="flex flex-col">
             <h2 className="text-4xl font-black mb-6 text-white tracking-wider">
-              FASCO
+              StyleNest
             </h2>
             <p className="mb-8 text-gray-400 text-base leading-relaxed">
               Hoàn thiện phong cách của bạn với những bộ trang phục tuyệt vời từ chúng tôi.
@@ -89,7 +89,7 @@ const Footer = () => {
         {/* Phần bản quyền */}
         <div className="mt-6 py-3 text-center text-sm text-gray-500 border-t border-gray-800">
           © {new Date().getFullYear()}{" "}
-          <span className="font-bold text-[#6F47EB]">FASCO</span>. Mọi quyền được bảo lưu. |
+          <span className="font-bold text-[#6F47EB]">STYLENEST</span>. Mọi quyền được bảo lưu. |
           Thiết kế với ❤️ và đam mê.
         </div>
       </div>

@@ -99,6 +99,54 @@ function RegisterPage() {
   };
 
   return (
+    <div className="bg-gray-50 py-10 flex justify-center font-[Manrope]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white shadow-2xl rounded-2xl overflow-hidden flex w-full max-w-7xl"
+      >
+        {/* Hình bên trái */}
+        <div className="hidden md:block w-1/2 h-auto">
+          <img
+            src="https://images.unsplash.com/photo-1581090700227-1e37b190418e?q=80&w=800"
+            alt="Register banner"
+            className="h-full w-full object-cover"
+          />
+        </div>
+
+        {/* Form */}
+        <div className="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-center">
+          <h1 className="text-4xl font-extrabold text-black mb-1">
+            Tạo Tài Khoản Mới
+          </h1>
+          <p className="text-gray-600 mt-1 mb-10 text-lg">
+            Tham gia cộng đồng{" "}
+            <span className="font-bold text-[#6F47EB]">StyleNest</span>
+          </p>
+
+          <form
+            className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8"
+            onSubmit={handleSubmit}
+          >
+            {FIELD_ORDER.map(({ field, type, span }) => (
+              <div key={field} className={`relative ${span}`}>
+                <input
+                  type={type}
+                  name={field}
+                  value={formData[field]}
+                  onChange={handleChange}
+                  required
+                  className={`peer w-full border-b-2 ${
+                    errors[field]
+                      ? "border-red-500"
+                      : "border-gray-300 focus:border-[#6F47EB]"
+                  } focus:outline-none pt-4 pb-2 transition duration-300`}
+                  placeholder=" "
+                />
+                <label
+                  className="absolute left-0 top-3 text-gray-500 text-base transition-all duration-300 
+                    peer-placeholder-shown:top-3 peer-placeholder-shown:text-base 
       <div className="bg-gray-50 py-10 flex justify-center font-[Manrope]">
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

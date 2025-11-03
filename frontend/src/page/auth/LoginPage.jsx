@@ -40,6 +40,26 @@ function LoginPage() {
   };
 
   return (
+    <div className="w-full bg-gray-50 py-10 font-[Manrope]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="bg-white shadow-2xl rounded-2xl overflow-hidden flex w-full max-w-7xl mx-auto"
+      >
+        <div className="hidden md:block w-1/2">
+          <img
+            src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg"
+            alt="Login"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-center">
+          <h1 className="text-4xl font-bold text-gray-900">Chào mừng trở lại</h1>
+          <p className="text-gray-600 mt-1 mb-8">
+            Đăng nhập vào <span className="font-semibold text-[#6F47EB]">StyleNest</span>
+          </p>
       <div className="w-full bg-gray-50 py-10 font-[Manrope]">
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

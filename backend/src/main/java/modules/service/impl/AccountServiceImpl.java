@@ -43,6 +43,15 @@ import java.util.Random;
  */
 @Service
 public class AccountServiceImpl implements AccountService {
+    private final AccountRepository repository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository  userRepository;
+
+    public AccountServiceImpl(AccountRepository repository, PasswordEncoder passwordEncoder, UserRepository userRepository) {
+        this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+    }
     private static final Logger logger = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     // Gộp tất cả dependencies từ cả 2 file cũ vào đây
@@ -236,6 +245,7 @@ public class AccountServiceImpl implements AccountService {
     public Account findById(String id) {
         return accountRepository.findById(id).orElse(null);
     }
+
 
     /**
      * Đây là phương thức triển khai từ UserDetailsService (Spring Security).

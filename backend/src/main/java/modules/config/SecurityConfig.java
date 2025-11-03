@@ -18,11 +18,6 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final AccountService accountService;
-
-    public SecurityConfig(AccountService accountService) {
-        this.accountService = accountService;
-    }
 
 //    @Bean
 //    public PasswordEncoder passwordEncoder() {
@@ -30,9 +25,13 @@ public class SecurityConfig {
 //    }
 
     @Bean
-    public DaoAuthenticationProvider authProvider() {
+    public DaoAuthenticationProvider authProvider(AccountService accountService, PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(accountService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return provider;
+    }
+
     //    provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
@@ -51,8 +50,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
         http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})
+                .authenticationProvider(authProvider)
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/carts/**", "/api/users/**", "/api/orders/**").permitAll()
                 .csrf(csrf -> csrf.disable()) // React gửi JSON, tắt CSRF
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))// Cho phép React domain
                 .authenticationProvider(authProvider())

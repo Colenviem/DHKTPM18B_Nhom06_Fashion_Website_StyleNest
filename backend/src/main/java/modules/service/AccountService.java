@@ -22,6 +22,10 @@ public interface AccountService extends UserDetailsService {
      */
     Map<String, Object> createAccount(CreateUserRequest request);
 
+    public Account findById(String id);
+
+
+}
     /**
      * Đăng nhập và trả về thông tin user cùng JWT token.
      */

@@ -8,4 +8,10 @@ public interface CartService {
     List<Cart> findAll();
 
     Cart findById(String id);
+
+    Cart findByUserId(String userId);
+
+    void deleteById(String id);
+
+    Cart save(Cart cart);
 }
