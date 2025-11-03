@@ -12,8 +12,8 @@ const ProductCard = ({ product }) => {
 
     console.log("ProductCard product:", product);
 
-    const salePrice = product.price ? formatVND(product.price) : '999.999.999₫'; 
-    const originalPrice = product.discount!=0 ? product.price+(product.price*product.discount) : "";
+    const originalPrice = typeof product.price === 'number' ? product.price : "";
+    const salePrice = product.discount > 0 ? formatVND(product.price*(100-product.discount)/100) : originalPrice;
 
     // const discountPercentage =
     //     product.price && product.originalPrice &&
@@ -62,12 +62,12 @@ const ProductCard = ({ product }) => {
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                     <div className="flex flex-col items-start">
                         <p className="text-3xl font-extrabold text-[#4B5563] leading-none">
-                            {salePrice}
+                            {formatVND(salePrice)}
                         </p>
                         
                         <div className="flex items-center gap-3">
                             <p className="text-sm text-[#4B5563] line-through mt-1">
-                                {originalPrice}
+                                {originalPrice===salePrice ? "" : formatVND(originalPrice)}
                             </p>
                             {discountPercentage > 0 && (
                                 <p className="text-sm text-[#4B5563] font-bold mt-1">
