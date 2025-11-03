@@ -10,15 +10,18 @@ const ProductCard = ({ product }) => {
         return price || '0₫'; 
     };
 
-    const salePrice = product.price ? formatVND(product.price) : '799.000₫'; 
-    const originalPrice = product.originalPrice ? formatVND(product.originalPrice) : '1.299.000₫';
+    console.log("ProductCard product:", product);
 
-    const discountPercentage =
-        product.price && product.originalPrice &&
-        typeof product.price === 'number' &&
-        typeof product.originalPrice === 'number'
-        ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-        : null;
+    const salePrice = product.price ? formatVND(product.price) : '999.999.999₫'; 
+    const originalPrice = product.discount!=0 ? product.price+(product.price*product.discount) : "";
+
+    // const discountPercentage =
+    //     product.price && product.originalPrice &&
+    //     typeof product.price === 'number' &&
+    //     typeof product.originalPrice === 'number'
+    //     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    //     : null;
+    const discountPercentage = typeof product.discount === 'number' ? product.discount : "0";
 
     return (
         <div className="group bg-white border border-gray-200 rounded-2xl overflow-hidden max-w-xs w-full shadow-lg hover:shadow-gray-300 transition duration-500 ease-in-out transform hover:-translate-y-2 cursor-pointer mb-4">
@@ -52,8 +55,8 @@ const ProductCard = ({ product }) => {
                 </p>
 
                 <div className="flex items-center gap-1 text-yellow-500 text-sm">
-                    <RenderStars rating={product.rating} />
-                    <span className="text-[#4B5563] text-xs ml-1">(120 Reviews)</span>
+                    <RenderStars rating={product.rating.average} />
+                    <span className="text-[#4B5563] text-xs ml-1">({product.rating.count} reviews)</span>
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200">
@@ -66,7 +69,7 @@ const ProductCard = ({ product }) => {
                             <p className="text-sm text-[#4B5563] line-through mt-1">
                                 {originalPrice}
                             </p>
-                            {discountPercentage && (
+                            {discountPercentage > 0 && (
                                 <p className="text-sm text-[#4B5563] font-bold mt-1">
                                 -{discountPercentage}%
                                 </p>

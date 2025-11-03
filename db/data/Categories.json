@@ -6,5 +6,29 @@
         "imageUrl": "https://example.com/banners/men-shirts.jpg",
         "createdAt": { "$date": "2024-09-01T10:00:00Z" },
         "updatedAt": { "$date": "2024-10-01T15:30:00Z" }
+    },
+    {
+        "_id": "CAT002",
+        "name": "Quần Nữ",
+        "description": "Các loại quần dành cho nữ giới: Jeans, Khaki, Váy.",
+        "imageUrl": "https://i.ibb.co/3Wf4Q7W/airpods.png",
+        "createdAt": { "$date": "2024-08-15T09:30:00Z" },
+        "updatedAt": { "$date": "2024-10-20T11:45:00Z" }
+    },
+    {
+        "_id": "CAT003",
+        "name": "Phụ kiện",
+        "description": "Các phụ kiện đi kèm: Túi xách, Thắt lưng, Nón.",
+        "imageUrl": "https://i.ibb.co/74S2K9g/macbook.png",
+        "createdAt": { "$date": "2024-07-01T14:20:00Z" },
+        "updatedAt": { "$date": "2024-09-10T08:00:00Z" }
+    },
+    {
+        "_id": "CAT004",
+        "name": "Giày Dép",
+        "description": "Các loại giày dép: Sneaker, Sandal, Boots.",
+        "imageUrl": "https://i.ibb.co/b3gQ8k7/ipad.png",
+        "createdAt": { "$date": "2024-06-25T17:00:00Z" },
+        "updatedAt": { "$date": "2024-10-30T10:10:00Z" }
     }
 ]
