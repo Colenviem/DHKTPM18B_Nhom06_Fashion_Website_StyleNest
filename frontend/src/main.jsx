@@ -6,17 +6,20 @@ import { BrowserRouter } from "react-router-dom";
 import { CouponsProvider } from "./context/CouponsContext.jsx";
 import { CategoriesProvider } from "./context/CategoriesContext.jsx";
 import { ProductsProvider } from "./context/ProductsContext.jsx";
+import { BrandsProvider } from "./context/BrandsContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <ProductsProvider>
-      <CategoriesProvider>
-      <CouponsProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </CouponsProvider>
-    </CategoriesProvider>
-    </ProductsProvider>
+    <BrandsProvider>
+      <ProductsProvider>
+        <CategoriesProvider>
+          <CouponsProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </CouponsProvider>
+        </CategoriesProvider>
+      </ProductsProvider>
+    </BrandsProvider>
   </StrictMode>
 );

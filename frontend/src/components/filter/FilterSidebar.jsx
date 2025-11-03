@@ -1,212 +1,268 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useContext } from "react";
+import { BrandsContext } from "../../context/BrandsContext";
+import { ProductsContext } from "../../context/ProductsContext";
 
-const priceRange = { min: 37, max: 94 };
+const formatVND = (price) => {
+  if (typeof price === "number") {
+    return price.toLocaleString("vi-VN") + "₫";
+  }
+  return price || "0₫";
+};
+
+const priceRange = { min: 100000, max: 50000000 };
 
 const colorMap = {
-    grey: "bg-gray-400",
-    red: "bg-red-500",
-    black: "bg-black",
-    orange: "bg-orange-400",
-    blue: "bg-blue-500",
-    green: "bg-green-500",
-    yellow: "bg-yellow-400",
-    pink: "bg-pink-400",
+  grey: "bg-gray-400",
+  red: "bg-red-500",
+  black: "bg-black",
+  orange: "bg-orange-400",
+  blue: "bg-blue-500",
+  green: "bg-green-500",
+  yellow: "bg-yellow-400",
+  pink: "bg-pink-400",
 };
 
 const COLORS = [
-    { name: "Xám", color: "grey", selected: true },
-    { name: "Đỏ", color: "red" },
-    { name: "Đen", color: "black", selected: true },
-    { name: "Cam", color: "orange" },
-    { name: "Xanh dương", color: "blue", selected: true },
-    { name: "Xanh lá", color: "green" },
-    { name: "Vàng", color: "yellow" },
-    { name: "Hồng", color: "pink" },
+  { name: "Xám", color: "grey", selected: true },
+  { name: "Đỏ", color: "red" },
+  { name: "Đen", color: "black", selected: true },
+  { name: "Cam", color: "orange" },
+  { name: "Xanh dương", color: "blue", selected: true },
+  { name: "Xanh lá", color: "green" },
+  { name: "Vàng", color: "yellow" },
+  { name: "Hồng", color: "pink" },
 ];
 
 const SIZES = ["Nhỏ", "Vừa", "Lớn", "XL", "XXL"];
 
-const BRANDS = [
-    { name: "Khu công nghệ Gadget", count: 2, selected: false },
-    { name: "Initech Space", count: 3, selected: true },
-    { name: "Looney Tunes", count: 2, selected: false },
-    { name: "Massive Dynamic", count: 2, selected: true },
-    { name: "Pro Tech Gear", count: 2, selected: false },
-    { name: "Soylent Green", count: 3, selected: false },
-    { name: "The Simpsons", count: 3, selected: false },
-    { name: "Weeds Capital", count: 2, selected: false },
-];
-
-const STOCK_STATUS = [
-    { name: "Có sẵn", count: 17, selected: false },
-    { name: "Còn trong kho", count: 17, selected: true },
-    { name: "Hết hàng", count: 1, selected: false },
-];
-
 const PRODUCT_CONDITIONS = [
-    { name: "Mới", count: 9, selected: false },
-    { name: "Tân trang", count: 5, selected: true },
-    { name: "Đã qua sử dụng", count: 6, selected: false },
+  { name: "Mới", count: 9, selected: false },
+  { name: "Tân trang", count: 5, selected: true },
+  { name: "Đã qua sử dụng", count: 6, selected: false },
 ];
 
 const inputClasses =
-     "rounded border-gray-400 text-black focus:ring-black checked:bg-black checked:border-transparent";
+  "rounded border-gray-400 text-black focus:ring-black checked:bg-black checked:border-transparent";
 
-const FilterSidebar = () => {
-    return (
-        <div className="bg-white border border-gray-300 rounded-xl shadow-lg shadow-gray-200/50 overflow-hidden">
-            <div className="p-5 border-b border-gray-200 bg-gray-50">
-                <h3 className="font-medium text-black text-lg uppercase tracking-wider">
-                    Bộ lọc
-                </h3>
-            </div>
+const FilterSidebar = ({
+  selectedBrands,
+  setSelectedBrands,
+  selectedStockStatus,
+  setSelectedStockStatus,
+}) => {
+  const { brandsData, loading: brandsLoading } = useContext(BrandsContext);
+  const { productsData, loading: productsLoading } =
+    useContext(ProductsContext);
 
-            <div className="p-5 border-b border-gray-200">
-                <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
-                    Tình trạng hàng
-                </h4>
-                <div className="space-y-4">
-                    {STOCK_STATUS.map((item) => (
-                        <label
-                        key={item.name}
-                        className="flex items-center gap-3 cursor-pointer"
-                        >
-                        <input
-                            type="checkbox"
-                            className={inputClasses}
-                            readOnly
-                            defaultChecked={item.selected}
-                        />
-                        <span className="text-gray-800 text-base">{item.name}</span>
-                        <span className="text-gray-500 text-sm ml-auto font-medium">
-                            ({item.count})
-                        </span>
-                        </label>
-                    ))}
-                </div>
-            </div>
+  // Tạo danh sách BRANDS từ dữ liệu brandsData
+  const BRANDS = useMemo(() => {
+    if (!brandsData || brandsLoading) return [];
 
-            <div className="p-5 border-b border-gray-200">
-                <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
-                    Kích cỡ
-                </h4>
-                <div className="space-y-4">
-                    {SIZES.map((size) => (
-                        <label
-                        key={size}
-                        className="flex items-center gap-3 cursor-pointer"
-                        >
-                            <input
-                                type="checkbox"
-                                className={inputClasses}
-                                readOnly
-                                defaultChecked={size === "Vừa"}
-                            />
-                            <span className="text-gray-800 text-base">{size}</span>
-                            <span className="text-gray-500 text-sm ml-auto font-medium">
-                                (6)
-                            </span>
-                        </label>
-                    ))}
-                </div>
-            </div>
+    return brandsData.map((brand) => ({
+      name: brand.name,
+      count: Math.floor(Math.random() * 5) + 1, //Sau này sửa số lượng từ API
+      selected: brand.name === "Adidas" ? true : false,
+    }));
+  }, [brandsData, brandsLoading]);
 
-            <div className="p-5 border-b border-gray-200">
-                <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
-                    Màu sắc
-                </h4>
-                <div className="flex flex-wrap gap-x-4 gap-y-4">
-                    {COLORS.map((c) => (
-                        <div key={c.name} className="flex items-center">
-                        <label
-                            className={`relative w-7 h-7 rounded-full ${
-                            colorMap[c.color]
-                            } cursor-pointer transition-all duration-200 hover:scale-110 ${
-                            c.selected
-                                ? "ring-2 ring-offset-2 ring-black"
-                                : "border border-gray-300"
-                            }`}
-                            title={c.name}
-                        ></label>
-                        </div>
-                    ))}
-                </div>
-            </div>
+  // Tạo danh sách STOCK_STATUS từ productsData
+  const STOCK_STATUS = useMemo(() => {
+    if (!productsData || productsLoading) return [];
 
-            <div className="p-5 border-b border-gray-200">
-                <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
-                    Giá
-                </h4>
-                <div className="mb-4 text-center">
-                    <span className="text-xl font-extrabold text-black">
-                        ${priceRange.min}.00 - ${priceRange.max}.00
-                    </span>
-                </div>
-                <input
-                    type="range"
-                    min="37"
-                    max="100"
-                    defaultValue={priceRange.max}
-                    readOnly
-                    className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-black"
-                />
-                <div className="flex justify-between text-sm text-gray-600 mt-2">
-                    <span className="font-medium">Tối thiểu: ${priceRange.min}.00</span>
-                    <span className="font-medium">Tối đa: $100.00</span>
-                </div>
-            </div>
+    console.log("productsData for STOCK_STATUS:", productsData);
 
-            <div className="p-5 border-b border-gray-200">
-                <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
-                    Thương hiệu
-                </h4>
-                <div className="space-y-4 overflow-y-auto pr-2">
-                    {BRANDS.map((brand) => (
-                        <label
-                        key={brand.name}
-                        className="flex items-center gap-3 cursor-pointer"
-                        >
-                        <input
-                            type="checkbox"
-                            className={inputClasses}
-                            readOnly
-                            defaultChecked={brand.selected}
-                        />
-                        <span className="text-gray-800 text-base">{brand.name}</span>
-                        <span className="text-gray-500 text-sm ml-auto font-medium">
-                            ({brand.count})
-                        </span>
-                        </label>
-                    ))}
-                </div>
-            </div>
+    const availableProducts = productsData.filter((p) => {
+      // Tính tổng số lượng tồn kho từ tất cả các variants
+      const totalStock =
+        p.variants?.reduce((sum, v) => sum + (v.inStock || 0), 0) || 0;
+      return p.available && totalStock > 0;
+    });
 
-            <div className="p-5 border-b border-gray-200">
-                <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
-                    Tình trạng sản phẩm
-                </h4>
-                <div className="space-y-4">
-                    {PRODUCT_CONDITIONS.map((item) => (
-                        <label
-                        key={item.name}
-                        className="flex items-center gap-3 cursor-pointer"
-                        >
-                            <input
-                                type="checkbox"
-                                className={inputClasses}
-                                readOnly
-                                defaultChecked={item.selected}
-                            />
-                            <span className="text-gray-800 text-base">{item.name}</span>
-                            <span className="text-gray-500 text-sm ml-auto font-medium">
-                                ({item.count})
-                            </span>
-                        </label>
-                    ))}
-                </div>
-            </div>
-        </div>
+    const outOfStockProducts = productsData.filter((p) => {
+      const totalStock =
+        p.variants?.reduce((sum, v) => sum + (v.inStock || 0), 0) || 0;
+      return !p.available || totalStock === 0;
+    });
+
+    return [
+      { name: "Có sẵn", count: availableProducts.length, selected: true },
+      { name: "Hết hàng", count: outOfStockProducts.length, selected: false },
+    ];
+  }, [productsData, productsLoading]);
+
+  // Xử lý click chọn thương hiệu
+  const handleBrandChange = (brandName) => {
+    setSelectedBrands((prev) =>
+      prev.includes(brandName)
+        ? prev.filter((b) => b !== brandName)
+        : [...prev, brandName]
     );
+  };
+
+  // Xử lý click chọn tình trạng hàng
+  const handleStockStatusChange = (status) => {
+    setSelectedStockStatus((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status]
+    );
+  };
+
+  return (
+    <div className="bg-white border border-gray-300 rounded-xl shadow-lg shadow-gray-200/50 overflow-hidden">
+      <div className="p-5 border-b border-gray-200 bg-gray-50">
+        <h3 className="font-medium text-black text-lg uppercase tracking-wider">
+          Bộ lọc
+        </h3>
+      </div>
+
+      {/* Tình trạng hàng */}
+      <div className="p-5 border-b border-gray-200">
+        <h4 className="font-bold mb-4 text-sm uppercase text-black tracking-wide">
+          Tình trạng hàng
+        </h4>
+        <div className="space-y-4">
+          {STOCK_STATUS.map((item) => (
+            <label key={item.name} className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className={inputClasses}
+                checked={selectedStockStatus.includes(item.name)}
+                onChange={() => handleStockStatusChange(item.name)}
+              />
+              <span className="text-gray-800 text-base">{item.name}</span>
+              <span className="text-gray-500 text-sm ml-auto font-medium">
+                ({item.count})
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-5 border-b border-gray-200">
+        <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
+          Kích cỡ
+        </h4>
+        <div className="space-y-4">
+          {SIZES.map((size) => (
+            <label
+              key={size}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                className={inputClasses}
+                readOnly
+                defaultChecked={size === "Vừa"}
+              />
+              <span className="text-gray-800 text-base">{size}</span>
+              <span className="text-gray-500 text-sm ml-auto font-medium">
+                (6)
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-5 border-b border-gray-200">
+        <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
+          Màu sắc
+        </h4>
+        <div className="flex flex-wrap gap-x-4 gap-y-4">
+          {COLORS.map((c) => (
+            <div key={c.name} className="flex items-center">
+              <label
+                className={`relative w-7 h-7 rounded-full ${
+                  colorMap[c.color]
+                } cursor-pointer transition-all duration-200 hover:scale-110 ${
+                  c.selected
+                    ? "ring-2 ring-offset-2 ring-black"
+                    : "border border-gray-300"
+                }`}
+                title={c.name}
+              ></label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-5 border-b border-gray-200">
+        <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
+          Giá
+        </h4>
+        <div className="mb-4 text-center">
+          <span className="text-xl font-extrabold text-black">
+            {formatVND(priceRange.min)} - {formatVND(priceRange.max)}
+          </span>
+        </div>
+        <input
+          type="range"
+          min="100000"
+          max="50000000"
+          defaultValue={priceRange.max}
+          readOnly
+          className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-black"
+        />
+        <div className="flex justify-between text-sm text-gray-600 mt-2">
+          <span className="font-medium">
+            Tối thiểu: {formatVND(priceRange.min)}
+          </span>
+          <span className="font-medium">
+            Tối đa: {formatVND(priceRange.max)}
+          </span>
+        </div>
+      </div>
+
+    {/* Thương hiệu */}
+    <div className="p-5 border-b border-gray-200">
+        <h4 className="font-bold mb-4 text-sm uppercase text-black tracking-wide">
+          Thương hiệu
+        </h4>
+        <div className="space-y-4">
+          {BRANDS.map((brand) => (
+            <label key={brand.name} className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className={inputClasses}
+                checked={selectedBrands.includes(brand.name)}
+                onChange={() => handleBrandChange(brand.name)}
+              />
+              <span className="text-gray-800 text-base">{brand.name}</span>
+              <span className="text-gray-500 text-sm ml-auto font-medium">
+                ({brand.count})
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-5 border-b border-gray-200">
+        <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
+          Tình trạng sản phẩm
+        </h4>
+        <div className="space-y-4">
+          {PRODUCT_CONDITIONS.map((item) => (
+            <label
+              key={item.name}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                className={inputClasses}
+                readOnly
+                defaultChecked={item.selected}
+              />
+              <span className="text-gray-800 text-base">{item.name}</span>
+              <span className="text-gray-500 text-sm ml-auto font-medium">
+                ({item.count})
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default FilterSidebar;

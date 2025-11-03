@@ -2,20 +2,20 @@ import React, { useState, useMemo } from 'react';
 import ListProduct from './ListProduct'; 
 
 const NewArrivalsSection = ({ products, title, subtitle }) => {
-    const [activeCategory, setActiveCategory] = useState("All");
+    const [activeCategory, setActiveCategory] = useState("Tất Cả");
 
     console.log("NewArrivalsSection products:", products);
 
     const categories = [
-        "All", 
-        "Men's Fashion", 
-        "Women's Fashion", 
-        "Accessories", 
-        "Footwear"
+        "Tất Cả", 
+        "Thời Trang Nam", 
+        "Thời Trang Nữ", 
+        "Phụ Kiện", 
+        "Giày Dép"
     ];
 
     const filteredProducts = useMemo(() => {
-        if (activeCategory === "All") {
+        if (activeCategory === "Tất Cả") {
             return products;
         }
         return products.filter(product => product.category.name === activeCategory);
