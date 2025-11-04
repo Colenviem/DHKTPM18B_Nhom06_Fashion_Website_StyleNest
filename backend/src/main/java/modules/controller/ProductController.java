@@ -2,6 +2,7 @@ package modules.controller;
 
 import modules.entity.Product;
 import modules.service.impl.ProductServiceImpl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,4 +28,19 @@ public class ProductController {
     public Product findById(@PathVariable String id) {
         return service.findById(id);
     }
+
+    @GetMapping("/outofstock")
+    public ResponseEntity<List<Product>> findOutOfStockProducts() {
+        List<Product> outOfStockProducts = service.findOutOfStockProducts();
+        return ResponseEntity.ok(outOfStockProducts);
+    }
+    @GetMapping("/by-size/{size}")
+    public ResponseEntity<List<Product>> findProductsBySize(@PathVariable String size) {
+        List<Product> products = service.findProductsBySize(size);
+        if (products.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(products);
+    }
+
 }
