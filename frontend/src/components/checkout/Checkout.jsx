@@ -45,55 +45,110 @@ const Checkout = () => {
         }
     );
 
+    // const handleCheckout = async () => {
+    //     if (!selectedAddress || cartItems.length === 0) {
+    //         alert("Vui lòng chọn địa chỉ và giỏ hàng không được trống!");
+    //         return;
+    //     }
+    //
+    //     const payload = {
+    //         userId: userId,
+    //         shippingAddress: {
+    //             id: selectedAddress.id,
+    //             name: selectedAddress.name,
+    //             street: selectedAddress.address,
+    //             phoneNumber: selectedAddress.phone,
+    //         },
+    //         items: cartItems.map(item => ({
+    //             productId: item.id,
+    //             variantId: item.variantId || null,
+    //             quantity: item.quantity,
+    //             unitPrice: Math.round(item.price * (1 - (item.discount || 0)/100)),
+    //             discount: item.discount || 0
+    //         })),
+    //         shippingFee: shippingFee,
+    //         note: note,
+    //         paymentMethod: selectedPaymentMethod
+    //     };
+    //
+    //     try {
+    //         const res = await axios.post(`http://localhost:8080/api/orders`, payload);
+    //         alert("Đặt hàng thành công! Mã đơn: " + res.data.orderNumber);
+    //
+    //         setCartItems([]);
+    //
+    //         if (userId) {
+    //             try {
+    //                 await axios.put(`http://localhost:8080/api/carts/user/${userId}`, { items: [] });
+    //             } catch (err) {
+    //                 console.error("❌ Lỗi xóa giỏ hàng trên server:", err.response?.data || err.message);
+    //             }
+    //         } else {
+    //             sessionStorage.removeItem('cartItems'); // guest
+    //         }
+    //
+    //
+    //         navigate('/orders'); // chuyển sang trang đơn hàng
+    //     } catch (err) {
+    //         console.error("Lỗi đặt hàng:", err.response?.data || err.message);
+    //         alert("Đặt hàng thất bại, vui lòng thử lại!");
+    //     }
+    // };
+
     const handleCheckout = async () => {
         if (!selectedAddress || cartItems.length === 0) {
             alert("Vui lòng chọn địa chỉ và giỏ hàng không được trống!");
             return;
         }
 
-        const payload = {
-            userId: userId,
-            shippingAddress: {
-                id: selectedAddress.id,
-                name: selectedAddress.name,
-                street: selectedAddress.address,
-                phoneNumber: selectedAddress.phone,
-            },
-            items: cartItems.map(item => ({
-                productId: item.id,
-                variantId: item.variantId || null,
-                quantity: item.quantity,
-                unitPrice: Math.round(item.price * (1 - (item.discount || 0)/100)),
-                discount: item.discount || 0
-            })),
-            shippingFee: shippingFee,
-            note: note,
-            paymentMethod: selectedPaymentMethod
+        // Chuẩn hóa địa chỉ
+        const shippingAddress = {
+            id: selectedAddress.id || null,
+            name: selectedAddress.name || "Khách hàng",
+            street: selectedAddress.street || selectedAddress.address || "",
+            phoneNumber: selectedAddress.phone || selectedAddress.phoneNumber || "Chưa có",
+            city: selectedAddress.city || "Chưa có"
         };
+
+        // Chuẩn hóa items
+        const items = cartItems.map(item => ({
+            productId: item.id,
+            variantId: item.variantId || null,
+            quantity: item.quantity || 1,
+            unitPrice: Math.round(item.price * (1 - (item.discount || 0)/100)),
+            discount: item.discount || 0
+        }));
+
+        const payload = {
+            userId: userId || null,
+            shippingAddress,
+            items,
+            shippingFee: shippingFee || 0,
+            note: note || "",
+            paymentMethod: selectedPaymentMethod || "cod"
+        };
+
+        console.log("Payload đặt hàng:", payload);
 
         try {
             const res = await axios.post(`http://localhost:8080/api/orders`, payload);
             alert("Đặt hàng thành công! Mã đơn: " + res.data.orderNumber);
 
+            // Xóa giỏ hàng
             setCartItems([]);
-
             if (userId) {
-                try {
-                    await axios.put(`http://localhost:8080/api/carts/user/${userId}`, { items: [] });
-                } catch (err) {
-                    console.error("❌ Lỗi xóa giỏ hàng trên server:", err.response?.data || err.message);
-                }
+                await axios.put(`http://localhost:8080/api/carts/user/${userId}`, { items: [] });
             } else {
-                sessionStorage.removeItem('cartItems'); // guest
+                sessionStorage.removeItem('cartItems');
             }
 
-
-            navigate('/orders'); // chuyển sang trang đơn hàng
+            navigate('/cart');
         } catch (err) {
             console.error("Lỗi đặt hàng:", err.response?.data || err.message);
             alert("Đặt hàng thất bại, vui lòng thử lại!");
         }
     };
+
 
     const handleNewAddressChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -113,27 +168,32 @@ const Checkout = () => {
             try {
                 const res = await axios.get(`http://localhost:8080/api/users/${userId}`);
                 const user = res.data;
-                const addrs = user.addresses || [];
+                const addrs = Array.isArray(user.addresses) ? user.addresses : [];
 
-                // map sang định dạng frontend cần
                 const mappedAddresses = addrs.map(a => ({
                     id: a.id,
                     name: user.firstName + " " + user.lastName,
                     phone: a.phoneNumber || "Chưa có",
-                    address: a.street,
+                    address: a.street || "",
                     city: a.city || "",
                     isDefault: a.isDefault
                 }));
 
                 setAddresses(mappedAddresses);
 
-                const defaultAddr = mappedAddresses.find(a => a.isDefault) || mappedAddresses[0];
+                const defaultAddr = mappedAddresses.find(a => a.isDefault) || mappedAddresses[0] || null;
                 setSelectedAddress(defaultAddr);
 
+                // Nếu không có địa chỉ nào, bật modal thêm địa chỉ
+                if (!defaultAddr) {
+                    setShowNewAddressModal(true);
+                }
+
             } catch (err) {
-                console.error("Lỗi lấy user:", err.response ? err.response.data : err.message);
+                console.error("Lỗi lấy user:", err.response?.data || err.message);
             }
         };
+
         fetchUser();
     }, [userId]);
 
@@ -253,7 +313,7 @@ const Checkout = () => {
     };
 
 
-    if (!cartItems || !selectedAddress) return <div>Đang tải dữ liệu...</div>;
+    if (!cartItems) return <div>Đang tải giỏ hàng...</div>;
 
     return (
         <div className="bg-gray-100 min-h-screen flex items-center justify-center p-6 py-10">
@@ -266,13 +326,18 @@ const Checkout = () => {
                         <div className="flex-1">
                             <h2 className="text-[#6F47EB] text-lg font-semibold">Địa Chỉ Nhận Hàng</h2>
                             <div className="flex justify-between items-center pt-2">
-                                <div>
-                                    <p className="font-semibold text-gray-800 mb-2">{selectedAddress.name}</p>
-                                    <p className="text-gray-600 mb-2">{selectedAddress.phone}</p>
-                                    <p className="text-gray-600 text-sm">{selectedAddress.address}</p>
-                                </div>
+                                {selectedAddress ? (
+                                    <div>
+                                        <p className="font-semibold text-gray-800 mb-2">{selectedAddress.name}</p>
+                                        <p className="text-gray-600 mb-2">{selectedAddress.phone}</p>
+                                        <p className="text-gray-600 text-sm">{selectedAddress.address}</p>
+                                    </div>
+                                ) : (
+                                    <p>Chưa có địa chỉ</p>
+                                )}
+
                                 <div className="flex gap-4">
-                                    {selectedAddress.isDefault && (
+                                    {selectedAddress?.isDefault && (
                                         <span className="border border-[#6F47EB] text-[#6F47EB] px-3 py-1 rounded text-sm">Mặc Định</span>
                                     )}
                                     <button className="text-gray-600 font-medium hover:text-[#6F47EB] transition-colors duration-200" onClick={() => setShowAddressModal(true)}>Thay Đổi</button>

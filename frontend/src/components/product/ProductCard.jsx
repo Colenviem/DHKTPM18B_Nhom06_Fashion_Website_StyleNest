@@ -55,8 +55,11 @@ const ProductCard = ({ product }) => {
                 </p>
 
                 <div className="flex items-center gap-1 text-yellow-500 text-sm">
-                    <RenderStars rating={product.rating.average} />
-                    <span className="text-[#4B5563] text-xs ml-1">({product.rating.count} reviews)</span>
+                    <RenderStars rating={product.rating?.average || 0} />
+                    <span className="text-[#4B5563] text-xs ml-1">
+  ({product.rating?.count || 0} reviews)
+</span>
+
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200">

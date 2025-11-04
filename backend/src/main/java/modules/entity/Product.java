@@ -19,7 +19,6 @@ public class Product {
     private String image;
     private String shortDescription;
     private CategoryRef category;
-    private String image;
     private double price;
     private double discount;
     private int sold;
