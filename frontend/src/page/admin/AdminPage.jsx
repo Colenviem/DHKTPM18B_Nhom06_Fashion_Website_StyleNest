@@ -11,7 +11,7 @@ import CouponListsTable from "../../components/table/CouponListsTable";
 import OrderListsTable from "../../components/table/OrderListsTable";
 import ProductListsTable from "../../components/table/ProductListsTable";
 import UserListsTable from "../../components/table/UserListsTable";
-
+import ProductEdit from "../../components/edit/ProductEdit";
 import AdminSetting from "../../components/setting/AdminSetting";
 
 const AdminPage = () => {
@@ -27,6 +27,7 @@ const AdminPage = () => {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="accounts" element={<AccountListsTable />} />
           <Route path="brands" element={<BrandListsTable />} />
+          <Route path="products/edit/:id" element={<ProductEdit />} />
           <Route path="categories" element={<CategorieListsTable />} />
           <Route path="coupons" element={<CouponListsTable />} />
           <Route path="orders" element={<OrderListsTable />} />

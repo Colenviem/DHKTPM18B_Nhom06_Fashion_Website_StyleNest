@@ -5,7 +5,7 @@
   "shortDescription": "Áo thun cotton phom rộng, nhiều màu.",
   "category": {
     "id": "CAT001",
-    "name": "Áo Nam"
+    "name": "Thời Trang Nam"
   },
   "price": 250000,
   "discount": 10,
@@ -63,7 +63,7 @@
   ],
   "isAvailable": true,
   "rating": {
-    "average": 4.7,
+    "average": 4,
     "count": 86
   },
   "brand": "Coolmate",
@@ -75,7 +75,8 @@
   },
   "updatedAt": {
     "$date": "2024-10-01T15:30:00.000Z"
-  }
+  },
+  "image": "https://iili.io/KLmfC6g.jpg"
 },
 {
   "_id": "PRD002",
@@ -84,7 +85,7 @@
   "shortDescription": "Áo thun cotton phom rộng, nhiều màu.",
   "category": {
     "id": "CAT001",
-    "name": "Áo Nam"
+    "name": "Thời Trang Nam"
   },
   "price": 250000,
   "discount": 10,
@@ -132,7 +133,8 @@
   },
   "updatedAt": {
     "$date": "2024-10-01T15:30:00.000Z"
-  }
+  },
+  "image": "https://iili.io/KLmx1Se.jpg"
 },
 {
   "_id": "PRD003",
@@ -141,7 +143,7 @@
   "shortDescription": "Quần jeans skinny lưng cao, phong cách cổ điển.",
   "category": {
     "id": "CAT002",
-    "name": "Quần Nữ"
+    "name": "Thời Trang Nữ"
   },
   "price": 599000,
   "discount": 15,
@@ -188,7 +190,8 @@
   },
   "updatedAt": {
     "$date": "2024-10-25T12:00:00.000Z"
-  }
+  },
+  "image": "https://iili.io/KLmzBbj.jpg"
 },
 {
   "_id": "PRD004",
@@ -243,7 +246,8 @@
   },
   "updatedAt": {
     "$date": "2024-10-30T10:10:00.000Z"
-  }
+  },
+  "image": "https://iili.io/KLmzNIf.png"
 },
 {
   "_id": "PRD005",
@@ -252,7 +256,7 @@
   "shortDescription": "Thắt lưng da bò, khóa tự động.",
   "category": {
     "id": "CAT003",
-    "name": "Phụ kiện"
+    "name": "Phụ Kiện"
   },
   "price": 750000,
   "discount": 0,
@@ -301,5 +305,76 @@
   },
   "updatedAt": {
     "$date": "2024-10-28T09:00:00.000Z"
-  }
+  },
+  "image": "https://iili.io/KLmIi8X.jpg"
+},
+{
+  "_id": "PRD006",
+  "name": "Áo Khoác Hoodie Unisex Nỉ Bông",
+  "description": "Áo khoác hoodie unisex chất liệu nỉ bông cao cấp, giữ ấm tốt, phù hợp cho cả nam và nữ. Thiết kế trẻ trung, dễ phối đồ.",
+  "shortDescription": "Hoodie nỉ bông unisex, ấm áp, thoải mái.",
+  "category": {
+    "id": "CAT001",
+    "name": "Thời Trang Nam"
+  },
+  "price": 490000,
+  "discount": 5,
+  "sold": 45,
+  "variants": [
+    {
+      "sku": "HD-BLK-M",
+      "color": "black",
+      "size": "M",
+      "inStock": 0,
+      "images": [
+        "https://product.hstatic.net/200000386961/product/hoodie_black1.jpg",
+        "https://product.hstatic.net/200000386961/product/hoodie_black2.jpg"
+      ],
+      "isAvailable": "false"
+    },
+    {
+      "sku": "HD-BLK-L",
+      "color": "black",
+      "size": "L",
+      "inStock": 0,
+      "images": [
+        "https://product.hstatic.net/200000386961/product/hoodie_black3.jpg",
+        "https://product.hstatic.net/200000386961/product/hoodie_black4.jpg"
+      ],
+      "isAvailable": "false"
+    },
+    {
+      "sku": "HD-GRY-M",
+      "color": "gray",
+      "size": "M",
+      "inStock": 0,
+      "images": [
+        "https://product.hstatic.net/200000386961/product/hoodie_gray1.jpg",
+        "https://product.hstatic.net/200000386961/product/hoodie_gray2.jpg"
+      ],
+      "isAvailable": "false"
+    }
+  ],
+  "tags": [
+    "hoodie",
+    "nỉ bông",
+    "unisex",
+    "ấm áp"
+  ],
+  "isAvailable": false,
+  "rating": {
+    "average": 4.7,
+    "count": 285
+  },
+  "brand": "Coolmate",
+  "material": "Nỉ bông dày",
+  "origin": "Vietnam",
+  "views": 1980,
+  "createdAt": {
+    "$date": "2024-09-20T09:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2024-10-15T16:00:00.000Z"
+  },
+  "image": "https://iili.io/KLmzNIf.png"
 }]

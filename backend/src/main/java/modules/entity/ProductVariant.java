@@ -13,6 +13,7 @@ public class ProductVariant {
     private String size;
     private Integer inStock;
     private List<String> images;
+    private boolean isAvailable;
 
     public String getSku() {
         return sku;
@@ -52,5 +53,13 @@ public class ProductVariant {
 
     public void setImages(List<String> images) {
         this.images = images;
+    }
+
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+
+    public void setAvailable(boolean available) {
+        isAvailable = available;
     }
 }

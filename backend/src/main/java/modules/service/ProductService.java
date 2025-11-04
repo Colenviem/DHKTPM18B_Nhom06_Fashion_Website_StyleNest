@@ -10,4 +10,6 @@ public interface ProductService {
     Product findById(String id);
 
     List<Product> getProductsByCategoryId(String categoryId);
+
+    Product updateProduct(Product product);
 }

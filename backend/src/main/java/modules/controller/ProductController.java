@@ -3,9 +3,11 @@ package modules.controller;
 import modules.entity.Product;
 import modules.service.impl.ProductServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -30,5 +32,9 @@ public class ProductController {
     @GetMapping("/category/{categoryId}")
     public List<Product> getProductsByCategory(@PathVariable String categoryId) {
         return service.getProductsByCategoryId(categoryId);
+    }
+    @PostMapping("/updatePRO")
+    public Product addProduct(@RequestBody Product product) {
+        return service.updateProduct(product);
     }
 }

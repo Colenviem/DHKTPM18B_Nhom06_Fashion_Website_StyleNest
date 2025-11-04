@@ -32,7 +32,7 @@ export const getProductById = async (id) => {
     }
 
     const data = await response.json();
-    return data; // Trả về object chi tiết sản phẩm
+    return data; 
   } catch (error) {
     console.error("❌ Lỗi khi fetch chi tiết sản phẩm:", error);
     throw new Error("Không thể kết nối tới server hoặc tải dữ liệu sản phẩm.");
@@ -54,4 +54,35 @@ export const getProductsByCategoryId = async (categoryId) => {
     console.error("❌ Lỗi khi fetch sản phẩm theo danh mục:", error);
     throw new Error("Không thể kết nối tới server hoặc tải dữ liệu danh mục.");
   }
+};
+
+
+export const saveOrUpdateProduct = async (productData) => {
+    // Sử dụng endpoint theo yêu cầu của bạn
+    const url = `${API_BASE_URL}/products/updatePRO`; 
+
+    try {
+        const response = await fetch(url, {
+            // Sử dụng POST method để gửi dữ liệu cập nhật/lưu
+            method: 'POST', 
+            // Báo cho server biết body là JSON
+            headers: { 
+                'Content-Type': 'application/json',
+            },
+            // Chuyển đối tượng productData thành chuỗi JSON để gửi đi
+            body: JSON.stringify(productData), 
+        });
+
+        if (!response.ok) {
+            // Xử lý các mã lỗi như 400 Bad Request, 500 Internal Server Error
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // Server sẽ trả về đối tượng Product đã được xử lý (lưu hoặc cập nhật)
+        return data; 
+    } catch (error) {
+        console.error("❌ Lỗi khi lưu/cập nhật sản phẩm:", error);
+        throw new Error("Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.");
+    }
 };
