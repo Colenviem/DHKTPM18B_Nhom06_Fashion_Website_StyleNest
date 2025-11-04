@@ -1,5 +1,6 @@
 package modules.controller;
 
+import lombok.RequiredArgsConstructor;
 import modules.entity.Order;
 import modules.entity.ShippingAddress;
 import modules.service.OrderService;
@@ -7,18 +8,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
 @CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class OrderController {
 
     private final OrderService orderService;
-
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
-    }
 
     @GetMapping
     public List<Order> getAllOrders() {
@@ -35,47 +32,45 @@ public class OrderController {
         return orderService.findByUserId(userId);
     }
 
-
     @GetMapping("/status/{status}")
     public List<Order> getOrdersByStatus(@PathVariable String status) {
         return orderService.findByStatus(status);
     }
 
     @PostMapping
-    public Order createOrder(@RequestBody Map<String, Object> payload) {
-        String userId = (String) payload.get("userId");
+    public Order createOrder(@RequestBody Map<String, Object> body) {
 
-        Map<String, Object> addressMap = (Map<String, Object>) payload.get("shippingAddress");
-        ShippingAddress address = new ShippingAddress();
-        address.setName((String) addressMap.get("name"));
-        address.setStreet((String) addressMap.get("street"));
-        address.setPhoneNumber((String) addressMap.get("phoneNumber"));
+        String userId = (String) body.get("userId");
 
-        List<Map<String,Object>> itemsList = (List<Map<String,Object>>) payload.get("items");
-        Map<String, Integer> productQuantities = itemsList.stream()
-                .collect(Collectors.toMap(
-                        item -> (String)item.get("productId"),
-                        item -> ((Number)item.get("quantity")).intValue()
-                ));
+        Map<String, Object> addr = (Map<String, Object>) body.get("shippingAddress");
+        ShippingAddress address = new ShippingAddress(
+                (String) addr.get("id"),
+                (String) addr.get("name"),
+                (String) addr.get("street"),
+                (String) addr.get("phoneNumber")
+        );
 
-        return orderService.createOrder(userId, address, productQuantities);
+        Map<String, Integer> products = (Map<String, Integer>) body.get("products");
+
+        return orderService.createOrder(userId, address, products);
     }
 
 
-
+    /** ========== UPDATE STATUS ========== */
     @PutMapping("/{id}/status")
-    public Order updateStatus(@PathVariable String id, @RequestBody Map<String, String> body) {
-        String status = body.get("status");
-        return orderService.updateStatus(id, status);
+    public Order updateStatus(@PathVariable String id, @RequestBody Map<String, String> b) {
+        return orderService.updateStatus(id, b.get("status"));
     }
 
+
+    /** ========== ADD PRODUCT ========== */
     @PostMapping("/{id}/products")
-    public Order addProductToOrder(@PathVariable String id, @RequestBody Map<String, Object> body) {
-        String productId = (String) body.get("productId");
-        int quantity = (int) body.get("quantity");
-        return orderService.addProduct(id, productId, quantity);
+    public Order addProduct(@PathVariable String id, @RequestBody Map<String, Object> b) {
+        return orderService.addProduct(id, (String) b.get("productId"), (Integer) b.get("quantity"));
     }
 
+
+    /** ========== DELETE ORDER ========== */
     @DeleteMapping("/{id}")
     public void deleteOrder(@PathVariable String id) {
         orderService.deleteOrder(id);

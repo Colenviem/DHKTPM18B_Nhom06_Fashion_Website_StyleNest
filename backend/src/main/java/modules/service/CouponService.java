@@ -1,8 +1,6 @@
 package modules.service;
 
 import modules.entity.Coupon;
-import org.springframework.http.ResponseEntity;
-
 import java.util.List;
 
 public interface CouponService {
@@ -11,6 +9,8 @@ public interface CouponService {
     Coupon findById(String id);
 
     Coupon addCoupon(Coupon coupon);
+
     Coupon updateCoupon(String code, Coupon updatedCoupon);
-    ResponseEntity<String> deleteCoupon(String code);
+
+    boolean deleteCoupon(String code);
 }

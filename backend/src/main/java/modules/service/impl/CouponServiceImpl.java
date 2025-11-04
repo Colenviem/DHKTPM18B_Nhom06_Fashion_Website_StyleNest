@@ -1,19 +1,18 @@
 package modules.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import modules.entity.Coupon;
 import modules.repository.CouponRepository;
-import org.springframework.http.ResponseEntity;
+import modules.service.CouponService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class CouponServiceImpl implements modules.service.CouponService {
-    private final CouponRepository repository;
+@RequiredArgsConstructor
+public class CouponServiceImpl implements CouponService {
 
-    public CouponServiceImpl(CouponRepository repository) {
-        this.repository = repository;
-    }
+    private final CouponRepository repository;
 
     @Override
     public List<Coupon> findAll() {
@@ -27,33 +26,40 @@ public class CouponServiceImpl implements modules.service.CouponService {
 
     @Override
     public Coupon addCoupon(Coupon coupon) {
+        // tạo id nếu null
+        if (coupon.getId() == null) {
+            coupon.setId(coupon.getCode());
+        }
         return repository.save(coupon);
     }
 
     @Override
     public Coupon updateCoupon(String code, Coupon updatedCoupon) {
-        return repository.findById(code).map(existingCoupon -> {
-            existingCoupon.setType(updatedCoupon.getType());
-            existingCoupon.setDiscount(updatedCoupon.getDiscount());
-            existingCoupon.setDescription(updatedCoupon.getDescription());
-            existingCoupon.setMinimumOrderAmount(updatedCoupon.getMinimumOrderAmount());
-            existingCoupon.setExpirationDate(updatedCoupon.getExpirationDate());
-            existingCoupon.setUsageLimit(updatedCoupon.getUsageLimit());
-            existingCoupon.setUsedCount(updatedCoupon.getUsedCount());
-            existingCoupon.setActive(updatedCoupon.isActive());
-            return repository.save(existingCoupon);
-        }).orElseGet(() -> {
-            updatedCoupon.setCode(code);
-            return repository.save(updatedCoupon);
-        });
+        return repository.findById(code)
+                .map(existing -> {
+                    existing.setType(updatedCoupon.getType());
+                    existing.setDiscount(updatedCoupon.getDiscount());
+                    existing.setDescription(updatedCoupon.getDescription());
+                    existing.setMinimumOrderAmount(updatedCoupon.getMinimumOrderAmount());
+                    existing.setExpirationDate(updatedCoupon.getExpirationDate());
+                    existing.setUsageLimit(updatedCoupon.getUsageLimit());
+                    existing.setUsedCount(updatedCoupon.getUsedCount());
+                    existing.setActive(updatedCoupon.isActive());
+                    return repository.save(existing);
+                })
+                .orElseGet(() -> {
+                    updatedCoupon.setCode(code);
+                    return repository.save(updatedCoupon);
+                });
     }
 
-
     @Override
-    public ResponseEntity<String> deleteCoupon(String code) {
-        return repository.findById(code).map(existingCoupon -> {
-            repository.delete(existingCoupon);
-            return ResponseEntity.ok("Coupon deleted successfully");
-        }).orElseGet(() -> ResponseEntity.status(404).body("Coupon not found"));
+    public boolean deleteCoupon(String code) {
+        return repository.findById(code)
+                .map(existing -> {
+                    repository.delete(existing);
+                    return true;
+                })
+                .orElse(false);
     }
 }

@@ -13,44 +13,4 @@ public class ProductVariant {
     private String size;
     private Integer inStock;
     private List<String> images;
-
-    public String getSku() {
-        return sku;
-    }
-
-    public void setSku(String sku) {
-        this.sku = sku;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getSize() {
-        return size;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
-    }
-
-    public Integer getInStock() {
-        return inStock;
-    }
-
-    public void setInStock(Integer inStock) {
-        this.inStock = inStock;
-    }
-
-    public List<String> getImages() {
-        return images;
-    }
-
-    public void setImages(List<String> images) {
-        this.images = images;
-    }
 }

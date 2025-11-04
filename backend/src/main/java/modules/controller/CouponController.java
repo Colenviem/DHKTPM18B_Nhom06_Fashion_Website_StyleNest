@@ -1,46 +1,52 @@
 package modules.controller;
 
+import lombok.RequiredArgsConstructor;
 import modules.entity.Coupon;
-import modules.service.impl.CouponServiceImpl;
+import modules.service.CouponService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/coupons")
+@CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class CouponController {
-    private final CouponServiceImpl service;
 
-    public CouponController(CouponServiceImpl service) {
-        this.service = service;
-    }
+    private final CouponService service;
 
     @GetMapping
-    public List<Coupon> getAllCoupons() {
-        return service.findAll();
+    public ResponseEntity<List<Coupon>> getAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public Coupon findById(@PathVariable String id) {
-        return service.findById(id);
+    public ResponseEntity<Coupon> getById(@PathVariable String id) {
+        Coupon coupon = service.findById(id);
+        return coupon != null
+                ? ResponseEntity.ok(coupon)
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public Coupon addCoupon(@RequestBody Coupon coupon) {
-        if (coupon.getId() == null) {
-            coupon.setId(coupon.getCode());
-        }
-        return service.addCoupon(coupon);
+    public ResponseEntity<Coupon> create(@RequestBody Coupon coupon) {
+        return ResponseEntity.ok(service.addCoupon(coupon));
     }
 
     @PutMapping("/{code}")
-    public Coupon updateCoupon(@PathVariable String code, @RequestBody Coupon updatedCoupon) {
-        return service.updateCoupon(code, updatedCoupon);
+    public ResponseEntity<Coupon> update(
+            @PathVariable String code,
+            @RequestBody Coupon updatedCoupon
+    ) {
+        return ResponseEntity.ok(service.updateCoupon(code, updatedCoupon));
     }
 
-
     @DeleteMapping("/{code}")
-    public String deleteCoupon(@PathVariable String code) {
-        return service.deleteCoupon(code).getBody();
+    public ResponseEntity<Void> delete(@PathVariable String code) {
+        boolean deleted = service.deleteCoupon(code);
+        return deleted
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }
