@@ -1,45 +1,54 @@
 package modules.controller;
 
+import lombok.RequiredArgsConstructor;
 import modules.entity.Category;
-import modules.service.impl.CategoryServiceImpl;
+import modules.service.CategoryService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
+@CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class CategoryController {
-    private final CategoryServiceImpl service;
 
-    public CategoryController(CategoryServiceImpl service) {
-        this.service = service;
-    }
+    private final CategoryService service;
 
     @GetMapping
-    public List<Category> getAllCategories() {
-        return service.findAll();
+    public ResponseEntity<List<Category>> getAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public Category findById(@PathVariable String id) {
-        return service.findById(id);
+    public ResponseEntity<Category> getById(@PathVariable String id) {
+        Category category = service.findById(id);
+        return category != null
+                ? ResponseEntity.ok(category)
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public Category addCategory(@RequestBody Category category) {
-        if (category.getId() == null) {
-            category.setId(category.getName());
-        }
-        return service.addCategory(category);
+    public ResponseEntity<Category> create(@RequestBody Category category) {
+        Category newCategory = service.addCategory(category);
+        return ResponseEntity.ok(newCategory);
     }
 
     @PutMapping("/{id}")
-    public Category updateCategory(@PathVariable String id, @RequestBody Category updatedCategory) {
-        return service.updateCategory(id, updatedCategory);
+    public ResponseEntity<Category> update(
+            @PathVariable String id,
+            @RequestBody Category updatedCategory
+    ) {
+        Category category = service.updateCategory(id, updatedCategory);
+        return ResponseEntity.ok(category);
     }
 
     @DeleteMapping("/{id}")
-    public String deleteCategory(@PathVariable String id) {
-        return service.deleteCategory(id).getBody();
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        boolean deleted = service.deleteCategory(id);
+        return deleted
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

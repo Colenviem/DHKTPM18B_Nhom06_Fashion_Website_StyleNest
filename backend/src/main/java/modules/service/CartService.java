@@ -11,7 +11,9 @@ public interface CartService {
 
     Cart findByUserId(String userId);
 
-    void deleteById(String id);
+    boolean deleteById(String id);
+
+    Cart updateCartByUser(String userId, Cart cart);
 
     Cart save(Cart cart);
 }

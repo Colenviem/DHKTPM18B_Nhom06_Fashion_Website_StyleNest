@@ -1,7 +1,6 @@
 package modules.service;
 
 import modules.entity.Category;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -14,5 +13,5 @@ public interface CategoryService {
 
     Category updateCategory(String id, Category updatedCategory);
 
-    ResponseEntity<String> deleteCategory(String id);
+    boolean deleteCategory(String id);
 }
