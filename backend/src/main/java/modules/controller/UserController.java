@@ -1,11 +1,10 @@
 package modules.controller;
 
+import modules.dto.request.CreateUserRequest;
 import modules.entity.User;
 import modules.service.UserService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,5 +25,14 @@ public class UserController {
     @GetMapping("/{id}")
     public User findById(@PathVariable String id) {
         return service.findById(id);
+    }
+    @PutMapping("/{id}")
+    public ResponseEntity<User> update(@PathVariable String id, @RequestBody CreateUserRequest request) {
+        try {
+            User updatedUser = service.update(id, request);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

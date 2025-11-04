@@ -1,5 +1,3 @@
-// src/page/auth/VerifyPage.jsx
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation, useNavigate, Link } from "react-router-dom";
@@ -11,20 +9,23 @@ function VerifyPage() {
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
+    // 1. Thêm state cho nút "Gửi lại"
+    const [isResending, setIsResending] = useState(false);
+    const [resendMessage, setResendMessage] = useState("");
+
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Lấy email từ state được truyền qua khi navigate từ RegisterPage
     const email = location.state?.email;
 
-    // Nếu không có email (người dùng vào trang này trực tiếp),
-    // tự động chuyển hướng họ về trang đăng ký.
+
     useEffect(() => {
         if (!email) {
             navigate("/register");
         }
     }, [email, navigate]);
 
+    // (handleSubmit không đổi, đã chính xác)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
@@ -38,24 +39,16 @@ function VerifyPage() {
         setIsLoading(true);
 
         try {
-            // Gọi API /api/accounts/verify
-            // Backend của bạn dùng @RequestParam nên chúng ta truyền nó trên URL
             const res = await axios.post(
                 `http://localhost:8080/api/accounts/verify?email=${email}&code=${code}`
             );
 
-            // Backend (AccountServiceImpl.verifyCode) trả về user và token khi thành công
             if (res.status === 201 && res.data.token) {
-                // TODO: Lưu token và thông tin user vào Context/LocalStorage
-                // Giống hệt như trang Login
                 localStorage.setItem("token", res.data.token);
                 localStorage.setItem("user", JSON.stringify(res.data.user));
-
                 setMessage("Xác thực thành công! Đang chuyển hướng bạn...");
-
-                // Chờ 2s rồi chuyển về trang chủ
                 setTimeout(() => {
-                    navigate("/");
+                    window.location.href = "/";
                 }, 2000);
             }
         } catch (err) {
@@ -67,8 +60,30 @@ function VerifyPage() {
         }
     };
 
+    // 2. Thêm hàm xử lý "Gửi lại mã"
+    const handleResendCode = async () => {
+        setIsResending(true);
+        setResendMessage("");
+        setError(""); // Xóa lỗi cũ
+
+        try {
+            // Gọi API /forgot-password, vì nó có chức năng gửi code đến email
+            await axios.post(
+                `http://localhost:8080/api/accounts/forgot-password`,
+                { email: email }
+            );
+            setResendMessage("Đã gửi lại mã thành công!");
+        } catch (err) {
+            setResendMessage("Gửi lại thất bại. Vui lòng thử lại.");
+        } finally {
+            setIsResending(false);
+            // Ẩn thông báo sau 5 giây
+            setTimeout(() => setResendMessage(""), 5000);
+        }
+    };
+
+
     if (!email) {
-        // Hiển thị loading hoặc null trong khi chuyển hướng
         return null;
     }
 
@@ -100,9 +115,12 @@ function VerifyPage() {
                                 className="peer w-full border-b-2 border-gray-300 focus:border-[#6F47EB] focus:outline-none py-3 text-center text-2xl tracking-[0.5em]"
                                 placeholder=" "
                             />
-                            <label className="absolute left-0 top-3 text-gray-500 text-base transition-all duration-300
-                peer-placeholder-shown:top-3 peer-placeholder-shown:text-base
-                peer-focus:-top-4 peer-focus:text-sm peer-focus:text-[#6F47EB]">
+                            {/* 3. SỬA LỖI GIAO DIỆN LABEL */}
+                            <label
+                                className="absolute left-0 -top-4 text-sm text-gray-500 transition-all duration-300
+                                peer-placeholder-shown:top-3 peer-placeholder-shown:text-base
+                                peer-focus:-top-4 peer-focus:text-sm peer-focus:text-[#6F47EB]"
+                            >
                                 Nhập mã xác thực
                             </label>
                         </div>
@@ -131,23 +149,31 @@ function VerifyPage() {
                             type="submit"
                             disabled={isLoading}
                             className="w-full bg-[#6F47EB] text-white py-3 rounded-xl font-semibold
-                hover:bg-[#5a36cc] transition-all duration-300 shadow-md
-                disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                hover:bg-[#5a36cc] transition-all duration-300 shadow-md
+                                disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
                             {isLoading ? "Đang xử lý..." : "Xác Nhận"}
                         </button>
 
-                        {/* Link đăng ký */}
                         <div className="text-center text-sm pt-4">
                             <span className="text-gray-600">Không nhận được mã? </span>
                             <button
                                 type="button"
-                                // TODO: Bạn có thể thêm logic gửi lại mã ở đây
-                                // (Gọi API /api/accounts/forgot-password)
-                                className="text-[#6F47EB] font-semibold hover:text-[#5a36cc] hover:underline"
+                                // 4. Thêm onClick và logic disabled
+                                onClick={handleResendCode}
+                                disabled={isResending}
+                                className="text-[#6F47EB] font-semibold hover:text-[#5a36cc] hover:underline
+                                           disabled:text-gray-400 disabled:no-underline"
                             >
-                                Gửi lại
+                                {isResending ? "Đang gửi..." : "Gửi lại"}
                             </button>
+
+                            {/* 5. Thêm thông báo gửi lại */}
+                            {resendMessage && (
+                                <p className="text-sm text-green-600 mt-2">
+                                    {resendMessage}
+                                </p>
+                            )}
                         </div>
                     </form>
                 </div>

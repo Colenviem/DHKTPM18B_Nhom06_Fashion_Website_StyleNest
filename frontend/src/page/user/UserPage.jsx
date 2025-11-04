@@ -13,8 +13,9 @@ import LoginPage from '../auth/LoginPage'
 import AboutPage from '../about/AboutPage'
 import ContactPage from '../contact/ContactPage'
 import RegisterPage from '../auth/RegisterPage'
-import VerifyPage from '../auth/VerifyPage' // <--- 1. Thêm import
+import VerifyPage from '../auth/VerifyPage'
 import ServicesPage from '../service/ServicesPage'
+import ProfilePage from './ProfilePage' // <--- 1. Thêm import
 
 import ChatWidget from "../../components/chat/ChatWidget";
 
@@ -35,9 +36,10 @@ const UserPage = () => {
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/register" element={<RegisterPage />} />
-                    {/* 2. Thêm route cho trang xác thực */}
                     <Route path="/verify-email" element={<VerifyPage />} />
                     <Route path="/services" element={<ServicesPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+
                 </Routes>
             </main>
             <ChatWidget />

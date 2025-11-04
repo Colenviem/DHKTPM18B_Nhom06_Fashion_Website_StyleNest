@@ -1,11 +1,9 @@
-// src/page/auth/RegisterPage.jsx (Đã sửa)
 
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-// ... (FIELD_LABELS và FIELD_ORDER giữ nguyên) ...
 const FIELD_LABELS = {
   userName: "Tên đăng nhập",
   firstName: "Tên",
@@ -45,7 +43,7 @@ function RegisterPage() {
   };
 
   const validateForm = () => {
-    // ... (logic validateForm giữ nguyên) ...
+
     const newErrors = {};
     if (!formData.userName.trim()) newErrors.userName = "Tên đăng nhập là bắt buộc.";
     if (!formData.firstName.trim()) newErrors.firstName = "Tên là bắt buộc.";
@@ -62,7 +60,7 @@ function RegisterPage() {
   };
 
   const handleSubmit = async (e) => {
-    // ... (logic handleSubmit giữ nguyên) ...
+
     e.preventDefault();
     setMessage("");
     setIsSuccess(null);
@@ -106,7 +104,7 @@ function RegisterPage() {
             transition={{ duration: 0.5 }}
             className="bg-white shadow-2xl rounded-2xl overflow-hidden flex w-full max-w-7xl"
         >
-          {/* ... (Phần hình ảnh bên trái) ... */}
+
           <div className="hidden md:block w-1/2 h-auto">
             <img
                 src="https://images.unsplash.com/photo-1581090700227-1e37b190418e?q=80&w=800"
@@ -115,9 +113,8 @@ function RegisterPage() {
             />
           </div>
 
-          {/* Form */}
+
           <div className="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-center">
-            {/* ... (Phần tiêu đề) ... */}
             <h1 className="text-4xl font-extrabold text-black mb-1">
               Tạo Tài Khoản Mới
             </h1>
@@ -146,7 +143,7 @@ function RegisterPage() {
                         placeholder=" "
                     />
                     <label
-                        // SỬA: Đổi default 'top-3 text-base' thành '-top-4 text-sm'
+
                         className="absolute left-0 -top-4 text-sm text-gray-500 transition-all duration-300
                     peer-placeholder-shown:top-3 peer-placeholder-shown:text-base
                     peer-focus:-top-4 peer-focus:text-sm peer-focus:text-[#6F47EB]"
@@ -165,7 +162,6 @@ function RegisterPage() {
                   </div>
               ))}
 
-              {/* ... (Phần còn lại của form) ... */}
               <div className="col-span-1 md:col-span-2 mt-8">
                 <button
                     type="submit"

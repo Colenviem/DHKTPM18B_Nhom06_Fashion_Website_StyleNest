@@ -1,4 +1,3 @@
-// src/page/auth/LoginPage.jsx (Đã sửa)
 
 import { useState } from "react";
 import axios from "axios";
@@ -47,7 +46,7 @@ function LoginPage() {
             transition={{ duration: 0.4 }}
             className="bg-white shadow-2xl rounded-2xl overflow-hidden flex w-full max-w-7xl mx-auto"
         >
-          {/* ... (Phần hình ảnh) ... */}
+
           <div className="hidden md:block w-1/2">
             <img
                 src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg"
@@ -57,7 +56,7 @@ function LoginPage() {
           </div>
 
           <div className="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-center">
-            {/* ... (Phần tiêu đề và nút Google) ... */}
+
             <h1 className="text-4xl font-bold text-gray-900">Chào mừng trở lại</h1>
             <p className="text-gray-600 mt-1 mb-8">
               Đăng nhập vào <span className="font-semibold text-[#6F47EB]">Planto</span>
@@ -74,7 +73,7 @@ function LoginPage() {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
-              {/* === SỬA LABEL CHO TÊN ĐĂNG NHẬP === */}
+
               <div className="relative">
                 <input
                     type="text"
@@ -85,7 +84,7 @@ function LoginPage() {
                     placeholder=" "
                 />
                 <label
-                    // SỬA: Đổi default 'top-3 text-base' thành '-top-4 text-sm'
+
                     className="absolute left-0 -top-4 text-sm text-gray-500 transition-all duration-300
                     peer-placeholder-shown:top-3 peer-placeholder-shown:text-base
                     peer-focus:-top-4 peer-focus:text-sm peer-focus:text-[#6F47EB]"
@@ -94,7 +93,7 @@ function LoginPage() {
                 </label>
               </div>
 
-              {/* === SỬA LABEL CHO MẬT KHẨU === */}
+
               <div className="relative">
                 <input
                     type="password"
@@ -105,7 +104,7 @@ function LoginPage() {
                     placeholder=" "
                 />
                 <label
-                    // SỬA: Đổi default 'top-3 text-base' thành '-top-4 text-sm'
+
                     className="absolute left-0 -top-4 text-sm text-gray-500 transition-all duration-300
                     peer-placeholder-shown:top-3 peer-placeholder-shown:text-base
                     peer-focus:-top-4 peer-focus:text-sm peer-focus:text-[#6F47EB]"
@@ -114,7 +113,6 @@ function LoginPage() {
                 </label>
               </div>
 
-              {/* ... (Phần còn lại của form) ... */}
               {error && (
                   <motion.p
                       initial={{ opacity: 0, y: -10 }}
