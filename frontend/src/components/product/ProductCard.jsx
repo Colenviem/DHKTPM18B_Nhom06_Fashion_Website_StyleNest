@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FiShoppingBag } from "react-icons/fi"; 
 import RenderStars from "../ui/RenderStars";
 
@@ -10,7 +10,22 @@ const ProductCard = ({ product }) => {
         return price || '0₫'; 
     };
 
-    console.log("ProductCard product:", product);
+    // Gom tất cả ảnh của các variant
+    const allImages = useMemo(() => {
+        return product.variants?.flatMap(v => v.images || []) || [];
+    }, [product]);
+
+    // Quản lý index ảnh hiện tại
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    // Tự động đổi ảnh mỗi 3 giây
+    useEffect(() => {
+        if (allImages.length <= 1) return;
+        const interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [allImages.length]);
 
     const originalPrice = typeof product.price === 'number' ? product.price : "";
     const salePrice = product.discount > 0 ? formatVND(product.price*(100-product.discount)/100) : originalPrice;
@@ -26,14 +41,20 @@ const ProductCard = ({ product }) => {
     return (
         <div className="group bg-white border border-gray-200 rounded-2xl overflow-hidden max-w-xs w-full shadow-lg hover:shadow-gray-300 transition duration-500 ease-in-out transform hover:-translate-y-2 cursor-pointer mb-4">
             <div className="relative h-64 overflow-hidden rounded-t-2xl">
+                {/* Ảnh hiện tại */}
                 <img
-                    src={product.image || "https://via.placeholder.com/400x400?text=SALE"}
+                    src={
+                    allImages[currentImageIndex] ||
+                    "https://via.placeholder.com/400x400?text=SALE"
+                    }
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
                 />
-                
+
+                {/* Lớp phủ mờ khi hover */}
                 <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
+
+                {/* Badge giảm giá hoặc NEW */}
                 {(product.isNew || discountPercentage) && (
                     <span
                         className={`absolute top-3 left-3 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md ${

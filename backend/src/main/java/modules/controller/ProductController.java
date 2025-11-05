@@ -3,10 +3,7 @@ package modules.controller;
 import modules.entity.Product;
 import modules.service.impl.ProductServiceImpl;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -34,6 +31,7 @@ public class ProductController {
         List<Product> outOfStockProducts = service.findOutOfStockProducts();
         return ResponseEntity.ok(outOfStockProducts);
     }
+
     @GetMapping("/by-size/{size}")
     public ResponseEntity<List<Product>> findProductsBySize(@PathVariable String size) {
         List<Product> products = service.findProductsBySize(size);
@@ -41,6 +39,13 @@ public class ProductController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(products);
+    }
+
+    // TÌM KIẾM
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam String keyword) {
+        List<Product> results = service.searchProducts(keyword);
+        return ResponseEntity.ok(results);
     }
 
 }

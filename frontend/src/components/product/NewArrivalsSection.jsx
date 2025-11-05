@@ -4,8 +4,6 @@ import ListProduct from './ListProduct';
 const NewArrivalsSection = ({ products, title, subtitle }) => {
     const [activeCategory, setActiveCategory] = useState("Tất Cả");
 
-    console.log("NewArrivalsSection products:", products);
-
     const categories = [
         "Tất Cả", 
         "Thời Trang Nam", 

@@ -36,7 +36,7 @@ public class ProductServiceImpl implements modules.service.ProductService {
                     if (!p.isAvailable()) {
                         return true;
                     }
-// tat ca het hang
+                    // tat ca het hang
                     if (p.getVariants() != null && !p.getVariants().isEmpty()) {
                         return p.getVariants()
                                 .stream()
@@ -49,5 +49,12 @@ public class ProductServiceImpl implements modules.service.ProductService {
     @Override
     public List<Product> findProductsBySize(String size) {
         return productRepository.findProductsBySize(size.trim().toUpperCase());
+    }
+
+    public List<Product> searchProducts(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return repository.findAll();
+        }
+        return repository.searchProducts(keyword.trim());
     }
 }
