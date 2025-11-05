@@ -12,4 +12,6 @@ public interface ProductService {
     List<Product> findOutOfStockProducts();
 
     List<Product> findProductsBySize(String size);
+
+    List<Product> searchProducts(String keyword);
 }

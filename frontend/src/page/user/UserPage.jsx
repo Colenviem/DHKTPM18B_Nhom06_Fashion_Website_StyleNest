@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
@@ -19,13 +19,14 @@ import ServicesPage from '../service/ServicesPage'
 import ChatWidget from "../../components/chat/ChatWidget";
 
 const UserPage = () => {
+    const location = useLocation();
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow mt-16">
                 <Routes>
                     <Route path="/" element={<HomePage />} />
-                    <Route path="/fashion" element={<ListProductPage/>} />
+                    <Route path="/fashion" element={<ListProductPage key={location.key} />} />
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/cart" element={<CartPage />} />
 

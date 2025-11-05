@@ -1,10 +1,22 @@
-import React, { useContext, useState, useMemo } from "react";
+import React, { useContext, useState, useMemo, useEffect } from "react";
 import FilterSidebar from "../../components/filter/FilterSidebar";
 import NewArrivalsSection from "../../components/product/NewArrivalsSection";
 import { ProductsContext } from "../../context/ProductsContext";
 
 const ListProductPage = () => {
-    const { productsData, loading } = useContext(ProductsContext);
+    const { productsData, loading, searchQuery, searchResults } = useContext(ProductsContext);
+
+    const [displayProducts, setDisplayProducts] = useState([]);
+
+    useEffect(() => {
+        if (searchQuery && searchResults.length > 0) {
+            setDisplayProducts(searchResults);
+        } else {
+            setDisplayProducts(productsData);
+        }
+    }, [productsData, searchResults, searchQuery]);
+    
+    // State cho các bộ lọc
     const [selectedBrands, setSelectedBrands] = useState([]);
     const [selectedStockStatus, setSelectedStockStatus] = useState("Có sẵn");
     const [selectedColors, setSelectedColors] = useState([]);
@@ -13,8 +25,8 @@ const ListProductPage = () => {
 
     // 🔍 Lọc sản phẩm theo các bộ lọc (gọi hook ở mọi render, kể cả khi loading)
     const filteredProducts = useMemo(() => {
-        if (loading || !productsData) return [];
-        return productsData.filter((product) => {
+        if (loading || !displayProducts) return [];
+        return displayProducts.filter((product) => {
             // Lọc theo thương hiệu
             const brandMatch =
                 selectedBrands.length === 0 || selectedBrands.includes(product.brand);
@@ -52,7 +64,7 @@ const ListProductPage = () => {
             return brandMatch && stockMatch && colorMatch && sizeMatch && priceMatch;
         });
     }, [
-        productsData,
+        displayProducts,
         loading,
         selectedBrands,
         selectedStockStatus,
@@ -72,6 +84,7 @@ const ListProductPage = () => {
                 <div className="w-full lg:w-1/4 hidden lg:block">
                     <div className="sticky top-28">
                         <FilterSidebar
+                            displayProducts={displayProducts}
                             selectedBrands={selectedBrands}
                             setSelectedBrands={setSelectedBrands}
                             selectedStockStatus={selectedStockStatus}
@@ -89,7 +102,11 @@ const ListProductPage = () => {
                 <div className="w-full lg:w-3/4">
                     <NewArrivalsSection
                         products={filteredProducts}
-                        title="Danh sách sản phẩm"
+                        title={
+                            searchQuery
+                                ? `Kết quả tìm kiếm cho "${searchQuery}"`
+                                : "Danh sách sản phẩm"
+                        }
                     />
                 </div>
             </div>
