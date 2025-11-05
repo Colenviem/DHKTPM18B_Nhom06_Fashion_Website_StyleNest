@@ -22,17 +22,15 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // <--- Dòng này kích hoạt @PreAuthorize
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    // --- PHẦN NÀY THÊM VÀO ---
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Autowired // Tự động tiêm JwtAuthenticationFilter đã tạo ở file kia
+    @Autowired
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
-    // --- KẾT THÚC PHẦN THÊM ---
 
 
     @Bean
@@ -69,34 +67,27 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authenticationProvider(authProvider)
 
-                // --- PHẦN QUAN TRỌNG NHẤT BỊ THIẾU ---
-                // Thêm bộ lọc JWT vào TRƯỚC bộ lọc UsernamePassword
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // Báo cho Spring Security không tạo session (vì ta dùng token)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // --- KẾT THÚC PHẦN THÊM ---
 
                 .authorizeHttpRequests(authz -> authz
-                        // Cho phép các API đăng nhập, đăng ký, quên mật khẩu...
                         .requestMatchers(
                                 "/api/accounts/login",
                                 "/api/accounts/verify",
                                 "/api/accounts/forgot-password",
                                 "/api/accounts/reset-password",
-                                "/api/accounts" // Cho phép POST để tạo tài khoản
+                                "/api/accounts"
                         ).permitAll()
 
-                        // Cho phép xem sản phẩm, thương hiệu... (API public)
                         .requestMatchers(HttpMethod.GET,
                                 "/api/products/**",
                                 "/api/categories/**",
                                 "/api/brands/**"
                         ).permitAll()
 
-                        // Tất cả các request khác đều phải được xác thực
                         .anyRequest().authenticated()
                 )
 
