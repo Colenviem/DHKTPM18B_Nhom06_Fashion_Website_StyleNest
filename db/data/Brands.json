@@ -1,12 +1,62 @@
 [
-    {
-        "_id": "BR001",
-        "name": "Adidas",
-        "logoUrl": "https://example.com/logos/adidas.png",
-        "description": "Thương hiệu đồ thể thao và phong cách sống hàng đầu thế giới.",
-        "isFeatured": true,
-        "isActive": true,
-        "createdAt": "2024-10-10T12:00:00.000Z",
-        "updatedAt": "2024-10-10T12:00:00.000Z"
-    }
+  {
+    "_id": "BR001",
+    "name": "Adidas",
+    "logoUrl": "https://placehold.co/60x60/000000/FFFFFF/png?text=AD",
+    "description": "Thương hiệu đồ thể thao và phong cách sống hàng đầu thế giới.",
+    "isFeatured": true,
+    "isActive": true,
+    "createdAt": "2024-10-10T12:00:00.000Z",
+    "updatedAt": "2024-10-25T15:30:00.000Z"
+  },
+  {
+    "_id": "BR002",
+    "name": "Nike",
+    "logoUrl": "https://placehold.co/60x60/FF0000/FFFFFF/png?text=NI",
+    "description": "Công ty đa quốc gia thiết kế, phát triển và bán giày dép, quần áo.",
+    "isFeatured": true,
+    "isActive": true,
+    "createdAt": "2024-09-01T09:00:00.000Z",
+    "updatedAt": "2024-10-30T10:00:00.000Z"
+  },
+  {
+    "_id": "BR003",
+    "name": "Uniqlo",
+    "logoUrl": "https://placehold.co/60x60/6366F1/FFFFFF/png?text=UQ",
+    "description": "Thương hiệu bán lẻ quần áo Nhật Bản, tập trung vào LifeWear.",
+    "isFeatured": false,
+    "isActive": true,
+    "createdAt": "2024-08-15T14:30:00.000Z",
+    "updatedAt": "2024-09-01T11:00:00.000Z"
+  },
+  {
+    "_id": "BR004",
+    "name": "Coolmate",
+    "logoUrl": "https://iili.io/KQHTxRI.png",
+    "description": "COOLMATE - Thương Hiệu Thời Trang Chất Lượng Từ Việt Nam",
+    "isFeatured": false,
+    "isActive": false,
+    "createdAt": "2024-07-20T08:00:00.000Z",
+    "updatedAt": "2024-07-20T08:00:00.000Z"
+  },
+  {
+    "_id": "BR005",
+    "name": "Montblanc",
+    "logoUrl": "https://iili.io/KQH7f8x.png",
+    "description": "Thương hiệu nổi tiếng của Đức về phụ kiện",
+    "isFeatured": false,
+    "isActive": false,
+    "createdAt": "2024-07-20T08:00:00.000Z",
+    "updatedAt": "2024-07-20T08:00:00.000Z"
+  },
+  {
+    "_id": "BR006",
+    "name": "Levi's",
+    "logoUrl": "https://iili.io/KQH7iNV.png",
+    "description": "Thương hiệu thời trang nổi tiếng của Mỹ.",
+    "isFeatured": false,
+    "isActive": false,
+    "createdAt": "2024-07-20T08:00:00.000Z",
+    "updatedAt": "2024-07-20T08:00:00.000Z"
+  }
 ]

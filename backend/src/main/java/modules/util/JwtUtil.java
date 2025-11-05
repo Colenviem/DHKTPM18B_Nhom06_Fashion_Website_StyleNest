@@ -5,6 +5,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import modules.entity.Account;
+import modules.entity.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -63,5 +65,19 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public Account extractAccount(String token) {
+        String email = extractEmail(token);
+        String role = extractRole(token);
+        String userId = extractUserId(token);
+
+        Account account = new Account();
+        account.setUserName(email);
+        account.setRole(Role.valueOf(role));
+        account.setUserId(userId);
+        account.setActive(true);
+
+        return account;
     }
 }

@@ -1,30 +1,57 @@
 package modules.controller;
 
 import modules.entity.Brand;
-import modules.service.impl.BrandServiceImpl;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import modules.service.BrandService;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/brands")
+@CrossOrigin(origins = "http://localhost:5173")
 public class BrandController {
-    private final BrandServiceImpl service;
 
-    public BrandController(BrandServiceImpl service) {
-        this.service = service;
+    private final BrandService brandService;
+
+    public BrandController(BrandService brandService) {
+        this.brandService = brandService;
     }
 
     @GetMapping
-    public List<Brand> getAllBrands() {
-        return service.findAll();
+    public List<Brand> getAll() {
+        return brandService.findAll();
     }
 
     @GetMapping("/{id}")
-    public Brand findById(@PathVariable String id) {
-        return service.findById(id);
+    public Brand getById(@PathVariable String id) {
+        return brandService.findById(id);
+    }
+
+    @GetMapping("/search")
+    public List<Brand> searchBrands(@RequestParam String keyword) {
+        return brandService.findByName(keyword);
+    }
+
+    @PostMapping
+    public Brand createBrand(@RequestBody Brand brand) {
+        return brandService.save(brand);
+    }
+
+    @PutMapping("/{id}")
+    public Brand updateBrand(
+            @PathVariable String id,
+            @RequestBody Brand brand
+    ) {
+        return brandService.update(id, brand);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id) {
+        brandService.deleteById(id);
+    }
+
+    @PutMapping("/{id}/toggle-active")
+    public Brand toggleActive(@PathVariable String id) {
+        return brandService.toggleActive(id);
     }
 }

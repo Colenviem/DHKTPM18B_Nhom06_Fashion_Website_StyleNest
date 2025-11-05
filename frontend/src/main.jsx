@@ -5,15 +5,24 @@ import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { CouponsProvider } from "./context/CouponsContext.jsx";
 import { CategoriesProvider } from "./context/CategoriesContext.jsx";
+import { ProductsProvider } from "./context/ProductsContext.jsx";
+import { BrandsProvider } from "./context/BrandsContext.jsx";
+import { CartProvider } from './context/CartContext.jsx';
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <CategoriesProvider>
-      <CouponsProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </CouponsProvider>
-    </CategoriesProvider>
+    <BrandsProvider>
+        <CartProvider>
+        <ProductsProvider>
+        <CategoriesProvider>
+          <CouponsProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </CouponsProvider>
+        </CategoriesProvider>
+      </ProductsProvider>
+    </CartProvider>
+    </BrandsProvider>
   </StrictMode>
 );

@@ -8,4 +8,8 @@ public interface ProductService {
     List<Product> findAll();
 
     Product findById(String id);
+
+    List<Product> findOutOfStockProducts();
+
+    List<Product> findProductsBySize(String size);
 }
