@@ -72,9 +72,14 @@ public class JwtUtil {
         String role = extractRole(token);
         String userId = extractUserId(token);
 
+        if (role != null && role.startsWith("ROLE_")) {
+            role = role.substring(5);
+        }
+
         Account account = new Account();
         account.setUserName(email);
         account.setRole(Role.valueOf(role));
+
         account.setUserId(userId);
         account.setActive(true);
 

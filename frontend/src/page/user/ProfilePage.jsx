@@ -1,12 +1,9 @@
-// src/page/user/ProfilePage.jsx (Cập nhật: Tích hợp form địa chỉ)
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FiUser, FiEdit, FiSave, FiXCircle, FiMapPin, FiTag, FiPlus } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 
-// 1. Component form địa chỉ, được định nghĩa *bên trong* ProfilePage
 const NewAddressForm = ({ onSave, onCancel }) => {
     const [address, setAddress] = useState({
         street: '',
@@ -26,7 +23,6 @@ const NewAddressForm = ({ onSave, onCancel }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // TODO: Thêm validation (kiểm tra rỗng) ở đây nếu cần
         if (!address.street || !address.city || !address.province || !address.postalCode) {
             alert("Vui lòng điền đầy đủ thông tin địa chỉ.");
             return;
@@ -138,21 +134,14 @@ function ProfilePage() {
         lastName: '',
         email: '',
         userName: '',
-        role: '',
-        createdAt: '',
-        isActive: false,
         addresses: [],
         coupons: [],
     });
     const [isEditMode, setIsEditMode] = useState(false);
-
-    // 2. Thêm state để mở/đóng form địa chỉ
     const [isAddingAddress, setIsAddingAddress] = useState(false);
-
     const [message, setMessage] = useState({ type: '', content: '' });
     const navigate = useNavigate();
 
-    // (useEffect tải thông tin user... không thay đổi)
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         const storedToken = localStorage.getItem('token');
@@ -165,9 +154,6 @@ function ProfilePage() {
                 lastName: parsedUser.lastName || '',
                 email: parsedUser.email || '',
                 userName: parsedUser.userName || '',
-                role: parsedUser.role || 'CUSTOMER',
-                createdAt: parsedUser.createdAt ? new Date(parsedUser.createdAt).toLocaleDateString('vi-VN') : 'N/A',
-                isActive: parsedUser.isActive || false,
                 addresses: parsedUser.addresses || [],
                 coupons: parsedUser.coupons || [],
             });
@@ -176,12 +162,9 @@ function ProfilePage() {
         }
     }, [navigate]);
 
-    // (handleChange... không thay đổi)
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
-
-    // (handleSubmit (lưu Tên/Họ)... không thay đổi)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage({ type: '', content: '' });
@@ -209,49 +192,37 @@ function ProfilePage() {
         }
     };
 
-    // 3. Hàm mới để xử lý LƯU ĐỊA CHỈ (từ form inline)
     const handleAddAddress = async (newAddress) => {
-        // Nếu người dùng chọn "mặc định", hãy bỏ "mặc định" ở các địa chỉ cũ
-        let newAddressList = [...formData.addresses];
-        if (newAddress.isDefault) {
-            newAddressList = newAddressList.map(addr => ({ ...addr, isDefault: false }));
-        }
-        newAddressList.push(newAddress);
-
-        const updateData = {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: user.email,
-            userName: user.userName,
-            addresses: newAddressList, // Đây là danh sách địa chỉ mới
-            coupons: formData.coupons,
-        };
+        setMessage({ type: '', content: '' });
 
         try {
-            // Gọi *cùng* API update user
-            const res = await axios.put(
-                `http://localhost:8080/api/users/${user.id}`,
-                updateData,
+            const res = await axios.post(
+                `http://localhost:8080/api/users/${user.id}/addresses`,
+                newAddress, // Chỉ gửi địa chỉ mới
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            const addedAddress = res.data;
 
-            const updatedUserInStorage = { ...user, ...res.data, addresses: newAddressList };
+            let newAddressList = [...formData.addresses];
+            if (addedAddress.isDefault) {
+                newAddressList = newAddressList.map(addr => ({ ...addr, isDefault: false }));
+            }
+            newAddressList.push(addedAddress);
+            const updatedUserInStorage = { ...user, addresses: newAddressList };
             localStorage.setItem('user', JSON.stringify(updatedUserInStorage));
 
             setUser(updatedUserInStorage);
             setFormData(prev => ({ ...prev, addresses: newAddressList }));
 
             setMessage({ type: 'success', content: 'Thêm địa chỉ mới thành công!' });
-            setIsAddingAddress(false); // 4. Đóng form sau khi lưu
+            setIsAddingAddress(false);
         } catch (err) {
             setMessage({ type: 'error', content: err.response?.data?.message || 'Lỗi khi thêm địa chỉ.' });
-            // Không đóng form nếu lỗi
         }
     };
 
-
     if (!user) {
-        return null; // Hiển thị loading...
+        return null;
     }
 
     return (
@@ -262,7 +233,6 @@ function ProfilePage() {
                 className="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden"
             >
                 <div className="md:flex">
-                    {/* ... (Phần Avatar bên trái không đổi) ... */}
                     <div className="md:w-1/3 bg-gray-100 p-8 flex flex-col items-center justify-center border-r border-gray-200">
                         <FiUser className="text-8xl text-gray-400" />
                         <h2 className="text-2xl font-bold text-gray-800 mt-4">
@@ -281,7 +251,6 @@ function ProfilePage() {
                         )}
                     </div>
 
-                    {/* ... (Phần Form thông tin bên phải không đổi) ... */}
                     <div className="md:w-2/3 p-8">
                         <h1 className="text-3xl font-bold text-gray-900 mb-6">
                             Hồ Sơ Của Tôi
@@ -299,7 +268,6 @@ function ProfilePage() {
                             </p>
                         )}
 
-                        {/* ... (Form Họ, Tên, Email... không đổi) ... */}
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
@@ -347,37 +315,6 @@ function ProfilePage() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-600">Vai trò</label>
-                                    <input
-                                        type="text"
-                                        value={formData.role}
-                                        disabled
-                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F47EB] disabled:bg-gray-100"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-600">Ngày tham gia</label>
-                                    <input
-                                        type="text"
-                                        value={formData.createdAt}
-                                        disabled
-                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F47EB] disabled:bg-gray-100"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-600">Trạng thái</label>
-                                <input
-                                    type="text"
-                                    value={formData.isActive ? 'Đã kích hoạt' : 'Chưa kích hoạt'}
-                                    disabled
-                                    className={`mt-1 w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100 font-medium ${
-                                        formData.isActive ? 'text-green-600' : 'text-red-600'
-                                    }`}
-                                />
-                            </div>
                             {isEditMode && (
                                 <div className="flex justify-end space-x-4 mt-8">
                                     <button
@@ -402,15 +339,12 @@ function ProfilePage() {
                         </form>
 
                         <hr className="my-8 border-gray-200" />
-
-                        {/* === PHẦN HIỂN THỊ ĐỊA CHỈ === */}
                         <div>
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-xl font-semibold text-gray-800 flex items-center">
                                     <FiMapPin className="mr-3 text-gray-500" />
                                     Sổ địa chỉ
                                 </h2>
-                                {/* 5. Nút bấm "+ Thêm" (chỉ hiển thị khi không đang thêm) */}
                                 {!isAddingAddress && (
                                     <button
                                         type="button"
@@ -423,7 +357,6 @@ function ProfilePage() {
                                 )}
                             </div>
 
-                            {/* Danh sách địa chỉ đã lưu */}
                             {formData.addresses.length > 0 ? (
                                 <ul className="space-y-3">
                                     {formData.addresses.map((addr, index) => (
@@ -445,11 +378,9 @@ function ProfilePage() {
                                     ))}
                                 </ul>
                             ) : (
-                                // Chỉ hiển thị "Chưa có địa chỉ" nếu không đang thêm
                                 !isAddingAddress && <p className="text-gray-500">Bạn chưa có địa chỉ nào.</p>
                             )}
 
-                            {/* 6. Hiển thị form thêm địa chỉ inline */}
                             {isAddingAddress && (
                                 <NewAddressForm
                                     onSave={handleAddAddress}
@@ -457,8 +388,6 @@ function ProfilePage() {
                                 />
                             )}
                         </div>
-
-                        {/* ... (Phần Mã giảm giá không đổi) ... */}
                         <div className="mt-8">
                             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                                 <FiTag className="mr-3 text-gray-500" />

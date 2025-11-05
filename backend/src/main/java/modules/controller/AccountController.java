@@ -84,13 +84,13 @@ public class AccountController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<Account> findAll() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN') or #id == principal.userId")
+    @PreAuthorize("hasAuthority('ADMIN') or #id == principal.userId")
     public Account findById(@PathVariable String id) {
         return service.findById(id);
     }

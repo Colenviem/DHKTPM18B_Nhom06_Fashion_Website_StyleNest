@@ -31,10 +31,9 @@ public class Account implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + role.name())
+                new SimpleGrantedAuthority(role.name())
         );
     }
-
     @Override
     public String getPassword() {
         return this.passWord;

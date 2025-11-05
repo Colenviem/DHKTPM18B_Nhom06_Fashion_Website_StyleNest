@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import modules.dto.request.CreateUserRequest;
 import java.util.List;
 
 @RestController
@@ -62,5 +62,15 @@ public class UserController {
 
         return ResponseEntity.ok(edited);
     }
-
+    @PutMapping("/{id}")
+    public ResponseEntity<User> update(@PathVariable String id, @RequestBody CreateUserRequest request) {
+        try {
+            // Sử dụng phương thức update đã có trong UserServiceImpl
+            User updatedUser = service.update(id, request);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            // Xử lý trường hợp không tìm thấy user
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
 }

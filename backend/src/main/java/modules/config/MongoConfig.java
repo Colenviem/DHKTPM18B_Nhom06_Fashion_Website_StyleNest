@@ -14,7 +14,7 @@ public class MongoConfig {
     @Bean
     public MappingMongoConverter mappingMongoConverter(MongoDatabaseFactory factory, MongoMappingContext context) {
         MappingMongoConverter converter = new MappingMongoConverter(factory, context);
-        converter.setTypeMapper(new DefaultMongoTypeMapper(null)); // Loại bỏ _class trong Mongo
+        converter.setTypeMapper(new DefaultMongoTypeMapper(null));
         return converter;
     }
 }

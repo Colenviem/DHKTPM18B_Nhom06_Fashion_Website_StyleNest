@@ -15,8 +15,8 @@ import ContactPage from '../contact/ContactPage'
 import RegisterPage from '../auth/RegisterPage'
 import VerifyPage from '../auth/VerifyPage'
 import ServicesPage from '../service/ServicesPage'
-import ProfilePage from './ProfilePage' // <--- 1. Thêm import
-
+import ProfilePage from './ProfilePage'
+import ForgotPasswordPage from "../auth/ForgotPasswordPage";
 import ChatWidget from "../../components/chat/ChatWidget";
 
 const UserPage = () => {
@@ -39,7 +39,7 @@ const UserPage = () => {
                     <Route path="/verify-email" element={<VerifyPage />} />
                     <Route path="/services" element={<ServicesPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
-
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 </Routes>
             </main>
             <ChatWidget />
