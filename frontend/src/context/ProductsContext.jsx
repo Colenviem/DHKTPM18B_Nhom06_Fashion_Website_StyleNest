@@ -34,9 +34,14 @@ export const ProductsProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    console.log("Search Query changed:", searchQuery);
-    if (!searchQuery) return;
+    // console.log("Search Query changed:", searchQuery);
+    // if (!searchQuery) return;
 
+    // when u del search? => reset
+    if (searchQuery.trim() === "") {
+      setSearchResults([]);
+      return;
+    }
     setLoading(true);
     axios
       .get("http://localhost:8080/api/products/search", {
