@@ -10,19 +10,29 @@ import java.util.List;
 
 @Data
 public class CreateUserRequest {
-    @NotBlank(message = "First name is required")
+    @NotBlank(message = "Tên không được để trống")
     private String firstName;
-    @NotBlank(message = "Last name is required")
+
+    @NotBlank(message = "Họ không được để trống")
     private String lastName;
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Định dạng email không hợp lệ")
     private String email;
+
     private List<Address> addresses;
     private List<CouponEmbedded> coupons;
-    @NotBlank(message = "Username is required")
+
+    @NotBlank(message = "Tên đăng nhập không được để trống")
     private String userName;
-    @NotBlank(message = "Password is required")
+
+    @NotBlank(message = "Mật khẩu không được để trống")
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            message = "Mật khẩu phải dài ít nhất 8 ký tự và chứa chữ hoa, chữ thường, số và ký tự đặc biệt."
+    )
     private String password;
-    @NotNull(message = "Role is required")
+
+    @NotNull(message = "Quyền không được để trống")
     private Role role;
 }

@@ -35,11 +35,9 @@ public class UserServiceImpl implements UserService { // ✅ Triển khai interf
 
     @Override
     public User findById(String id) {
-        // ✅ Dùng logic "orElseThrow" từ file UserService cũ của bạn (tốt hơn là "orElse(null)")
         return repository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
-    // ✅ Chuyển toàn bộ logic từ file UserService cũ vào đây
     @Override
     @Transactional
     public User update(String id, CreateUserRequest request) {
@@ -52,8 +50,6 @@ public class UserServiceImpl implements UserService { // ✅ Triển khai interf
         user.setCoupons(request.getCoupons());
         return repository.save(user);
     }
-
-    // ✅ Chuyển toàn bộ logic từ file UserService cũ vào đây
     @Override
     @Transactional
     public void delete(String id) {

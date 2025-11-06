@@ -1,15 +1,19 @@
 package modules.config;
 
 import modules.service.AccountService;
+import org.springframework.beans.factory.annotation.Autowired; // <-- THÊM IMPORT NÀY
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; // <-- THÊM IMPORT NÀY
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy; // <-- THÊM IMPORT NÀY
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // <-- THÊM IMPORT NÀY
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -20,9 +24,20 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-    /**
-     * ✅ Provider xác thực người dùng
-     */
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
     @Bean
     public DaoAuthenticationProvider authProvider(AccountService accountService, PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -31,11 +46,9 @@ public class SecurityConfig {
         return provider;
     }
 
-    /**
-     * ✅ Cấu hình CORS cho phép frontend React (localhost:5173)
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // (Giữ nguyên, không đổi)
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -47,30 +60,37 @@ public class SecurityConfig {
         return source;
     }
 
-    /**
-     * ✅ Cấu hình bảo mật tổng thể
-     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
         http
-                // ⚡ Quan trọng: bật cors TRƯỚC khi disable csrf
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authenticationProvider(authProvider)
+
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
                 .authorizeHttpRequests(authz -> authz
-                        // ⚡ Cho phép tất cả API public (React cần gọi)
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/accounts/login",
+                                "/api/accounts/verify",
+                                "/api/accounts/forgot-password",
+                                "/api/accounts/reset-password",
+                                "/api/accounts"
+                        ).permitAll()
+
+                        .requestMatchers(HttpMethod.GET,
                                 "/api/products/**",
                                 "/api/categories/**",
-                                "/api/brands/**",
-                                "/api/coupons/**",
-                                "/api/carts/**",
-                                "/api/users/**",
-                                "/api/orders/**"
+                                "/api/brands/**"
                         ).permitAll()
-                        .anyRequest().permitAll() // tạm thời cho phép hết (debug)
+
+                        .anyRequest().authenticated()
                 )
+
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable());

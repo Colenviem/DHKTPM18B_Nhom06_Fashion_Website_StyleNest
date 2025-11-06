@@ -1,9 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiSearch } from 'react-icons/fi';
 
 const DashboardHeader = () => {
+
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+
+        const userString = localStorage.getItem('user');
+
+        if (userString) {
+            try {
+
+                const userData = JSON.parse(userString);
+                setUser(userData);
+            } catch (error) {
+                console.error("Không thể đọc thông tin user từ localStorage:", error);
+            }
+        }
+    }, []);
+
     return (
-        <div 
+        <div
             className="flex justify-between items-center bg-white px-6 py-4 shadow-sm border-b border-gray-200
             fixed top-0 left-64 right-0 z-10"
         >
@@ -23,12 +41,17 @@ const DashboardHeader = () => {
                     <img
                         src="https://i.pravatar.cc/40"
                         alt="avatar"
-                        className="rounded-full w-10 h-10 ring-2 ring-indigo-400 p-0.5 object-cover" // Thay đổi: Đổi màu ring và thêm p-0.5
+                        className="rounded-full w-10 h-10 ring-2 ring-indigo-400 p-0.5 object-cover"
                     />
                     <div className="leading-tight">
-                        <p className="font-medium text-gray-800">Moni Roy</p>
-                        <p className="text-sm text-gray-500">Admin</p>
+                        <p className="font-medium text-gray-800">
+                            {user ? user.userName : 'Loading...'}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            {user ? user.role : 'Guest'}
+                        </p>
                     </div>
+
                 </div>
             </div>
         </div>
