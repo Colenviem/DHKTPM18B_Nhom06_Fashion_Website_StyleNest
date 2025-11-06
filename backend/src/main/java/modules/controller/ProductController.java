@@ -43,8 +43,11 @@ public class ProductController {
 
     // TÌM KIẾM
     @GetMapping("/search")
-    public ResponseEntity<List<Product>> searchProducts(@RequestParam String keyword) {
-        List<Product> results = service.searchProducts(keyword);
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam(required = false) String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return ResponseEntity.ok(service.findAll());
+        }
+        List<Product> results = service.searchProducts(keyword.trim());
         return ResponseEntity.ok(results);
     }
 

@@ -8,15 +8,17 @@ import java.util.List;
 
 public interface ProductRepository extends MongoRepository<Product, String> {
 
-    @Query("{'variants.size': ?0 }")
-    List<Product> findProductsBySize(String size);
+  @Query("{'variants.size': ?0 }")
+  List<Product> findProductsBySize(String size);
 
-    // Tìm kiếm tương đối (name, brand, category)
-    @Query("{ '$or': [ " +
-            "{ 'name': { $regex: ?0, $options: 'i' } }, " +
-            "{ 'brand': { $regex: ?0, $options: 'i' } }, " +
-            "{ 'category.id': { $regex: ?0, $options: 'i' } } " +
-            "] }")
-    List<Product> searchProducts(String keyword);
+  // Tìm kiếm tương đối (name, brand, category, tags, material)
+  @Query("{ '$or': [ " +
+      "{ 'name': { $regex: ?0, $options: 'i' } }, " +
+      "{ 'brand': { $regex: ?0, $options: 'i' } }, " +
+      "{ 'category.id': { $regex: ?0, $options: 'i' } }, " +
+      "{ 'tags': { $regex: ?0, $options: 'i' } }, " +
+      "{ 'material': { $regex: ?0, $options: 'i' } } " +
+      "] }")
+  List<Product> searchProducts(String keyword);
 
 }
