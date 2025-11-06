@@ -2,10 +2,7 @@ package modules.controller;
 
 import modules.entity.Category;
 import modules.service.impl.CategoryServiceImpl;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,4 +24,13 @@ public class CategoryController {
     public Category findById(@PathVariable String id) {
         return service.findById(id);
     }
+
+    @PostMapping
+    public Category save(@RequestBody Category category) {
+        int count = service.findAll().size();
+        String newId = String.format("CAT%03d", count + 1);
+        category.setId(newId);
+        return service.saveCategory(category);
+    }
+
 }

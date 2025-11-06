@@ -23,4 +23,9 @@ public class CategoryServiceImpl implements modules.service.CategoryService {
     public Category findById(String id) {
         return repository.findById(id).orElse(null);
     }
+
+    @Override
+    public Category saveCategory(Category category){
+        return repository.save(category);
+    }
 }

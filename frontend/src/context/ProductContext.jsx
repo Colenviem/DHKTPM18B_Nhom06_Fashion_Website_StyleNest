@@ -86,3 +86,42 @@ export const saveOrUpdateProduct = async (productData) => {
         throw new Error("Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.");
     }
 };
+
+// --- 🏷️ Các hàm xử lý Danh mục (Categories) 🏷️ ---
+
+export const getAllCategories = async () => {
+  const url = `${API_BASE_URL}/categories`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Lỗi khi fetch danh mục:", error);
+    throw new Error("Không thể tải danh sách danh mục.");
+  }
+};
+
+
+export const addCategory = async (categoryData) => {
+  const url = `${API_BASE_URL}/categories`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(categoryData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Lỗi khi thêm danh mục:", error);
+    throw new Error("Không thể thêm danh mục mới.");
+  }
+};
