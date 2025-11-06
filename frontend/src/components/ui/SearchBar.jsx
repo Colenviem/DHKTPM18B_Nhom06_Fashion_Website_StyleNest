@@ -32,7 +32,6 @@ const SearchBar = ({ isSearchOpen, toggleSearch }) => {
             }`}
     >
       <FiSearch className="text-[20px] text-gray-500 flex-shrink-0" />
-
       <input
         type="text"
         value={query}
