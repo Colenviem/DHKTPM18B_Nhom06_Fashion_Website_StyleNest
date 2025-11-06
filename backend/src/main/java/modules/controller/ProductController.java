@@ -34,7 +34,15 @@ public class ProductController {
         return service.getProductsByCategoryId(categoryId);
     }
     @PostMapping("/updatePRO")
-    public Product addProduct(@RequestBody Product product) {
+    public Product addOrUpdateProduct(@RequestBody Product product) {
+        if (product.getId() == null || product.getId().isEmpty()) {
+            long count = service.findAll().size();
+            String newId = String.format("PRO%03d", count + 1);
+            product.setId(newId);
+            product.setAvailable(true);
+        }
+
         return service.updateProduct(product);
     }
+
 }
