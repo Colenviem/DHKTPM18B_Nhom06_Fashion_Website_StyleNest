@@ -1,5 +1,7 @@
 package modules.entity;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,169 +14,69 @@ import java.util.List;
 @AllArgsConstructor
 @Document(collection = "Products")
 public class Product {
+
     @Id
     private String id;
+
+    @NotBlank(message = "Tên sản phẩm không được để trống")
+    @Size(min = 3, max = 100, message = "Tên sản phẩm phải từ 3 đến 100 ký tự")
+    @Pattern(regexp = "^[\\p{L}\\p{N}\\s\\-.,'()]+$", message = "Tên sản phẩm chỉ chứa chữ cái, số, khoảng trắng và các ký tự -.,'()")
     private String name;
+
+    @NotBlank(message = "Mô tả không được để trống")
+    @Size(min = 10, max = 2000, message = "Mô tả phải từ 10 đến 2000 ký tự")
+    @Pattern(regexp = "^[\\p{L}\\p{N}\\s\\p{P}\\p{S}]+$", message = "Mô tả chỉ chứa chữ cái, số, khoảng trắng, dấu câu và ký tự đặc biệt cơ bản")
     private String description;
+
+    @NotBlank(message = "Mô tả ngắn không được để trống")
+    @Size(max = 255, message = "Mô tả ngắn tối đa 255 ký tự")
+    @Pattern(regexp = "^[\\p{L}\\p{N}\\s\\p{P}\\p{S}]+$", message = "Mô tả ngắn chỉ chứa chữ cái, số, khoảng trắng, dấu câu và ký tự đặc biệt cơ bản")
     private String shortDescription;
+
+    @NotNull(message = "Danh mục sản phẩm không được để trống")
+    @Valid
     private CategoryRef category;
+
+    @Positive(message = "Giá sản phẩm phải lớn hơn 0")
     private double price;
+
+    @DecimalMin(value = "0.0", inclusive = true, message = "Giảm giá không được nhỏ hơn 0")
+    @DecimalMax(value = "100", inclusive = true, message = "Giảm giá tối đa là 100%")
     private double discount;
+
+    @Min(value = 0, message = "Số lượng bán không được âm")
     private int sold;
+
+    @Valid
+    @NotEmpty(message = "Phải có ít nhất một biến thể sản phẩm (variant)")
     private List<ProductVariant> variants;
-    private List<String> tags;
-    private boolean isAvailable;
+
+    @Size(max = 10, message = "Tối đa 10 thẻ tag cho sản phẩm")
+    private List<@NotBlank(message = "Tag không được để trống") @Pattern(regexp = "^[\\p{L}\\p{N}\\s\\-]+$", message = "Tag chỉ chứa chữ cái, số, khoảng trắng và dấu gạch ngang") String> tags;
+
+    private boolean isAvailable = true;
+
+    @Valid
     private Rating rating;
+
+    @NotBlank(message = "Thương hiệu không được để trống")
+    @Pattern(regexp = "^[\\p{L}\\p{N}\\s\\-.,'()]+$", message = "Thương hiệu chỉ chứa chữ cái, số, khoảng trắng và các ký tự -.,'()")
     private String brand;
+
+    @NotBlank(message = "Chất liệu không được để trống")
+    @Pattern(regexp = "^[\\p{L}\\p{N}\\s\\-.,'()]+$", message = "Chất liệu chỉ chứa chữ cái, số, khoảng trắng và các ký tự -.,'()")
     private String material;
+
+    @NotBlank(message = "Xuất xứ không được để trống")
+    @Pattern(regexp = "^[\\p{L}\\p{N}\\s\\-.,'()]+$", message = "Xuất xứ chỉ chứa chữ cái, số, khoảng trắng và các ký tự -.,'()")
     private String origin;
-    private long views;
+
+    @Min(value = 0, message = "Lượt xem không được âm")
+    private long views = 0;
+
     @CreatedDate
     private Instant createdAt;
+
     @LastModifiedDate
     private Instant updatedAt;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getShortDescription() {
-        return shortDescription;
-    }
-
-    public void setShortDescription(String shortDescription) {
-        this.shortDescription = shortDescription;
-    }
-
-    public CategoryRef getCategory() {
-        return category;
-    }
-
-    public void setCategory(CategoryRef category) {
-        this.category = category;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public double getDiscount() {
-        return discount;
-    }
-
-    public void setDiscount(double discount) {
-        this.discount = discount;
-    }
-
-    public int getSold() {
-        return sold;
-    }
-
-    public void setSold(int sold) {
-        this.sold = sold;
-    }
-
-    public List<ProductVariant> getVariants() {
-        return variants;
-    }
-
-    public void setVariants(List<ProductVariant> variants) {
-        this.variants = variants;
-    }
-
-    public List<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
-
-    public boolean isAvailable() {
-        return isAvailable;
-    }
-
-    public void setAvailable(boolean available) {
-        isAvailable = available;
-    }
-
-    public Rating getRating() {
-        return rating;
-    }
-
-    public void setRating(Rating rating) {
-        this.rating = rating;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    public String getMaterial() {
-        return material;
-    }
-
-    public void setMaterial(String material) {
-        this.material = material;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    public long getViews() {
-        return views;
-    }
-
-    public void setViews(long views) {
-        this.views = views;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

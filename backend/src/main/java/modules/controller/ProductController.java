@@ -1,7 +1,11 @@
 package modules.controller;
 
+import jakarta.validation.Valid;
 import modules.entity.Product;
+import modules.entity.Rating;
 import modules.service.impl.ProductServiceImpl;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -34,15 +41,42 @@ public class ProductController {
         return service.getProductsByCategoryId(categoryId);
     }
     @PostMapping("/updatePRO")
-    public Product addOrUpdateProduct(@RequestBody Product product) {
+    public ResponseEntity<?> addOrUpdateProduct(
+            @Valid @RequestBody Product product,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error ->
+                    errors.put(error.getField(), error.getDefaultMessage())
+            );
+
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", "Dữ liệu không hợp lệ",
+                    "errors", errors
+            ));
+        }
+
+        // 🧩 Nếu là sản phẩm mới → tự sinh ID
         if (product.getId() == null || product.getId().isEmpty()) {
             long count = service.findAll().size();
             String newId = String.format("PRO%03d", count + 1);
             product.setId(newId);
             product.setAvailable(true);
+            product.setCreatedAt(Instant.now());
+            product.setRating(new Rating(0.0,0));
         }
+        product.setUpdatedAt(Instant.now());
 
-        return service.updateProduct(product);
+        Product saved = service.updateProduct(product);
+
+        return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Lưu sản phẩm thành công",
+                "data", saved
+        ));
     }
+
 
 }

@@ -58,34 +58,53 @@ export const getProductsByCategoryId = async (categoryId) => {
 
 
 export const saveOrUpdateProduct = async (productData) => {
-    // Sử dụng endpoint theo yêu cầu của bạn
-    const url = `${API_BASE_URL}/products/updatePRO`; 
+  const url = `${API_BASE_URL}/products/updatePRO`;
 
-    try {
-        const response = await fetch(url, {
-            // Sử dụng POST method để gửi dữ liệu cập nhật/lưu
-            method: 'POST', 
-            // Báo cho server biết body là JSON
-            headers: { 
-                'Content-Type': 'application/json',
-            },
-            // Chuyển đối tượng productData thành chuỗi JSON để gửi đi
-            body: JSON.stringify(productData), 
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productData),
+    });
+
+    const data = await response.json();
+
+    // 🧩 Nếu backend trả lỗi validation (HTTP 400)
+    if (!response.ok) {
+      if (data?.status === "error" && data?.errors) {
+        // Trả lỗi chi tiết để frontend hiển thị theo từng trường
+        return Promise.reject({
+          type: "validation",
+          message: data.message,
+          errors: data.errors,
         });
-
-        if (!response.ok) {
-            // Xử lý các mã lỗi như 400 Bad Request, 500 Internal Server Error
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // Server sẽ trả về đối tượng Product đã được xử lý (lưu hoặc cập nhật)
-        return data; 
-    } catch (error) {
-        console.error("❌ Lỗi khi lưu/cập nhật sản phẩm:", error);
-        throw new Error("Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.");
+      } else {
+        // Lỗi khác (500, 404,...)
+        return Promise.reject({
+          type: "server",
+          message: data?.message || "Lỗi không xác định từ server",
+        });
+      }
     }
+
+    // ✅ Thành công
+    return {
+      type: "success",
+      message: data.message || "Lưu sản phẩm thành công",
+      product: data.data,
+    };
+
+  } catch (error) {
+    console.error("❌ Lỗi khi lưu/cập nhật sản phẩm:", error);
+    return Promise.reject({
+      type: "network",
+      message: "Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.",
+    });
+  }
 };
+
 
 // --- 🏷️ Các hàm xử lý Danh mục (Categories) 🏷️ ---
 

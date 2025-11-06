@@ -27,7 +27,7 @@ const UserPage = () => {
             <Route path="/fashion" element={<ListProductPage/>} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/cart" element={<CartPage />} />
-            
+            <Route path="/products/edit/new" element={<ProductDetail />} />
             <Route path="/detail" element={<ProductDetail/>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/product/:id" element={<ProductDetail />} />
