@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { FiStar, FiUser, FiCamera } from "react-icons/fi";
+import React, {useEffect, useState} from "react";
+import {FiStar, FiUser, FiCamera} from "react-icons/fi";
 import RenderStars from "../ui/RenderStars";
 
-const ReviewSection = ({ productId }) => {
+const ReviewSection = ({productId}) => {
     const [reviews, setReviews] = useState([]);
 
     const [newReview, setNewReview] = useState({
@@ -11,7 +11,6 @@ const ReviewSection = ({ productId }) => {
         text: "",
     });
 
-    // ✅ Load danh sách đánh giá theo productId
     useEffect(() => {
         if (!productId) return;
         fetch(`http://localhost:8080/api/reviews/product/${productId}`)
@@ -20,13 +19,11 @@ const ReviewSection = ({ productId }) => {
             .catch((err) => console.error("Lỗi khi tải review:", err));
     }, [productId]);
 
-    // ✅ Khi nhập form
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setNewReview({ ...newReview, [name]: value });
+        const {name, value} = e.target;
+        setNewReview({...newReview, [name]: value});
     };
 
-    // ✅ Gửi review mới (tạm để test nếu có API)
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!newReview.name || !newReview.text) {
@@ -35,7 +32,7 @@ const ReviewSection = ({ productId }) => {
         }
 
         const reviewToSend = {
-            user: { userName: newReview.name },
+            user: {userName: newReview.name},
             rating: newReview.rating,
             comment: newReview.text,
             productId: productId,
@@ -44,7 +41,7 @@ const ReviewSection = ({ productId }) => {
         try {
             const res = await fetch("http://localhost:8080/api/reviews", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(reviewToSend),
             });
 
@@ -52,7 +49,7 @@ const ReviewSection = ({ productId }) => {
 
             const created = await res.json();
             setReviews((prev) => [created, ...prev]);
-            setNewReview({ name: "", rating: 5, text: "" });
+            setNewReview({name: "", rating: 5, text: ""});
             alert("Cảm ơn bạn đã đánh giá sản phẩm!");
         } catch (err) {
             console.error(err);
@@ -80,8 +77,9 @@ const ReviewSection = ({ productId }) => {
                         className="bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6"
                     >
                         <div className="flex items-center gap-4 mb-3">
-                            <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center rounded-full border border-gray-300 shadow-inner">
-                                <FiUser className="text-2xl text-gray-700" />
+                            <div
+                                className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center rounded-full border border-gray-300 shadow-inner">
+                                <FiUser className="text-2xl text-gray-700"/>
                             </div>
                             <div>
                                 <p className="font-bold text-lg text-gray-900">
@@ -96,7 +94,7 @@ const ReviewSection = ({ productId }) => {
                         </div>
 
                         <div className="mb-3">
-                            <RenderStars rating={review.rating} />
+                            <RenderStars rating={review.rating}/>
                         </div>
 
                         <p className="text-gray-800 italic leading-relaxed border-l-4 border-gray-200 pl-4 bg-gray-50 rounded-r-lg py-2 mb-4">
@@ -106,7 +104,7 @@ const ReviewSection = ({ productId }) => {
                         {review.images && review.images.length > 0 && (
                             <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl mt-4">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <FiCamera className="text-gray-700" />
+                                    <FiCamera className="text-gray-700"/>
                                     <p className="font-semibold text-gray-800 text-sm">
                                         Ảnh khách hàng
                                     </p>
@@ -168,14 +166,14 @@ const ReviewSection = ({ productId }) => {
                             <button
                                 key={star}
                                 type="button"
-                                onClick={() => setNewReview({ ...newReview, rating: star })}
+                                onClick={() => setNewReview({...newReview, rating: star})}
                                 className={`text-3xl transition-transform transform hover:scale-125 ${
                                     newReview.rating >= star
                                         ? "text-yellow-400 drop-shadow-md"
                                         : "text-gray-400 hover:text-gray-500"
                                 }`}
                             >
-                                <FiStar />
+                                <FiStar/>
                             </button>
                         ))}
                     </div>

@@ -110,7 +110,6 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* 🔹 Thông tin sản phẩm */}
           <div className="w-full md:w-1/2 p-6 bg-white border border-gray-200 rounded-2xl shadow-md">
             <h1 className="text-4xl font-extrabold text-gray-900 mb-3">
               {product.name}

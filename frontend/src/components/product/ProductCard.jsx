@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
 
-    // 👉 Khi click vào card thì chuyển sang trang chi tiết
     const handleClick = () => {
         navigate(`/product/${product.id}`);
     };
