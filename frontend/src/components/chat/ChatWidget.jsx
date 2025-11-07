@@ -1,19 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FiX, FiMessageSquare, FiSend } from "react-icons/fi";
+import axios from "axios";
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { from: "bot", text: "👋 Chào bạn! Mình là trợ lý ảo của FASCO. Bạn cần hỗ trợ về vấn đề gì?" },
+    {
+      from: "bot",
+      text: "👋 Chào bạn! Mình là trợ lý ảo của FASCO. Bạn cần hỗ trợ về vấn đề gì?",
+    },
   ]);
   const [input, setInput] = useState("");
 
   const primaryColor = "bg-gradient-to-r from-indigo-600 to-purple-600";
 
-  const handleSend = () => {
+  // Ref chat body để scroll
+  const chatBodyRef = useRef(null);
+
+  // Auto scroll xuống cuối khi messages thay đổi
+  useEffect(() => {
+    if (chatBodyRef.current) {
+      chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSend = async () => {
     if (!input.trim()) return;
-    setMessages([...messages, { from: "user", text: input }]);
+
+    const userMessage = input;
+    setMessages((prev) => [...prev, { from: "user", text: userMessage }]);
     setInput("");
+
+    try {
+      const res = await axios.post(
+        "http://localhost:8080/api/chat",
+        { message: userMessage }
+      );
+
+      const botReply = res.data;
+
+      setMessages((prev) => [...prev, { from: "bot", text: botReply }]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { from: "bot", text: "❌ Lỗi kết nối server!" },
+      ]);
+    }
   };
 
   return (
@@ -45,7 +77,10 @@ const ChatWidget = () => {
           </div>
 
           {/* Chat body */}
-          <div className="flex-1 p-4 overflow-y-auto bg-gray-50 text-sm space-y-4">
+          <div
+            ref={chatBodyRef}
+            className="flex-1 p-4 overflow-y-auto bg-gray-50 text-sm space-y-4"
+          >
             {messages.map((msg, i) =>
               msg.from === "bot" ? (
                 <div key={i} className="flex justify-start">

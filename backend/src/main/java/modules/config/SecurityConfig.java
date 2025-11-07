@@ -79,7 +79,8 @@ public class SecurityConfig {
                                 "/api/accounts/verify",
                                 "/api/accounts/forgot-password",
                                 "/api/accounts/reset-password",
-                                "/api/accounts"
+                                "/api/accounts",
+                                "/api/chat"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET,
