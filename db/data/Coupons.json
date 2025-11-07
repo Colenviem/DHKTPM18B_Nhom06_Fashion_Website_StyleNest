@@ -1,14 +1,50 @@
 [
-    {
-        "_id": "CPN001",
-        "code": "SALE20",
-        "type": "ORDER",
-        "discount": 20,
-        "description": "Giảm 20% cho đơn hàng từ 300,000 VND",
-        "minimumOrderAmount": 300000,
-        "expirationDate": { "$date": "2024-12-31T23:59:59Z" },
-        "usageLimit": 500,
-        "usedCount": 150,
-        "isActive": true
-    }
+  {
+    "_id": "CPN001",
+    "code": "SALE20",
+    "type": "ORDER",
+    "discount": 20,
+    "description": "Giảm 20% cho đơn hàng từ 300,000 VND",
+    "minimumOrderAmount": 300000,
+    "expirationDate": { "$date": "2024-12-31T23:59:59.000Z" },
+    "usageLimit": 500,
+    "usedCount": 150,
+    "isActive": true
+  },
+  {
+    "_id": "CPN002",
+    "code": "FREESHIP",
+    "type": "SHIPPING",
+    "discount": 100,
+    "description": "Miễn phí vận chuyển cho đơn hàng bất kỳ.",
+    "minimumOrderAmount": 0,
+    "expirationDate": { "$date": "2024-11-30T23:59:59.000Z" },
+    "usageLimit": 1000,
+    "usedCount": 980,
+    "isActive": true
+  },
+  {
+    "_id": "CPN003",
+    "code": "FIXED50K",
+    "type": "ORDER",
+    "discount": 50000,
+    "description": "Giảm cố định 50,000 VND cho đơn hàng từ 500,000 VND.",
+    "minimumOrderAmount": 500000,
+    "expirationDate": { "$date": "2024-10-31T23:59:59.000Z" },
+    "usageLimit": 200,
+    "usedCount": 200,
+    "isActive": false
+  },
+  {
+    "_id": "CPN004",
+    "code": "NEWUSER15",
+    "type": "PRODUCT",
+    "discount": 15,
+    "description": "Giảm 15% cho sản phẩm đầu tiên (dành cho người dùng mới).",
+    "minimumOrderAmount": 100000,
+    "expirationDate": { "$date": "2025-06-30T23:59:59.000Z" },
+    "usageLimit": 800,
+    "usedCount": 50,
+    "isActive": true
+  }
 ]

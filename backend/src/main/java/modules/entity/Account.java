@@ -9,9 +9,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -20,33 +20,27 @@ import java.util.List;
 public class Account implements UserDetails {
     @Id
     private String id;
-    private String username;
-    private String password;
-    private String role;
+    private String userName;
+    private String passWord;
+    private Role role;
     private boolean isActive;
     private String userId;
+    private String verificationCode;
+    private LocalDateTime verificationExpiry;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority(role));
+        return Collections.singletonList(
+                new SimpleGrantedAuthority(role.name())
+        );
+    }
+    @Override
+    public String getPassword() {
+        return this.passWord;
     }
 
     @Override
     public String getUsername() {
-        return this.username;
+        return this.userName;
     }
-
-    @Override
-    public String getPassword() {
-        return this.password;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() { return true; }
-    @Override
-    public boolean isAccountNonLocked() { return true; }
-    @Override
-    public boolean isCredentialsNonExpired() { return true; }
-    @Override
-    public boolean isEnabled() { return this.isActive; } // Nên dùng trường isActive của bạn
 }

@@ -1,18 +1,18 @@
 package modules.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import modules.entity.Category;
 import modules.repository.CategoryRepository;
+import modules.service.CategoryService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class CategoryServiceImpl implements modules.service.CategoryService {
-    private final CategoryRepository repository;
+@RequiredArgsConstructor
+public class CategoryServiceImpl implements CategoryService {
 
-    public CategoryServiceImpl(CategoryRepository repository) {
-        this.repository = repository;
-    }
+    private final CategoryRepository repository;
 
     @Override
     public List<Category> findAll() {
@@ -25,7 +25,36 @@ public class CategoryServiceImpl implements modules.service.CategoryService {
     }
 
     @Override
-    public Category saveCategory(Category category){
+    public Category addCategory(Category category) {
+        // Nếu muốn tạo ID theo name, đặt ở đây (not in controller)
+        if (category.getId() == null) {
+            category.setId(category.getName());
+        }
         return repository.save(category);
+    }
+
+    @Override
+    public Category updateCategory(String id, Category updatedCategory) {
+        return repository.findById(id)
+                .map(existing -> {
+                    existing.setName(updatedCategory.getName());
+                    existing.setDescription(updatedCategory.getDescription());
+                    existing.setImageUrl(updatedCategory.getImageUrl());
+                    return repository.save(existing);
+                })
+                .orElseGet(() -> {
+                    updatedCategory.setId(id);
+                    return repository.save(updatedCategory);
+                });
+    }
+
+    @Override
+    public boolean deleteCategory(String id) {
+        return repository.findById(id)
+                .map(existing -> {
+                    repository.delete(existing);
+                    return true;
+                })
+                .orElse(false);
     }
 }

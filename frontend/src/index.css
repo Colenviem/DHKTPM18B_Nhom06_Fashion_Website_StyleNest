@@ -38,3 +38,13 @@ body {
   0%, 100% { text-shadow: 0 0 8px rgba(111, 71, 235, 0.7); }
   50% { text-shadow: 0 0 15px rgba(166, 124, 255, 0.8); }
 }
+
+.no-spin::-webkit-inner-spin-button,
+.no-spin::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.no-spin {
+    -moz-appearance: textfield;
+}

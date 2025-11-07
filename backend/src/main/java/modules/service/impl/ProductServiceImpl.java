@@ -9,9 +9,11 @@ import java.util.List;
 @Service
 public class ProductServiceImpl implements modules.service.ProductService {
     private final ProductRepository repository;
+    private final ProductRepository productRepository;
 
-    public ProductServiceImpl(ProductRepository repository) {
+    public ProductServiceImpl(ProductRepository repository, ProductRepository productRepository) {
         this.repository = repository;
+        this.productRepository = productRepository;
     }
 
     @Override
@@ -33,4 +35,35 @@ public class ProductServiceImpl implements modules.service.ProductService {
         return repository.save(product);
     }
 
+
+    @Override
+    public List<Product> findOutOfStockProducts() {
+        List<Product> listProducts = repository.findAll();
+        return listProducts.stream()
+                .filter(p -> {
+                    // het hang
+                    if (!p.isAvailable()) {
+                        return true;
+                    }
+                    // tat ca het hang
+                    if (p.getVariants() != null && !p.getVariants().isEmpty()) {
+                        return p.getVariants()
+                                .stream()
+                                .allMatch(v -> v.getInStock() == null || v.getInStock() <= 0);
+                    }
+                    return true;
+                }).toList();
+    }
+
+    @Override
+    public List<Product> findProductsBySize(String size) {
+        return productRepository.findProductsBySize(size.trim().toUpperCase());
+    }
+
+    public List<Product> searchProducts(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return repository.findAll();
+        }
+        return repository.searchProducts(keyword.trim());
+    }
 }

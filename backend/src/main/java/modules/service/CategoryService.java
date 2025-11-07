@@ -9,5 +9,9 @@ public interface CategoryService {
 
     Category findById(String id);
 
-    Category saveCategory(Category category);
+    Category addCategory(Category category);
+
+    Category updateCategory(String id, Category updatedCategory);
+
+    boolean deleteCategory(String id);
 }

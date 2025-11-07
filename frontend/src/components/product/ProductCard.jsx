@@ -2,6 +2,7 @@ import React from "react";
 import { FiShoppingBag } from "react-icons/fi";
 import { useNavigate } from "react-router-dom"; // ✅ Thêm dòng này
 import RenderStars from "../ui/RenderStars";
+import { useNavigate } from "react-router-dom";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate(); // ✅ Dùng hook điều hướng
