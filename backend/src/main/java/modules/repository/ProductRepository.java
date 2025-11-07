@@ -6,7 +6,10 @@ import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
 
+import java.util.List;
+
 public interface ProductRepository extends MongoRepository<Product, String> {
+    List<Product> findByCategory_Id(String categoryId);
 
   @Query("{'variants.size': ?0 }")
   List<Product> findProductsBySize(String size);

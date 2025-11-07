@@ -51,4 +51,13 @@ public class CategoryController {
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
     }
+
+    @PostMapping
+    public Category save(@RequestBody Category category) {
+        int count = service.findAll().size();
+        String newId = String.format("CAT%03d", count + 1);
+        category.setId(newId);
+        return service.saveCategory(category);
+    }
+
 }

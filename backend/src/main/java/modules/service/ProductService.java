@@ -9,6 +9,9 @@ public interface ProductService {
 
     Product findById(String id);
 
+    List<Product> getProductsByCategoryId(String categoryId);
+
+    Product updateProduct(Product product);
     List<Product> findOutOfStockProducts();
 
     List<Product> findProductsBySize(String size);

@@ -1,117 +1,87 @@
-import React, { useContext, useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import FilterSidebar from "../../components/filter/FilterSidebar";
 import NewArrivalsSection from "../../components/product/NewArrivalsSection";
-import { ProductsContext } from "../../context/ProductsContext";
+import { getAllProducts, getProductsByCategoryId } from "../../context/ProductContext";
 
 const ListProductPage = () => {
-    const { productsData, loading, searchQuery, searchResults } = useContext(ProductsContext);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const categoryParam = queryParams.get("category"); // VD: "CAT001,CAT002"
 
-    const [displayProducts, setDisplayProducts] = useState([]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        let data = [];
 
-    useEffect(() => {
-        if (searchQuery && searchResults.length > 0) {
-            setDisplayProducts(searchResults);
+        if (categoryParam && categoryParam !== "new") {
+          // ✅ Nếu có nhiều category, gọi API cho từng cái
+          const categories = categoryParam.split(",");
+          const allData = await Promise.all(
+            categories.map((catId) => getProductsByCategoryId(catId))
+          );
+          data = allData.flat(); // Gộp kết quả lại
         } else {
-            setDisplayProducts(productsData);
+          data = await getAllProducts();
         }
-    }, [productsData, searchResults, searchQuery]);
-    
-    // State cho các bộ lọc
-    const [selectedBrands, setSelectedBrands] = useState([]);
-    const [selectedStockStatus, setSelectedStockStatus] = useState("Có sẵn");
-    const [selectedColors, setSelectedColors] = useState([]);
-    const [selectedSizes, setSelectedSizes] = useState([]);
-    const [priceRange, setPriceRange] = useState({ min: 100000, max: 5000000 });
 
-    // 🔍 Lọc sản phẩm theo các bộ lọc (gọi hook ở mọi render, kể cả khi loading)
-    const filteredProducts = useMemo(() => {
-        if (loading || !displayProducts) return [];
-        return displayProducts.filter((product) => {
-            // Lọc theo thương hiệu
-            const brandMatch =
-                selectedBrands.length === 0 || selectedBrands.includes(product.brand);
-
-            // Lọc theo trạng thái tồn kho
-            const totalStock =
-                product.variants?.reduce((sum, v) => sum + (v.inStock || 0), 0) || 0;
-            const isAvailable = product.available && totalStock > 0;
-            const stockMatch =
-                selectedStockStatus.length === 0 ||
-                (isAvailable && selectedStockStatus.includes("Có sẵn")) ||
-                (!isAvailable && selectedStockStatus.includes("Hết hàng"));
-
-            // Lọc theo màu
-            const colorMatch =
-                selectedColors.length === 0 ||
-                product.variants?.some((v) =>
-                    selectedColors.includes(v.color?.toLowerCase())
-                );
-
-            // Lọc theo kích cỡ
-            const sizeMatch =
-                selectedSizes.length === 0 ||
-                product.variants?.some((v) => selectedSizes.includes(v.size));
-
-            // Tính giá sau khi discount
-            const priceAfterDiscount =
-                product.price * (1 - (product.discount || 0) / 100);
-
-            // Lọc theo khoảng giá
-            const priceMatch =
-                priceAfterDiscount >= priceRange.min &&
-                priceAfterDiscount <= priceRange.max;
-
-            return brandMatch && stockMatch && colorMatch && sizeMatch && priceMatch;
+        // ✅ Format ảnh mặc định
+        const formatted = data.map((product) => {
+          let coverImage = "/placeholder.png";
+          if (
+            product.variants &&
+            product.variants.length > 0 &&
+            product.variants[0].images &&
+            product.variants[0].images.length > 0
+          ) {
+            coverImage = product.variants[0].images[0];
+          }
+          return { ...product, coverImage };
         });
-    }, [
-        displayProducts,
-        loading,
-        selectedBrands,
-        selectedStockStatus,
-        selectedColors,
-        selectedSizes,
-        priceRange,
-    ]);
 
-    // Chỉ điều kiện hóa phần JSX
-    if (loading) {
-        return <div>Đang tải dữ liệu...</div>;
-    }
+        setProducts(formatted);
+        setError(null);
+      } catch (err) {
+        console.error("Lỗi khi tải sản phẩm:", err.message);
+        setError("Không thể tải dữ liệu sản phẩm. Vui lòng thử lại sau.");
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return (
-        <div className="py-10 bg-white min-h-screen">
-            <div className="max-w-full mx-auto flex px-4 sm:px-6 lg:px-8 space-x-8">
-                <div className="w-full lg:w-1/4 hidden lg:block">
-                    <div className="sticky top-28">
-                        <FilterSidebar
-                            displayProducts={displayProducts}
-                            selectedBrands={selectedBrands}
-                            setSelectedBrands={setSelectedBrands}
-                            selectedStockStatus={selectedStockStatus}
-                            setSelectedStockStatus={setSelectedStockStatus}
-                            selectedColors={selectedColors}
-                            setSelectedColors={setSelectedColors}
-                            selectedSizes={selectedSizes}
-                            setSelectedSizes={setSelectedSizes}
-                            priceRange={priceRange}
-                            setPriceRange={setPriceRange}
-                        />
-                    </div>
-                </div>
+    fetchProducts();
+  }, [categoryParam]);
 
-                <div className="w-full lg:w-3/4">
-                    <NewArrivalsSection
-                        products={filteredProducts}
-                        title={
-                            searchQuery
-                                ? `Kết quả tìm kiếm cho "${searchQuery}"`
-                                : "Danh sách sản phẩm"
-                        }
-                    />
-                </div>
-            </div>
+  if (loading)
+    return <div className="py-20 text-center text-xl font-medium">Đang tải sản phẩm...</div>;
+
+  if (error)
+    return <div className="py-20 text-center text-xl font-medium text-red-600">Lỗi: {error}</div>;
+
+  return (
+    <div className="py-10 bg-white min-h-screen">
+      <div className="max-w-full mx-auto flex px-4 sm:px-6 lg:px-8 space-x-8">
+        <div className="w-full lg:w-1/4 hidden lg:block">
+          <div className="sticky top-28">
+            <FilterSidebar />
+          </div>
         </div>
-    );
+        <div className="w-full lg:w-3/4">
+          <NewArrivalsSection
+            products={products}
+            title="Danh sách sản phẩm"
+            subtitle="Khám phá những sản phẩm theo danh mục bạn chọn."
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ListProductPage;

@@ -26,6 +26,15 @@ public class ProductServiceImpl implements modules.service.ProductService {
         return repository.findById(id).orElse(null);
     }
 
+    @Override
+    public List<Product> getProductsByCategoryId(String categoryId) {
+        return repository.findByCategory_Id(categoryId);
+    }
+    @Override
+    public Product updateProduct(Product product){
+        return repository.save(product);
+    }
+
 
     @Override
     public List<Product> findOutOfStockProducts() {
