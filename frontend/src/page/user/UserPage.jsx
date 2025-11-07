@@ -31,7 +31,6 @@ const UserPage = () => {
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/cart" element={<CartPage />} />
 
-                    <Route path="/detail" element={<ProductDetail/>} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/about" element={<AboutPage />} />
