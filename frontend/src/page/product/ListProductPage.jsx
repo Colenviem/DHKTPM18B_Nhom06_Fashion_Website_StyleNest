@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import FilterSidebar from "../../components/filter/FilterSidebar";
 import NewArrivalsSection from "../../components/product/NewArrivalsSection";
 import { getAllProducts, getProductsByCategoryId } from "../../context/ProductContext";
+import Spinner from "../../components/spinner/Spinner";
 
 const ListProductPage = () => {
   const [products, setProducts] = useState([]);
@@ -59,7 +60,7 @@ const ListProductPage = () => {
   }, [categoryParam]);
 
   if (loading)
-    return <div className="py-20 text-center text-xl font-medium">Đang tải sản phẩm...</div>;
+    return <Spinner size={12}/>;
 
   if (error)
     return <div className="py-20 text-center text-xl font-medium text-red-600">Lỗi: {error}</div>;

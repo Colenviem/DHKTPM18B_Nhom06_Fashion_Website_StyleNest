@@ -80,7 +80,10 @@ public class SecurityConfig {
                                 "/api/accounts/forgot-password",
                                 "/api/accounts/reset-password",
                                 "/api/accounts",
-                                "/api/chat"
+                                "/api/chat",
+                                "/api/coupons",
+                                "/api/carts/user/**",
+                                "/api/users/**"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET,

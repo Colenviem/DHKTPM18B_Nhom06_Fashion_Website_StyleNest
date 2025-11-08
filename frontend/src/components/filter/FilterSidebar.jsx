@@ -29,12 +29,6 @@ const COLORS = [
   { name: "Hồng", color: "pink" },
 ];
 
-// const PRODUCT_CONDITIONS = [
-//   { name: "Mới", count: 9, selected: false },
-//   { name: "Tân trang", count: 5, selected: true },
-//   { name: "Đã qua sử dụng", count: 6, selected: false },
-// ];
-
 const inputClasses =
   "rounded border-gray-400 text-black focus:ring-black checked:bg-black checked:border-transparent";
 
@@ -48,28 +42,18 @@ const FilterSidebar = ({
   setSelectedColors,
   selectedSizes,
   setSelectedSizes,
-  priceRange,
+  priceRange = { min: 100000, max: 5000000 },
   setPriceRange,
 }) => {
 
-  // Tạo danh sách BRANDS từ dữ liệu brandsData
-  //   const BRANDS = useMemo(() => {
-  //     if (!brandsData || brandsLoading) return [];
+  const products = displayProducts || []; // đảm bảo không bị undefined
 
-  //     return brandsData.map((brand) => ({
-  //       name: brand.name,
-  //       count: Math.floor(Math.random() * 5) + 1, //Sau này sửa số lượng từ API
-  //       selected: brand.name === "Adidas" ? true : false,
-  //     }));
-  //   }, [brandsData, brandsLoading]);
-
-  // Tạo danh sách BRANDS từ displayProducts
+  // Tạo danh sách BRANDS từ products
   const BRANDS = useMemo(() => {
-    if (!displayProducts || displayProducts.length === 0) return [];
+    if (!products.length) return [];
 
     const brandCount = {};
-
-    displayProducts.forEach((p) => {
+    products.forEach((p) => {
       const brand = p.brand?.trim();
       if (brand) {
         brandCount[brand] = (brandCount[brand] || 0) + 1;
@@ -80,15 +64,14 @@ const FilterSidebar = ({
       name,
       count,
     }));
-  }, [displayProducts]);
+  }, [products]);
 
-  // Tạo danh sách SIZES từ displayProducts
+  // Tạo danh sách SIZES từ products
   const SIZES = useMemo(() => {
-    if (!displayProducts || displayProducts.length === 0) return [];
+    if (!products.length) return [];
 
     const sizeCount = {};
-
-    displayProducts.forEach((p) => {
+    products.forEach((p) => {
       p.variants?.forEach((v) => {
         const size = v.size?.trim();
         if (size) {
@@ -97,25 +80,23 @@ const FilterSidebar = ({
       });
     });
 
-    // Sắp xếp theo thứ tự phổ biến nhất
     return Object.entries(sizeCount).map(([size, count]) => ({
       size,
       count,
     }));
-  }, [displayProducts]);
+  }, [products]);
 
-  // Tạo danh sách STOCK_STATUS từ productsData
+  // Tạo danh sách STOCK_STATUS từ products
   const STOCK_STATUS = useMemo(() => {
-    //if (!productsData || productsLoading) return [];
+    if (!products.length) return [];
 
-    const availableProducts = displayProducts.filter((p) => {
-      // Tính tổng số lượng tồn kho từ tất cả các variants
+    const availableProducts = products.filter((p) => {
       const totalStock =
         p.variants?.reduce((sum, v) => sum + (v.inStock || 0), 0) || 0;
       return p.available && totalStock > 0;
     });
 
-    const outOfStockProducts = displayProducts.filter((p) => {
+    const outOfStockProducts = products.filter((p) => {
       const totalStock =
         p.variants?.reduce((sum, v) => sum + (v.inStock || 0), 0) || 0;
       return !p.available || totalStock === 0;
@@ -125,7 +106,7 @@ const FilterSidebar = ({
       { name: "Có sẵn", count: availableProducts.length, selected: true },
       { name: "Hết hàng", count: outOfStockProducts.length, selected: false },
     ];
-  }, [displayProducts]);
+  }, [products]);
 
   // Xử lý click chọn thương hiệu
   const handleBrandChange = (brandName) => {
@@ -141,21 +122,21 @@ const FilterSidebar = ({
     setSelectedStockStatus((prev) => (prev === status ? "" : status));
   };
 
-  // Hàm xử lý chọn màu
+  // Xử lý chọn màu
   const handleColorChange = (color) => {
     setSelectedColors((prev) =>
       prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
     );
   };
 
-  // Hàm xử lý chọn kích cỡ
+  // Xử lý chọn kích cỡ
   const handleSizeChange = (size) => {
     setSelectedSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
     );
   };
 
-  // Hàm xử lý thay đổi khoảng giá
+  // Xử lý thay đổi khoảng giá
   const handlePriceChange = (e) => {
     const newMax = Number(e.target.value);
     setPriceRange((prev) => ({ ...prev, max: newMax }));
@@ -196,6 +177,7 @@ const FilterSidebar = ({
         </div>
       </div>
 
+      {/* Kích cỡ */}
       <div className="p-5 border-b border-gray-200">
         <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
           Kích cỡ
@@ -221,6 +203,7 @@ const FilterSidebar = ({
         </div>
       </div>
 
+      {/* Màu sắc */}
       <div className="p-5 border-b border-gray-200">
         <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
           Màu sắc
@@ -248,13 +231,11 @@ const FilterSidebar = ({
         <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
           Giá
         </h4>
-
         <div className="mb-4 text-center">
           <span className="text-xl font-extrabold text-black">
             {formatVND(priceRange.min)} - {formatVND(priceRange.max)}
           </span>
         </div>
-
         <input
           type="range"
           min="100000"
@@ -263,7 +244,6 @@ const FilterSidebar = ({
           onChange={handlePriceChange}
           className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-black"
         />
-
         <div className="flex justify-between text-sm text-gray-600 mt-2">
           <span className="font-medium">
             Tối thiểu: {formatVND(priceRange.min)}
@@ -299,31 +279,6 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
-
-      {/* <div className="p-5 border-b border-gray-200">
-        <h4 className="font-bold text-black mb-4 border-b border-gray-100 pb-3 uppercase text-sm tracking-wide">
-          Tình trạng sản phẩm
-        </h4>
-        <div className="space-y-4">
-          {PRODUCT_CONDITIONS.map((item) => (
-            <label
-              key={item.name}
-              className="flex items-center gap-3 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                className={inputClasses}
-                readOnly
-                defaultChecked={item.selected}
-              />
-              <span className="text-gray-800 text-base">{item.name}</span>
-              <span className="text-gray-500 text-sm ml-auto font-medium">
-                ({item.count})
-              </span>
-            </label>
-          ))}
-        </div>
-      </div> */}
     </div>
   );
 };

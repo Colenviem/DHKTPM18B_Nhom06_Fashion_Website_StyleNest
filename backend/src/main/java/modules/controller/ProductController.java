@@ -5,6 +5,7 @@ import modules.entity.Product;
 import modules.entity.Rating;
 import modules.service.impl.ProductServiceImpl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
