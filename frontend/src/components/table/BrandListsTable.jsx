@@ -13,7 +13,6 @@ import { BsClockHistory } from "react-icons/bs";
 import Spinner from "../../components/spinner/Spinner";
 import axios from "axios";
 
-// --- Utils ---
 const getBrandStatus = (isActive) =>
   isActive
     ? { text: "Còn hoạt động", icon: <FiCheckCircle className="w-5 h-5 text-green-500 mx-auto" />, colorClass: "text-green-600 font-bold" }
@@ -25,11 +24,9 @@ const formatDateTime = (isoString) => {
   return `${date.toLocaleDateString("vi-VN")} ${date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`;
 };
 
-// --- Animations ---
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delayChildren: 0.1, staggerChildren: 0.05 } } };
 const rowVariants = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } };
 
-// --- Component ---
 const BrandListsTable = () => {
   const { brandsData, setBrandsData, loading } = useContext(BrandsContext);
   const [searchInput, setSearchInput] = useState("");
@@ -54,26 +51,30 @@ const BrandListsTable = () => {
 
   useEffect(() => { if ((!brandsData || brandsData.length === 0) && !loading) fetchBrands(); }, [brandsData, loading, fetchBrands]);
 
-  useEffect(() => {
-    const keyword = searchKeyword.trim();
-    const performSearch = async () => {
-      setSearchLoading(true);
-      try {
-        if (keyword) {
-          const res = await axios.get(`http://localhost:8080/api/brands/search?keyword=${keyword}`);
-          setBrandsData(res.data);
-        } else fetchBrands();
-      } catch (error) {
-        console.error("Lỗi tìm kiếm:", error);
-        setBrandsData([]);
-      } finally {
-        setSearchLoading(false);
-      }
-    };
-    performSearch();
-  }, [searchKeyword, fetchBrands, setBrandsData]);
+    useEffect(() => {
+        const keyword = searchKeyword.trim();
+        const performSearch = async () => {
+            setSearchLoading(true);
+            try {
+                let res;
+                if (keyword) {
+                    res = await axios.get(`http://localhost:8080/api/brands/search?keyword=${keyword}`);
+                } else {
+                    res = await axios.get("http://localhost:8080/api/brands");
+                }
+                setBrandsData(res.data);
+            } catch (error) {
+                console.error("Lỗi tìm kiếm:", error);
+                setBrandsData([]);
+            } finally {
+                setSearchLoading(false);
+            }
+        };
+        performSearch();
+    }, [searchKeyword, setBrandsData]);
 
-  const openModal = (brand = null) => {
+
+    const openModal = (brand = null) => {
     setEditingBrand(brand);
     setFormData({
       name: brand?.name || "",
@@ -90,7 +91,7 @@ const BrandListsTable = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...formData, active: formData.isActive, featured: formData.isFeatured };
+        const payload = { ...formData, isActive: formData.isActive, isFeatured: formData.isFeatured };
       if (editingBrand) await axios.put(`http://localhost:8080/api/brands/${editingBrand.id}`, payload);
       else await axios.post("http://localhost:8080/api/brands", payload);
       await fetchBrands();
@@ -101,7 +102,8 @@ const BrandListsTable = () => {
 
   const toggleActive = async (brand) => {
     setBrandsData(prev => prev.map(b => b.id === brand.id ? { ...b, active: !b.active, updatedAt: new Date().toISOString() } : b));
-    try { await axios.put(`http://localhost:8080/api/brands/${brand.id}/toggleActive`); } catch (error) { console.error("Toggle Active lỗi:", error); }
+    try { await axios.put(`http://localhost:8080/api/brands/${brand.id}/toggle-active`);
+    } catch (error) { console.error("Toggle Active lỗi:", error); }
   };
 
   const handleDelete = async (id) => {
