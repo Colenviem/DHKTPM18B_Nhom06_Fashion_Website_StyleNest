@@ -5,12 +5,12 @@ import {
   FiSearch,
   FiCheckCircle,
   FiXCircle,
-  FiLoader,
   FiAlertTriangle,
   FiPlus,
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { getAllProducts } from "../../context/ProductContext";
+import Spinner from "../../components/spinner/Spinner";
 
 const calculateTotalStock = (variants) => {
   if (!variants || !Array.isArray(variants)) return 0;
@@ -93,14 +93,7 @@ const ProductListsTable = () => {
   );
 
   if (loading) {
-    return (
-      <div className="p-6 pt-24 bg-gray-50 min-h-screen flex items-center justify-center">
-        <FiLoader className="w-8 h-8 text-indigo-500 animate-spin mr-3" />
-        <span className="text-lg font-medium text-indigo-600">
-          Đang tải dữ liệu sản phẩm...
-        </span>
-      </div>
-    );
+    return <Spinner size={12} content={"Đang tải dữ liệu sản phẩm..."} />;
   }
 
   if (error) {

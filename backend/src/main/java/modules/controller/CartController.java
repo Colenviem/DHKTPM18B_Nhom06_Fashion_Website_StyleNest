@@ -1,10 +1,12 @@
 package modules.controller;
 
 import modules.entity.Cart;
+import modules.entity.UserRef;
 import modules.service.CartService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -13,9 +15,11 @@ import java.util.List;
 public class CartController {
 
     private final CartService service;
+    private final CartService cartService;
 
-    public CartController(CartService service) {
+    public CartController(CartService service, CartService cartService) {
         this.service = service;
+        this.cartService = cartService;
     }
 
     @GetMapping
@@ -32,7 +36,17 @@ public class CartController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<Cart> getCartByUser(@PathVariable String userId) {
         Cart cart = service.findByUserId(userId);
-        return (cart != null) ? ResponseEntity.ok(cart) : ResponseEntity.notFound().build();
+        if (cart == null) {
+            cart = new Cart();
+            UserRef user = new UserRef();
+            user.setId(userId);
+            cart.setUser(user);
+            cart.setItems(Collections.emptyList());
+            cart.setTotalQuantity(0);
+            cart.setTotalPrice(0);
+        }
+
+        return ResponseEntity.ok(cart);
     }
 
     @PutMapping("/user/{userId}")

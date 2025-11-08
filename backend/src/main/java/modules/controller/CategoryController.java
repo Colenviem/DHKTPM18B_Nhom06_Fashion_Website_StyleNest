@@ -29,12 +29,6 @@ public class CategoryController {
                 : ResponseEntity.notFound().build();
     }
 
-    @PostMapping
-    public ResponseEntity<Category> create(@RequestBody Category category) {
-        Category newCategory = service.addCategory(category);
-        return ResponseEntity.ok(newCategory);
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<Category> update(
             @PathVariable String id,
@@ -57,7 +51,7 @@ public class CategoryController {
         int count = service.findAll().size();
         String newId = String.format("CAT%03d", count + 1);
         category.setId(newId);
-        return service.saveCategory(category);
+        return service.addCategory(category);
     }
 
 }

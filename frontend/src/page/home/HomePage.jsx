@@ -3,6 +3,7 @@ import DealsSection from "../../components/deal/DealsSection";
 import NewArrivalsSection from "../../components/product/NewArrivalsSection";
 import InstagramFeedSection from "../../components/instagram/InstagramFeedSection";
 import { getAllProducts } from "../../context/ProductContext";
+import Spinner from "../../components/spinner/Spinner";
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
@@ -21,9 +22,8 @@ const HomePage = () => {
 
         const data = await getAllProducts();
 
-        // ✅ Chuẩn hóa dữ liệu: lấy ảnh đầu tiên của variant đầu tiên làm ảnh bìa
         const formatted = data.map((product) => {
-          let coverImage = "/placeholder.png"; // Ảnh mặc định nếu không có
+          let coverImage = "/placeholder.png"; 
 
           if (
             product.variants &&
@@ -31,12 +31,12 @@ const HomePage = () => {
             product.variants[0].images &&
             product.variants[0].images.length > 0
           ) {
-            coverImage = product.variants[0].images[0]; // Ảnh đầu tiên của variant đầu tiên
+            coverImage = product.variants[0].images[0]; 
           }
 
           return {
             ...product,
-            coverImage, // thêm thuộc tính mới
+            coverImage, 
           };
         });
 
@@ -55,7 +55,7 @@ const HomePage = () => {
   }, []);
 
   if (loading) {
-    return <div className="text-center p-8">Đang tải dữ liệu sản phẩm...</div>;
+    return <Spinner size={12} />
   }
 
   if (error) {

@@ -125,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
         ProductRef ref = new ProductRef(
                 product.getId(),
                 product.getName(),
-                product.getImage(),
+                product.getVariants().getFirst().getImages().getFirst(),
                 unitPrice,
                 (int) product.getDiscount()
         );
