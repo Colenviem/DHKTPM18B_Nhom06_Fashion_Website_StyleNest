@@ -1,6 +1,7 @@
 package modules.service.impl;
 
 import modules.entity.Cart;
+import modules.entity.CartItem;
 import modules.entity.ProductRef;
 import modules.repository.CartRepository;
 import modules.service.CartService;
@@ -47,7 +48,6 @@ public class CartServiceImpl implements CartService {
 
             incomingCart.getItems().forEach(item -> {
                 if (item.getProduct() != null && item.getProduct().getId() != null) {
-
                     ProductRef ref = new ProductRef();
                     ref.setId(item.getProduct().getId());
                     ref.setName(item.getProduct().getName());
@@ -56,16 +56,27 @@ public class CartServiceImpl implements CartService {
                     ref.setDiscount(item.getProduct().getDiscount());
 
                     item.setProduct(ref);
+
+                    double priceAtTime = ref.getPrice() * (1 - ref.getDiscount() / 100.0);
+                    item.setPriceAtTime(priceAtTime);
                 }
                 existing.getItems().add(item);
             });
         }
 
-        existing.setTotalQuantity(incomingCart.getTotalQuantity());
-        existing.setTotalPrice(incomingCart.getTotalPrice());
+        existing.setTotalQuantity(
+                existing.getItems().stream().mapToInt(CartItem::getQuantity).sum()
+        );
+
+        existing.setTotalPrice(
+                existing.getItems().stream()
+                        .mapToDouble(item -> item.getPriceAtTime() * item.getQuantity())
+                        .sum()
+        );
 
         return repository.save(existing);
     }
+
 
     @Override
     public boolean deleteById(String id) {
@@ -75,4 +86,46 @@ public class CartServiceImpl implements CartService {
                     return true;
                 }).orElse(false);
     }
+
+    @Override
+    public Cart addProductToCart(String userId, String userName, ProductRef product, int quantity) {
+        if (userId == null || product == null) return null;
+
+        Cart cart = repository.findByUserId(userId).orElse(null);
+
+        if (cart == null) {
+            cart = new Cart();
+            cart.setUser(new modules.entity.UserRef(userId, userName));
+            cart.setItems(new java.util.ArrayList<>());
+            cart.setTotalQuantity(0);
+            cart.setTotalPrice(0);
+        }
+
+        boolean found = false;
+        for (var item : cart.getItems()) {
+            if (item.getProduct().getId().equals(product.getId())) {
+                item.setQuantity(item.getQuantity() + quantity);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            var cartItem = new modules.entity.CartItem(product, quantity, product.getPrice());
+            cart.getItems().add(cartItem);
+        }
+
+        int totalQty = 0;
+        double totalPrice = 0;
+        for (var item : cart.getItems()) {
+            totalQty += item.getQuantity();
+            totalPrice += item.getQuantity() * item.getPriceAtTime();
+        }
+        cart.setTotalQuantity(totalQty);
+        cart.setTotalPrice(totalPrice);
+
+        return repository.save(cart);
+    }
+
+
 }
