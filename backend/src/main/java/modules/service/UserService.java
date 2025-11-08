@@ -29,4 +29,6 @@ public interface UserService {
 
     // Cập nhật địa chỉ của người dùng
     Address updateAddress(String userId, String addressId, Address updatedAddress);
+
+    Address setDefaultAddress(String userId, String addressId);
 }

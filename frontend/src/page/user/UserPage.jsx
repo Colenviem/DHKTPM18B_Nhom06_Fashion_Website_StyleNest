@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
@@ -20,29 +20,29 @@ import ForgotPasswordPage from "../auth/ForgotPasswordPage";
 import ChatWidget from "../../components/chat/ChatWidget";
 
 const UserPage = () => {
-    return (
-        <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow mt-16">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/fashion" element={<ListProductPage/>} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/products/edit/new" element={<ProductDetail />} />
-            <Route path="/detail" element={<ProductDetail/>} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/services" element={<ServicesPage />} />
-          </Routes>
-        </main>
-        <ChatWidget />
-        <Footer />
-      </div>
-    )
+    return (
+        <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-grow mt-16">
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/fashion" element={<ListProductPage/>} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/cart" element={<CartPage />} />
+                    <Route path="/products/edit/new" element={<ProductDetail />} />
+                    <Route path="/detail" element={<ProductDetail/>} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/services" element={<ServicesPage />} />
+                </Routes>
+            </main>
+            <ChatWidget />
+            <Footer />
+        </div>
+    )
 }
 
 export default UserPage

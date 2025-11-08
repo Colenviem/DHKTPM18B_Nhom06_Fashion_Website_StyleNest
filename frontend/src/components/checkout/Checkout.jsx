@@ -1,8 +1,8 @@
 import { FiMapPin, FiCheckCircle, FiChevronRight, FiInfo, FiX, FiPlus } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
 import { CartContext } from "../../context/CartContext.jsx";
 import { useContext, useState, useMemo, useEffect } from "react";
 import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const shippingFee = 30000;
 const PRIMARY_COLOR = "#6F47EB";
@@ -10,155 +10,145 @@ const PRIMARY_HOVER = "#5E3FB9";
 const TEXT_COLOR = "#4B5563";
 
 const Checkout = () => {
-    const { cartItems, userId, setCartItems } = useContext(CartContext);
+    const { cartItems, userId, setCartItems, user } = useContext(CartContext);
+    const fullName = user ? user.firstName + " " + user.lastName : "";
+
     const [note, setNote] = useState("");
     const navigate = useNavigate();
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cod");
 
+    const location = useLocation();
+    const productsFromBuyNow = location.state?.products || [];
+    const itemsToCheckout = productsFromBuyNow.length > 0 ? productsFromBuyNow : cartItems;
 
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [showNewAddressModal, setShowNewAddressModal] = useState(false);
     const [tempSelectedAddress, setTempSelectedAddress] = useState(null);
 
+
     const [editingAddressId, setEditingAddressId] = useState(null);
-    const [editForm, setEditForm] = useState({ name: "", phone: "", address: "" });
+    const [editForm, setEditForm] = useState({ name: "", phone: "", street: "", city: "" });
 
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
 
-
-    // Tính subtotal & total
     const subtotal = useMemo(() =>
-            cartItems.reduce((total, item) => total + item.price * (1 - (item.discount || 0) / 100) * item.quantity, 0),
-        [cartItems]
+            itemsToCheckout.reduce((total, item) =>
+                    total + item.price * (1 - (item.discount || 0)/100) * item.quantity
+                , 0),
+        [itemsToCheckout]
     );
+
     const total = subtotal + shippingFee;
 
     const [newAddressForm, setNewAddressForm] = useState({
-            name: "",
-            phone: "",
-            street: "",
-            city: "",
-            detailAddress: "",
-            addressType: "home",
-            isDefault: false
-        }
-    );
-
-    // const handleCheckout = async () => {
-    //     if (!selectedAddress || cartItems.length === 0) {
-    //         alert("Vui lòng chọn địa chỉ và giỏ hàng không được trống!");
-    //         return;
-    //     }
-    //
-    //     const payload = {
-    //         userId: userId,
-    //         shippingAddress: {
-    //             id: selectedAddress.id,
-    //             name: selectedAddress.name,
-    //             street: selectedAddress.address,
-    //             phoneNumber: selectedAddress.phone,
-    //         },
-    //         items: cartItems.map(item => ({
-    //             productId: item.id,
-    //             variantId: item.variantId || null,
-    //             quantity: item.quantity,
-    //             unitPrice: Math.round(item.price * (1 - (item.discount || 0)/100)),
-    //             discount: item.discount || 0
-    //         })),
-    //         shippingFee: shippingFee,
-    //         note: note,
-    //         paymentMethod: selectedPaymentMethod
-    //     };
-    //
-    //     try {
-    //         const res = await axios.post(`http://localhost:8080/api/orders`, payload);
-    //         alert("Đặt hàng thành công! Mã đơn: " + res.data.orderNumber);
-    //
-    //         setCartItems([]);
-    //
-    //         if (userId) {
-    //             try {
-    //                 await axios.put(`http://localhost:8080/api/carts/user/${userId}`, { items: [] });
-    //             } catch (err) {
-    //                 console.error("❌ Lỗi xóa giỏ hàng trên server:", err.response?.data || err.message);
-    //             }
-    //         } else {
-    //             sessionStorage.removeItem('cartItems'); // guest
-    //         }
-    //
-    //
-    //         navigate('/orders'); // chuyển sang trang đơn hàng
-    //     } catch (err) {
-    //         console.error("Lỗi đặt hàng:", err.response?.data || err.message);
-    //         alert("Đặt hàng thất bại, vui lòng thử lại!");
-    //     }
-    // };
+        name: "",
+        phone: "",
+        street: "",
+        city: "",
+        addressType: "home",
+        isDefault: false
+    });
 
     const handleCheckout = async () => {
-        if (!selectedAddress || cartItems.length === 0) {
-            alert("Vui lòng chọn địa chỉ và giỏ hàng không được trống!");
-            return;
-        }
-
-        // Chuẩn hóa địa chỉ
-        const shippingAddress = {
-            id: selectedAddress.id || null,
-            name: selectedAddress.name || "Khách hàng",
-            street: selectedAddress.street || selectedAddress.address || "",
-            phoneNumber: selectedAddress.phone || selectedAddress.phoneNumber || "Chưa có",
-            city: selectedAddress.city || "Chưa có"
-        };
-
-        // Chuẩn hóa items
-        const items = cartItems.map(item => ({
-            productId: item.id,
-            variantId: item.variantId || null,
-            quantity: item.quantity || 1,
-            unitPrice: Math.round(item.price * (1 - (item.discount || 0)/100)),
-            discount: item.discount || 0
-        }));
-
-        const payload = {
-            userId: userId || null,
-            shippingAddress,
-            items,
-            shippingFee: shippingFee || 0,
-            note: note || "",
-            paymentMethod: selectedPaymentMethod || "cod"
-        };
-
-        console.log("Payload đặt hàng:", payload);
-
         try {
-            const res = await axios.post(`http://localhost:8080/api/orders`, payload);
-            alert("Đặt hàng thành công! Mã đơn: " + res.data.orderNumber);
-
-            // Xóa giỏ hàng
-            setCartItems([]);
-            if (userId) {
-                await axios.put(`http://localhost:8080/api/carts/user/${userId}`, { items: [] });
-            } else {
-                sessionStorage.removeItem('cartItems');
+            const token = localStorage.getItem("token");
+            if (!userId || !token) {
+                alert("Bạn chưa đăng nhập!");
+                return;
             }
 
-            navigate('/cart');
-        } catch (err) {
-            console.error("Lỗi đặt hàng:", err.response?.data || err.message);
-            alert("Đặt hàng thất bại, vui lòng thử lại!");
+            if (!selectedAddress) {
+                alert("Vui lòng chọn địa chỉ nhận hàng!");
+                return;
+            }
+
+            if (!itemsToCheckout || itemsToCheckout.length === 0) {
+                alert("Không có sản phẩm để đặt hàng!");
+                return;
+            }
+
+            const orderPayload = {
+                userId: userId,
+                shippingAddress: {
+                    id: selectedAddress.id || null,
+                    name: selectedAddress.name || "Khách hàng",
+                    street: `${selectedAddress.street}, ${selectedAddress.city || ""}`.trim(),
+                    phoneNumber: selectedAddress.phone && selectedAddress.phone !== "Chưa có"
+                        ? selectedAddress.phone
+                        : "0000000000"
+                },
+                items: itemsToCheckout.map(item => ({
+                    productId: item.id,
+                    quantity: item.quantity || 1
+                })),
+                shippingFee: shippingFee,
+                note: note,
+                totalPrice: total
+            };
+
+
+
+            console.log("📤 Sending order payload:", JSON.stringify(orderPayload, null, 2));
+
+            const response = await axios.post(
+                "http://localhost:8080/api/orders",
+                orderPayload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            console.log("✅ Order created:", response.data);
+            alert("Đặt hàng thành công!");
+
+            if (productsFromBuyNow.length === 0) {
+                setCartItems([]);
+            }
+
+            navigate("/orders");
+        } catch (error) {
+            console.error("❌ Checkout error:", error);
+
+            if (axios.isAxiosError(error)) {
+                console.error("Status:", error.response?.status);
+                console.error("Response data:", JSON.stringify(error.response?.data, null, 2));
+                console.error("Request payload:", error.config?.data);
+
+                const errorMsg = error.response?.data?.error
+                    || error.response?.data?.message
+                    || error.message;
+                alert("Đặt hàng thất bại: " + errorMsg);
+            } else {
+                alert("Đặt hàng thất bại: " + error.message);
+            }
         }
     };
-
 
     const handleNewAddressChange = (e) => {
         const { name, value, type, checked } = e.target;
         setNewAddressForm(prev => ({
             ...prev,
-            [name]: type === "checkbox" ? checked : value,
+            [name]: type === "checkbox" ? checked : value
         }));
     };
 
-    const openNewAddressModal = () => setShowNewAddressModal(true);
+    const openNewAddressModal = () => {
+        setNewAddressForm(prev => ({
+            ...prev,
+            name: fullName,
+            phone: "",
+            street: "",
+            city: "",
+            addressType: "home",
+            isDefault: false
+        }));
+        setShowNewAddressModal(true);
+    };
+
     const closeNewAddressModal = () => setShowNewAddressModal(false);
 
     useEffect(() => {
@@ -170,25 +160,34 @@ const Checkout = () => {
                 const user = res.data;
                 const addrs = Array.isArray(user.addresses) ? user.addresses : [];
 
-                const mappedAddresses = addrs.map(a => ({
-                    id: a.id,
-                    name: user.firstName + " " + user.lastName,
-                    phone: a.phoneNumber || "Chưa có",
-                    address: a.street || "",
-                    city: a.city || "",
-                    isDefault: a.isDefault
-                }));
+                const mappedAddresses = addrs.map(a => {
+                    const isDefault = a.isDefault === true ||
+                        a.isDefault === "true" ||
+                        a.default === true ||
+                        a.default === "true";
+
+                    return {
+                        id: a.id,
+                        name: user.firstName + " " + user.lastName,
+                        phone: a.phoneNumber || "Chưa có",
+                        street: (a.street || "").replace(/,+/g, "").trim(),
+                        city: a.city || "Chưa có",
+                        isDefault: isDefault
+                    };
+                });
 
                 setAddresses(mappedAddresses);
 
-                const defaultAddr = mappedAddresses.find(a => a.isDefault) || mappedAddresses[0] || null;
-                setSelectedAddress(defaultAddr);
+                const defaultAddr = mappedAddresses.find(a => a.isDefault === true);
 
-                // Nếu không có địa chỉ nào, bật modal thêm địa chỉ
-                if (!defaultAddr) {
+                const addressToSelect = defaultAddr || mappedAddresses[0] || null;
+
+
+                setSelectedAddress(addressToSelect);
+
+                if (mappedAddresses.length === 0) {
                     setShowNewAddressModal(true);
                 }
-
             } catch (err) {
                 console.error("Lỗi lấy user:", err.response?.data || err.message);
             }
@@ -199,7 +198,6 @@ const Checkout = () => {
 
 
 
-    // Modal địa chỉ
     const selectAddress = (addr) => setTempSelectedAddress(addr);
     const confirmAddressSelection = () => {
         if (tempSelectedAddress) setSelectedAddress(tempSelectedAddress);
@@ -208,13 +206,26 @@ const Checkout = () => {
     };
 
     const handleAddNewAddress = async () => {
+        if (!newAddressForm.name || !newAddressForm.phone || !newAddressForm.detailAddress || !newAddressForm.location) {
+            alert("Vui lòng nhập đầy đủ thông tin địa chỉ!");
+            return;
+        }
+
+        const [ward = "", district = "", city = "Chưa có"] = newAddressForm.location
+            .split(',')
+            .map(s => s.trim())
+            .reverse();
+
+
         const newAddr = {
             name: newAddressForm.name,
             phoneNumber: newAddressForm.phone,
-            street: newAddressForm.detailAddress,
-            city: newAddressForm.city || "Chưa có",
+            street: `${newAddressForm.detailAddress}, ${ward}, ${district}`.trim(),
+            city: city,
             isDefault: newAddressForm.isDefault
         };
+
+
 
         try {
             const res = await axios.post(`http://localhost:8080/api/users/${userId}/addresses`, newAddr);
@@ -222,13 +233,12 @@ const Checkout = () => {
 
             const mappedAddress = {
                 id: addedAddress.id,
-                name: addedAddress.name || newAddr.name,  // ưu tiên backend trả về name
-                phoneNumber: addedAddress.phoneNumber || newAddr.phone, // backend trả phoneNumber
-                street: addedAddress.street || newAddr.detailAddress,
-                city: addedAddress.city || newAddr.city || "Chưa có",
+                name: addedAddress.name || newAddr.name,
+                phone: addedAddress.phoneNumber || newAddr.phone,
+                street: addedAddress.street || newAddr.street,
+                city: addedAddress.city || newAddr.city,
                 isDefault: addedAddress.isDefault
             };
-
 
             setAddresses(prev =>
                 mappedAddress.isDefault
@@ -238,7 +248,7 @@ const Checkout = () => {
 
             if (mappedAddress.isDefault || !selectedAddress) setSelectedAddress(mappedAddress);
 
-            setNewAddressForm({ name: "", phone: "", street: "", city: "", detailAddress: "", addressType: "home", isDefault: false });
+            setNewAddressForm({ name: "", phone: "", detailAddress: "", location: "", addressType: "home", isDefault: false });
             setShowNewAddressModal(false);
             alert("Thêm địa chỉ thành công!");
         } catch (err) {
@@ -248,21 +258,29 @@ const Checkout = () => {
     };
 
 
-    // Sửa địa chỉ
     const handleEditAddress = (addr) => {
         setEditingAddressId(addr.id);
-        setEditForm({ name: addr.name, phone: addr.phone, address: addr.address });
+        setEditForm({
+            name: addr.name,
+            phone: addr.phone,
+            street: addr.street,
+            ward: addr.ward || "",
+            district: addr.district || "",
+            city: addr.city || ""
+        });
+
     };
+
     const handleSaveEditAddress = async () => {
         const updated = {
             name: editForm.name,
             phoneNumber: editForm.phone,
-            street: editForm.address
+            street: `${editForm.street}, ${editForm.ward}, ${editForm.district}`.trim(),
+            city: editForm.city
         };
 
         try {
             await axios.put(`http://localhost:8080/api/users/${userId}/addresses/${editingAddressId}`, updated);
-
             setAddresses(prev => prev.map(a => a.id === editingAddressId ? { ...a, ...editForm } : a));
             if (selectedAddress?.id === editingAddressId) setSelectedAddress({ ...selectedAddress, ...editForm });
             setEditingAddressId(null);
@@ -273,17 +291,8 @@ const Checkout = () => {
         }
     };
 
-
     const handleDeleteAddress = async (id) => {
-        if (!id) {
-            // Nếu id null, xóa trực tiếp trong state (chưa lưu backend)
-            setAddresses(prev => {
-                const newAddresses = prev.filter(a => a.id !== id);
-                if (selectedAddress?.id === id) setSelectedAddress(newAddresses[0] || null);
-                return newAddresses;
-            });
-            return;
-        }
+        if (!id) return;
 
         if (!window.confirm("Bạn có chắc muốn xóa địa chỉ này?")) return;
 
@@ -301,17 +310,38 @@ const Checkout = () => {
         }
     };
 
+    const setAddressAsDefault = async (id) => {
+        try {
+            const token = localStorage.getItem("token");
 
+            console.log("🔄 Setting address as default:", id);
 
-    const setAddressAsDefault = (id) => {
-        setAddresses(prev => {
-            const updated = prev.map(a => ({ ...a, isDefault: a.id === id }));
-            const defaultAddr = updated.find(a => a.id === id);
-            if (defaultAddr) setSelectedAddress(defaultAddr);
-            return updated;
-        });
+            await axios.put(
+                `http://localhost:8080/api/users/${userId}/addresses/${id}/default`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const updatedAddresses = addresses.map(a => ({
+                ...a,
+                isDefault: a.id === id
+            }));
+
+            setAddresses(updatedAddresses);
+
+            const defaultAddr = updatedAddresses.find(a => a.id === id);
+
+            if (defaultAddr) {
+                setSelectedAddress(defaultAddr);
+                console.log("✅ New default address set:", defaultAddr);
+            }
+
+            alert("Đã đặt địa chỉ này làm mặc định!");
+        } catch (err) {
+            console.error("Lỗi thiết lập mặc định:", err.response?.data || err.message);
+            alert("Không thể thiết lập địa chỉ mặc định, vui lòng thử lại!");
+        }
     };
-
 
     if (!cartItems) return <div>Đang tải giỏ hàng...</div>;
 
@@ -319,7 +349,6 @@ const Checkout = () => {
         <div className="bg-gray-100 min-h-screen flex items-center justify-center p-6 py-10">
             <div className="bg-white border border-gray-300 rounded-lg shadow-xl w-full max-w-7xl font-[Manrope] space-y-6 overflow-hidden" style={{ color: TEXT_COLOR }}>
 
-                {/* Địa chỉ nhận hàng */}
                 <div className="px-6 py-4">
                     <div className="flex items-start gap-4">
                         <FiMapPin className="text-[#6F47EB] h-6 w-6 mt-1 animate-pulse" />
@@ -330,7 +359,11 @@ const Checkout = () => {
                                     <div>
                                         <p className="font-semibold text-gray-800 mb-2">{selectedAddress.name}</p>
                                         <p className="text-gray-600 mb-2">{selectedAddress.phone}</p>
-                                        <p className="text-gray-600 text-sm">{selectedAddress.address}</p>
+                                        <p className="text-gray-600 text-sm">
+                                            {(selectedAddress.street ? selectedAddress.street + ", " : "") + (selectedAddress.city || "")}
+                                        </p>
+
+
                                     </div>
                                 ) : (
                                     <p>Chưa có địa chỉ</p>
@@ -386,10 +419,11 @@ const Checkout = () => {
                                                     <input
                                                         type="text"
                                                         className={`w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[${PRIMARY_COLOR}] focus:ring-2 focus:ring-[${PRIMARY_COLOR}]/20 transition-all duration-200`}
-                                                        value={editForm.address}
-                                                        onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                                        value={editForm.street}
+                                                        onChange={(e) => setEditForm({ ...editForm, street: e.target.value })}
                                                         placeholder="Địa chỉ"
                                                     />
+
                                                     <div className="flex gap-3 pt-1">
                                                         <button
                                                             className={`bg-[${PRIMARY_COLOR}] hover:bg-[${PRIMARY_HOVER}] text-white px-4 py-2 rounded-md transition-all duration-200 hover:scale-105`}
@@ -409,7 +443,9 @@ const Checkout = () => {
                                                 <div className="flex-1">
                                                     <div className={`text-xl font-semibold mb-2 text-[${TEXT_COLOR}]`}>{addr.name}</div>
                                                     <div className="text-sm text-gray-600 mb-2">{addr.phone}</div>
-                                                    <p className="text-sm text-gray-700">{addr.address}</p>
+                                                    <p className="text-sm text-gray-700">
+                                                        {addr.street}{addr.city ? `, ${addr.city}` : ""}
+                                                    </p>
                                                 </div>
                                             )}
 
@@ -419,7 +455,7 @@ const Checkout = () => {
                                                 ) : (
                                                     <button
                                                         className={`text-[${PRIMARY_COLOR}] border border-[${PRIMARY_COLOR}] px-3 py-2 rounded hover:bg-indigo-50 mb-4 text-xs transition-all duration-200 hover:scale-105`}
-                                                        onClick={(e) => setAddressAsDefault(addr.id, e)}
+                                                        onClick={() => setAddressAsDefault(addr.id)}
                                                     >
                                                         Thiết lập mặc định
                                                     </button>
@@ -505,14 +541,20 @@ const Checkout = () => {
                                         <select
                                             name="location"
                                             value={newAddressForm.location}
-                                            onChange={handleNewAddressChange}
                                             className={`w-full border border-gray-300 rounded px-4 py-3 appearance-none transition-all duration-200 focus:border-[${PRIMARY_COLOR}] focus:outline-none focus:ring-2 focus:ring-[${PRIMARY_COLOR}]/20`}
+                                            onChange={(e) => {
+                                                setNewAddressForm(prev => ({ ...prev, location: e.target.value }));
+                                            }}
                                         >
                                             <option value="">Tỉnh/Thành phố, Quận/Huyện, Phường/Xã</option>
                                             <option value="Phường 1, Quận 1, TP. Hồ Chí Minh">Phường 1, Quận 1, TP. Hồ Chí Minh</option>
                                             <option value="Phường 10, Quận Cầu Giấy, Hà Nội">Phường 10, Quận Cầu Giấy, Hà Nội</option>
                                             <option value="Phường 5, Quận Hải Châu, Đà Nẵng">Phường 5, Quận Hải Châu, Đà Nẵng</option>
                                         </select>
+
+
+
+
                                         <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                                             <FiChevronRight className="h-4 w-4 transform rotate-90" />
                                         </div>
@@ -577,7 +619,6 @@ const Checkout = () => {
                         </div>
                     </div>
                 )}
-                {/* Danh sách sản phẩm */}
                 <div className="px-6 py-4 space-y-4">
                     <div className="grid grid-cols-12 gap-4 pb-2 border-b text-base font-medium">
                         <div className="col-span-6">Sản phẩm</div>
@@ -586,7 +627,18 @@ const Checkout = () => {
                         <div className="col-span-2 text-right">Thành tiền</div>
                     </div>
 
-                    {cartItems.map(item => (
+                    {/*{cartItems.map(item => (*/}
+                    {/*    <div key={item.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b text-gray-700 hover:bg-gray-50">*/}
+                    {/*        <div className="col-span-6 flex items-center gap-3">*/}
+                    {/*            <img src={item.thumbnails?.[0]} alt={item.name} className="w-16 h-16 rounded-md object-cover bg-gray-100" />*/}
+                    {/*            <p className="text-sm">{item.name}</p>*/}
+                    {/*        </div>*/}
+                    {/*        <div className="col-span-2 text-right text-sm">{(item.price * (1 - (item.discount || 0)/100)).toLocaleString()} đ</div>*/}
+                    {/*        <div className="col-span-2 text-center text-sm">{item.quantity}</div>*/}
+                    {/*        <div className="col-span-2 text-right font-semibold">{(item.price * (1 - (item.discount || 0)/100) * item.quantity).toLocaleString()} đ</div>*/}
+                    {/*    </div>*/}
+                    {/*))}*/}
+                    {itemsToCheckout.map(item => (
                         <div key={item.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b text-gray-700 hover:bg-gray-50">
                             <div className="col-span-6 flex items-center gap-3">
                                 <img src={item.thumbnails?.[0]} alt={item.name} className="w-16 h-16 rounded-md object-cover bg-gray-100" />
@@ -597,6 +649,7 @@ const Checkout = () => {
                             <div className="col-span-2 text-right font-semibold">{(item.price * (1 - (item.discount || 0)/100) * item.quantity).toLocaleString()} đ</div>
                         </div>
                     ))}
+
                 </div>
 
                 {/* Lời nhắn */}

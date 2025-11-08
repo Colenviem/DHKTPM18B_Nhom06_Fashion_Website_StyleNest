@@ -8,13 +8,11 @@ export const ProductsContext = createContext();
 export const ProductsProvider = ({ children }) => {
   const [productsData, setProductsData] = useState([]);
   const [searchQuery, setSearchQuery] = useState(() => {
-    // Lấy giá trị lưu trong localStorage khi load trang
     return localStorage.getItem("searchQuery") || "";
   });
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Lưu searchQuery vào localStorage khi thay đổi
   useEffect(() => {
     if (searchQuery) localStorage.setItem("searchQuery", searchQuery);
     else localStorage.removeItem("searchQuery");

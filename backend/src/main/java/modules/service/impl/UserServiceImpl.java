@@ -1,7 +1,6 @@
 // backend/src/main/java/modules/service/impl/UserServiceImpl.java
 package modules.service.impl;
 
-import modules.entity.Account;
 import modules.entity.Address;
 import modules.dto.request.CreateUserRequest; // ✅ Thêm import
 import modules.entity.User;
@@ -15,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service // ✅ Annotation @Service nằm ở class triển khai
 public class UserServiceImpl implements UserService { // ✅ Triển khai interface UserService
@@ -68,9 +68,14 @@ public class UserServiceImpl implements UserService { // ✅ Triển khai interf
         User user = repository.findById(userId).orElse(null);
         if (user == null) return null;
 
+        if (address.getId() == null || address.getId().isEmpty()) {
+            address.setId(UUID.randomUUID().toString()); // ✅ Tự sinh ID nếu thiếu
+        }
+
         List<Address> addresses = user.getAddresses();
         if (addresses == null) addresses = new ArrayList<>();
 
+        // Nếu đánh dấu là mặc định -> bỏ mặc định ở các địa chỉ khác
         if (address.isDefault()) {
             addresses.forEach(a -> a.setDefault(false));
         }
@@ -82,19 +87,36 @@ public class UserServiceImpl implements UserService { // ✅ Triển khai interf
         return address;
     }
 
+
+    @Override
     public boolean deleteAddress(String userId, String addressId) {
         User user = repository.findById(userId).orElse(null);
-        if (user == null) return false;
+        if (user == null) {
+            logger.warn("❌ Không tìm thấy userId: {}", userId);
+            return false;
+        }
 
-        Address toRemove = user.getAddresses().stream()
-                .filter(a -> a.getId().equals(addressId))
+        List<Address> addresses = user.getAddresses();
+        if (addresses == null || addresses.isEmpty()) {
+            logger.warn("⚠️ User {} không có địa chỉ nào", userId);
+            return false;
+        }
+
+        Address toRemove = addresses.stream()
+                .filter(a -> addressId.equals(a.getId())) // ✅ an toàn khi id null
                 .findFirst()
                 .orElse(null);
 
-        if (toRemove == null) return false;
+        if (toRemove == null) {
+            logger.warn("❌ Không tìm thấy addressId: {} trong user {}", addressId, userId);
+            return false;
+        }
 
-        user.getAddresses().remove(toRemove);
+        addresses.remove(toRemove);
+        user.setAddresses(addresses);
         repository.save(user);
+
+        logger.info("✅ Đã xóa addressId: {} cho user {}", addressId, userId);
         return true;
     }
 
@@ -124,6 +146,29 @@ public class UserServiceImpl implements UserService { // ✅ Triển khai interf
 
         repository.save(user);
         return toEdit;
+    }
+
+    @Override
+    public Address setDefaultAddress(String userId, String addressId) {
+        User user = repository.findById(userId).orElse(null);
+        if (user == null) return null;
+
+        List<Address> addresses = user.getAddresses();
+        if (addresses == null || addresses.isEmpty()) return null;
+
+        addresses.forEach(addr -> addr.setDefault(false));
+
+        Address addr = addresses.stream()
+                .filter(a -> a.getId().equals(addressId))
+                .findFirst()
+                .orElse(null);
+
+        if (addr != null) {
+            addr.setDefault(true);
+            repository.save(user);
+        }
+
+        return addr;
     }
 
 

@@ -12,7 +12,7 @@ public interface OrderService {
 
     Order findById(String id);
 
-    Order createOrder(String userId, ShippingAddress address, Map<String, Integer> products);
+    Order createOrder(ShippingAddress address, Map<String, Integer> products);
 
     Order updateStatus(String orderId, String status);
 

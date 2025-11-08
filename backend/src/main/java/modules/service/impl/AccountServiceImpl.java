@@ -48,7 +48,6 @@ public class AccountServiceImpl implements AccountService {
     private final RabbitTemplate rabbitTemplate;
     private final UserService userService;
 
-    //Constructor
     public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository,
                               PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
                               JavaMailSender mailSender, RabbitTemplate rabbitTemplate,

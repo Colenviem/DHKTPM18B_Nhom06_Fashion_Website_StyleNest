@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
 
-// ✅ Tạo Context
 export const CategoriesContext = createContext();
 
 const API_BASE_URL = "http://localhost:8080/api";
@@ -15,7 +14,7 @@ export const getAllProducts = async () => {
     }
 
     const data = await response.json();
-    return data; // Trả về mảng sản phẩm
+    return data;
   } catch (error) {
     console.error("❌ Lỗi khi fetch dữ liệu sản phẩm:", error);
     throw new Error("Không thể kết nối tới server hoặc tải dữ liệu.");
