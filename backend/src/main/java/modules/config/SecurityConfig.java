@@ -83,13 +83,13 @@ public class SecurityConfig {
                                 "/api/chat",
                                 "/api/coupons",
                                 "/api/carts/user/**",
+                                "/api/brands/**",
                                 "/api/users/**"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET,
                                 "/api/products/**",
                                 "/api/categories/**",
-                                "/api/brands/**",
                                 "/api/reviews/**"
                         ).permitAll()
 
