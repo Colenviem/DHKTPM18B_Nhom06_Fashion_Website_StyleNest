@@ -11,9 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.YearMonth;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -98,5 +97,40 @@ public class OrderController {
     public ResponseEntity<Void> deleteOrder(@PathVariable String id) {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/monthly")
+    public List<Map<String, Object>> getMonthlyRevenue(
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return orderService.getMonthlyRevenue(year, month);
+    }
+    @GetMapping("/weekly-count")
+    public ResponseEntity<Map<String, Object>> getWeeklyStats() {
+        Map<String, Object> weeklyStats = orderService.getWeeklyStats();
+        return ResponseEntity.ok(weeklyStats);
+    }
+    @GetMapping("/countPending/{status}")
+    public int getCountOrdersByStatus(@PathVariable String status) {
+        List<Order> orders = orderService.findByStatus(status);
+        return orders.size();
+    }
+    @GetMapping("/filter")
+    public ResponseEntity<List<Order>> getOrdersByMonthAndYear(
+            @RequestParam int year,
+            @RequestParam int month) {
+
+        try {
+            List<Order> orders = orderService.getOrdersByMonthAndYear(year, month);
+
+            if (orders.isEmpty()) {
+                return ResponseEntity.noContent().build(); // Trả về 204 nếu không có dữ liệu
+            }
+            return ResponseEntity.ok(orders); // Trả về danh sách Order
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build(); // Trả về 400 Bad Request
+        }
     }
 }
