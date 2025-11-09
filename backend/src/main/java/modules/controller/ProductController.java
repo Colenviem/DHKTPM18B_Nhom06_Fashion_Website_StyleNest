@@ -73,5 +73,25 @@ public class ProductController {
         ));
     }
 
+    @GetMapping("/outofstock")
+    public ResponseEntity<List<Product>> findOutOfStockProducts() {
+        List<Product> outOfStockProducts = service.findOutOfStockProducts();
+        return ResponseEntity.ok(outOfStockProducts);
+    }
 
+    @GetMapping("/by-size/{size}")
+    public ResponseEntity<List<Product>> findProductsBySize(@PathVariable String size) {
+        List<Product> products = service.findProductsBySize(size);
+        if (products.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(products);
+    }
+
+    // TÌM KIẾM
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam String keyword) {
+        List<Product> results = service.searchProducts(keyword);
+        return ResponseEntity.ok(results);
+    }
 }

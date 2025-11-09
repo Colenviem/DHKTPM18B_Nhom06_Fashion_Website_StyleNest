@@ -19,10 +19,10 @@ const ProductDetail = () => {
         const fetchProduct = async () => {
             try {
                 const data = await getProductById(id);
-                console.log("Chi tiết sản phẩm:", data);
+                //console.log("Chi tiết sản phẩm:", data);
                 setProduct(data);
             } catch (err) {
-                console.error("Lỗi khi tải sản phẩm:", err);
+                //console.error("Lỗi khi tải sản phẩm:", err);
                 setError("Không thể tải thông tin sản phẩm. Vui lòng thử lại sau.");
             } finally {
                 setLoading(false);
