@@ -49,7 +49,7 @@ const ContactForm = ({ user }) => {
             "service_ui2r9c7",
             "template_8j8vsy8",
             formData,
-            "YOUR_PUBLIC_KEY"
+            "Qv8X96Znn7cgpcXqa"
         )
         .then(
             (response) => {
