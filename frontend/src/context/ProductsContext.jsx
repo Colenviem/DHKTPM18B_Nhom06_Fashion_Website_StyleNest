@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
+const API_BASE_URL = "http://localhost:8080/api";
+
 // Tạo Context
 export const ProductsContext = createContext();
 
@@ -20,7 +22,7 @@ export const ProductsProvider = ({ children }) => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/products")
+      .get(`${API_BASE_URL}/products`)
       .then((response) => {
         setProductsData(response.data);
         setLoading(false);
@@ -42,7 +44,7 @@ export const ProductsProvider = ({ children }) => {
     }
     setLoading(true);
     axios
-      .get("http://localhost:8080/api/products/search", {
+      .get(`${API_BASE_URL}/products/search`, {
         params: { keyword: searchQuery },
       })
       .then((response) => {
