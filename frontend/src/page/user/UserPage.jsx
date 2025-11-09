@@ -37,6 +37,9 @@ const UserPage = () => {
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/services" element={<ServicesPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/verify-email" element={<VerifyPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
                 </Routes>
             </main>
             <ChatWidget />
