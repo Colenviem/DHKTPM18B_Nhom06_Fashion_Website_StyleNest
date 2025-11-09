@@ -1,6 +1,7 @@
 package modules.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import modules.dto.request.WeeklyStatResultRepuest;
 import modules.entity.*;
 import modules.repository.OrderRepository;
 import modules.repository.ProductRepository;
@@ -10,11 +11,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.*;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +22,9 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepo;
     private final UserRepository userRepo;
     private final ProductRepository productRepo;
+    private static final String EXCLUDED_STATUS = "PENDING";
 
+    private final ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
 
     @Override
     public List<Order> findAll() {
@@ -198,5 +199,147 @@ public class OrderServiceImpl implements OrderService {
         return orderRepo.findByStatus(status);
     }
 
+    @Override
+    public List<Map<String, Object>> getMonthlyRevenue(int year, int month) {
+        List<Map<String, Object>> dailyData = orderRepo.getDailyRevenueByMonth(year, month);
 
+        YearMonth yearMonth = YearMonth.of(year, month);
+        int daysInMonth = yearMonth.lengthOfMonth();
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        // Vòng lặp này chỉ chạy 6 lần, đại diện cho 6 cột dữ liệu (5 ngày/cột)
+        for (int i = 0; i < 6; i++) {
+
+            int startDay;
+            int endDay;
+
+            if (i < 5) { // 5 cột đầu tiên (từ 1-5 đến 21-25)
+                startDay = i * 5 + 1;
+                endDay = startDay + 4; // Luôn là 5 ngày
+            } else { // Cột cuối cùng (thứ 6: từ 26 đến hết tháng)
+                startDay = 26;
+                // Đảm bảo cột cuối cùng luôn kéo dài đến hết tháng, kể cả ngày 31
+                endDay = daysInMonth;
+            }
+
+            // --- Logic Tính Tổng Doanh thu cho Phạm vi (Range) ---
+            long total = 0;
+
+            // Lặp qua dữ liệu dailyData đã lấy từ DB (giả định đây là danh sách ngắn)
+            for (Map<String, Object> dayData : dailyData) {
+                // Đảm bảo rằng _id là kiểu Number trước khi cast
+                Number dayNumber = (Number) dayData.get("_id");
+                if (dayNumber == null) continue;
+
+                int day = dayNumber.intValue();
+
+                if (day >= startDay && day <= endDay) {
+                    // Đảm bảo rằng "total" là kiểu Number trước khi cast
+                    Number totalNumber = (Number) dayData.get("total");
+                    if (totalNumber != null) {
+                        total += totalNumber.longValue();
+                    }
+                }
+            }
+
+            Map<String, Object> group = new LinkedHashMap<>();
+            // Định dạng Range chính xác (26–31, 26–30, v.v.)
+            group.put("range", startDay + "–" + endDay);
+            group.put("revenue", total);
+            result.add(group);
+        }
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Instant> getWeekRange(int offset) {
+
+        // 1. Lấy thời điểm hiện tại
+        ZonedDateTime now = ZonedDateTime.now(zoneId);
+
+        // 2. Tìm ngày Thứ Hai của tuần hiện tại (00:00:00)
+        ZonedDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                .toLocalDate()
+                .atStartOfDay(zoneId);
+
+        // 3. Điều chỉnh theo offset (Tuần này hoặc tuần trước)
+        ZonedDateTime actualStart = startOfWeek.plusWeeks(offset);
+
+        // 4. Tính thời điểm kết thúc (Thứ Hai tuần sau, 00:00:00)
+        ZonedDateTime actualEnd = actualStart.plusWeeks(1);
+
+        // 5. Trả về Map sử dụng Map.of()
+        return Map.of(
+                "startTime", actualStart.toInstant(),
+                "endTime", actualEnd.toInstant()
+        );
+
+        // Lưu ý: Tôi đã bỏ các lệnh System.out.println để giữ cho hàm này gọn gàng.
+        // Bạn nên sử dụng Logger (ví dụ: SLF4J/Log4j2) thay vì System.out.println trong production code.
+    }
+
+
+    @Override
+    public WeeklyStatResultRepuest getWeeklyStatsInRange(Instant start, Instant end) {
+
+        List<Order> orders = orderRepo.findByCreatedAtBetween(start, end);
+
+        long nonPendingCount = 0;
+        long nonPendingTotalAmount = 0;
+
+        for (Order order : orders) {
+            if (order.getStatus() != null &&
+                    !order.getStatus().equalsIgnoreCase(EXCLUDED_STATUS)) {
+
+                nonPendingCount++;
+                // Chú ý: Chỉ tính tổng tiền của các hóa đơn đã được xử lý (non-pending)
+                nonPendingTotalAmount += order.getTotalAmount();
+            }
+        }
+
+        // Log kết quả thực tế (chỉ để debug)
+        System.out.println("NON-PENDING ORDERS in range: " + nonPendingCount);
+        System.out.println("NON-PENDING TOTAL AMOUNT in range: " + nonPendingTotalAmount);
+
+        return new WeeklyStatResultRepuest(nonPendingCount, nonPendingTotalAmount);
+    }
+
+    @Override
+    public Map<String, Object> getWeeklyStats() {
+        Map<String, Object> results = new HashMap<>();
+
+        Map<String, Instant> thisWeekRange = getWeekRange(0);
+        WeeklyStatResultRepuest thisWeekStats = getWeeklyStatsInRange(
+                thisWeekRange.get("startTime"),
+                thisWeekRange.get("endTime")
+        );
+        results.put("thisWeekCount", thisWeekStats.getOrderCount());
+        results.put("thisWeekAmount", thisWeekStats.getTotalAmount());
+
+        Map<String, Instant> lastWeekRange = getWeekRange(-1);
+        WeeklyStatResultRepuest lastWeekStats = getWeeklyStatsInRange(
+                lastWeekRange.get("startTime"),
+                lastWeekRange.get("endTime")
+        );
+        results.put("lastWeekCount", lastWeekStats.getOrderCount());
+        results.put("lastWeekAmount", lastWeekStats.getTotalAmount());
+
+        return results;
+    }
+    @Override
+    public List<Order> getOrdersByMonthAndYear(int year, int month) {
+        // Kiểm tra logic nghiệp vụ cơ bản (ví dụ: tháng phải từ 1 đến 12)
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException("Tháng không hợp lệ. Phải từ 1 đến 12.");
+        }
+
+        // Gọi hàm từ Repository
+        List<Order> orders =orderRepo.findAllByMonthAndYear(year, month);
+
+        // Có thể thêm logic nghiệp vụ khác ở đây nếu cần (ví dụ: lọc thêm, tính toán tổng,...)
+
+        return orders;
+    }
 }
