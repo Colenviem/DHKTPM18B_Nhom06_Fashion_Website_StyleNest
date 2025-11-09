@@ -1,24 +1,12 @@
-import React, { useState, useEffect } from 'react';
+
+import React from 'react';
 import { FiSearch } from 'react-icons/fi';
+
+import { useAuth } from '../../context/AuthContext';
 
 const DashboardHeader = () => {
 
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-
-        const userString = localStorage.getItem('user');
-
-        if (userString) {
-            try {
-
-                const userData = JSON.parse(userString);
-                setUser(userData);
-            } catch (error) {
-                console.error("Không thể đọc thông tin user từ localStorage:", error);
-            }
-        }
-    }, []);
+    const { authUser } = useAuth();
 
     return (
         <div
@@ -45,10 +33,10 @@ const DashboardHeader = () => {
                     />
                     <div className="leading-tight">
                         <p className="font-medium text-gray-800">
-                            {user ? user.userName : 'Loading...'}
+                            {authUser ? authUser.userName : 'Loading...'}
                         </p>
                         <p className="text-sm text-gray-500">
-                            {user ? user.role : 'Guest'}
+                            {authUser ? authUser.role : 'Guest'}
                         </p>
                     </div>
 
