@@ -22,20 +22,37 @@ const AuthIcons = ({ toggleSearch }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const userString = localStorage.getItem("user");
-        if (userString) {
-            try {
-                setAuthUser(JSON.parse(userString));
-            } catch (e) {
-                console.error("Failed to parse user from localStorage", e);
-                localStorage.clear();
+        const loadUser = () => {
+            const userString = localStorage.getItem("user");
+            if (userString) {
+                try {
+                    setAuthUser(JSON.parse(userString));
+                } catch (e) {
+                    console.error("Failed to parse user from localStorage", e);
+                    localStorage.clear();
+                }
+            } else {
+                setAuthUser(null);
             }
-        }
+        };
+
+        loadUser();
+
+        // ✅ Lắng nghe event
+        window.addEventListener("auth-change", loadUser);
+
+        return () => {
+            window.removeEventListener("auth-change", loadUser);
+        };
     }, []);
 
     const handleLogout = () => {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
+
+        // 🔥 Notify component khác
+        window.dispatchEvent(new Event("auth-change"));
+
         setAuthUser(null);
         navigate("/login");
     };
@@ -78,7 +95,7 @@ const AuthIcons = ({ toggleSearch }) => {
                     <div className="relative group">
                         <button className={authButtonClasses}>
                             <FiUser className="mr-2" />
-                            {authUser.userName}
+                            {authUser.firstName + " " + authUser.lastName}
                             <FiChevronDown className="ml-1 w-4 h-4" />
                         </button>
 
