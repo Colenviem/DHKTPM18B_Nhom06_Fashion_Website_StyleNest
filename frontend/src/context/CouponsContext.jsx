@@ -8,6 +8,7 @@ export const CouponsContext = createContext();
 export const CouponsProvider = ({ children }) => {
   const [couponsData, setCouponsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     axios
@@ -17,13 +18,13 @@ export const CouponsProvider = ({ children }) => {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Lỗi khi fetch dữ liệu:", error);
+        setError(error);
         setLoading(false);
       });
   }, []);
 
   return (
-    <CouponsContext.Provider value={{ couponsData, setCouponsData, loading }}>
+    <CouponsContext.Provider value={{ couponsData, setCouponsData, loading, setLoading, error, setError }}>
       {children}
     </CouponsContext.Provider>
   );

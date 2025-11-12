@@ -1,6 +1,6 @@
-import React, { useContext, useState } from "react";
-import { CouponsContext } from "../../context/CouponsContext";
+import React, { useEffect, useState } from "react";
 import EditCouponForm from "../form/EditCouponForm";
+import { FiAlertCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
 import {
   FiCheckCircle,
@@ -13,7 +13,18 @@ import {
 import { BsTicketPerforated } from "react-icons/bs";
 import AddCouponForm from "../form/AddCouponForm";
 import axios from "axios";
-import { toast } from "react-toastify";
+
+// Component Skeleton cho bảng
+const SkeletonRow = () => (
+    <tr className="animate-pulse">
+        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-40"></div></td>
+        <td className="px-6 py-4 text-center"><div className="h-6 w-12 bg-gray-200 rounded-full mx-auto"></div></td>
+        <td className="px-6 py-4 text-center"><div className="h-6 w-12 bg-gray-200 rounded-full mx-auto"></div></td>
+        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+    </tr>
+);
 
 // Hàm format
 const formatVND = (amount) => {
@@ -33,9 +44,43 @@ const formatDate = (value) => {
 };
 
 const CouponListsTable = () => {
-  const { couponsData, setCouponsData, loading } = useContext(CouponsContext);
+  const [couponsData, setCouponsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [editingCoupon, setEditingCoupon] = useState(null);
+
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Người dùng chưa đăng nhập.");
+        }
+
+        const response = await axios.get("http://localhost:8080/api/coupons", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setCouponsData(response.data);
+        setError(null);
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách mã giảm giá:", err);
+        setError(
+          err.response?.data?.message ||
+            "Không thể tải dữ liệu. Bạn có thể chưa đăng nhập hoặc không có quyền."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCoupons();
+  }, []);
 
   // Lọc dữ liệu theo code, description hoặc id
   const filteredCoupons = couponsData.filter((coupon) => {
@@ -46,8 +91,6 @@ const CouponListsTable = () => {
       coupon.id.toLowerCase().includes(lowerCaseSearch)
     );
   });
-
-  if (loading) return <div>Đang tải dữ liệu...</div>;
 
   // Hàm xoá
   const handleDelete = async (code) => {
@@ -71,7 +114,7 @@ const CouponListsTable = () => {
         Danh sách Mã giảm giá
       </h1>
 
-      {/* Search & Add */}
+      {/* Thanh tìm kiếm và nút thêm mã giảm giá */}
       <div className="flex items-center justify-between flex-wrap gap-4 mb-6 p-4 bg-white rounded-xl shadow-md border border-gray-100">
         <div className="relative w-full sm:w-80">
           <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -104,7 +147,42 @@ const CouponListsTable = () => {
             </tr>
           </thead>
           <motion.tbody className="bg-white divide-y divide-gray-100">
-            {filteredCoupons.map((coupon) => (
+            {/* Loading */}
+            {loading && (
+              <>
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+              </>
+            )}
+            {/* Error */}
+            {!loading && error && (
+              <tr className="border-t border-gray-100">
+                <td
+                  colSpan="8"
+                  className="text-center py-8 text-red-500 italic"
+                >
+                  <div className="flex justify-center items-center gap-2">
+                    <FiAlertCircle />
+                    {error}
+                  </div>
+                </td>
+              </tr>
+            )}
+            {/* Empty */}
+            {!loading && !error && filteredCoupons.length === 0 && (
+              <tr className="border-t border-gray-100">
+                <td
+                  colSpan="6"
+                  className="text-center py-8 text-gray-500 italic"
+                >
+                  {couponsData.length === 0
+                    ? "Không có mã giảm giá nào trong hệ thống."
+                    : `Không tìm thấy mã giảm giá nào phù hợp với từ khóa "${searchTerm}".`}
+                </td>
+              </tr>
+            )}
+            {!loading && !error && filteredCoupons.map((coupon) => (
               <motion.tr
                 key={coupon.id || coupon._id}
                 className="hover:bg-gray-50 transition-colors"
@@ -171,7 +249,7 @@ const CouponListsTable = () => {
                 </td>
               </motion.tr>
             ))}
-            {filteredCoupons.length === 0 && (
+            {!loading && !error && filteredCoupons.length === 0 && (
               <tr className="border-t border-gray-100">
                 <td
                   colSpan="8"
