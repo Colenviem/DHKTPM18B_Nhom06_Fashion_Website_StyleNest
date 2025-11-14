@@ -21,12 +21,12 @@ public class CouponController {
         return ResponseEntity.ok(service.findAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Coupon> getById(@PathVariable String id) {
-        Coupon coupon = service.findById(id);
+    @GetMapping("/{code}")
+    public ResponseEntity<Coupon> getByCode(@PathVariable String code) {
+        Coupon coupon = service.updateCoupon(code, null); // tạm lấy bằng service repo.findByCode
         return coupon != null
-                ? ResponseEntity.ok(coupon)
-                : ResponseEntity.notFound().build();
+            ? ResponseEntity.ok(coupon)
+            : ResponseEntity.notFound().build();
     }
 
     @PostMapping
@@ -36,17 +36,20 @@ public class CouponController {
 
     @PutMapping("/{code}")
     public ResponseEntity<Coupon> update(
-            @PathVariable String code,
-            @RequestBody Coupon updatedCoupon
+        @PathVariable String code,
+        @RequestBody Coupon updatedCoupon
     ) {
-        return ResponseEntity.ok(service.updateCoupon(code, updatedCoupon));
+        Coupon updated = service.updateCoupon(code, updatedCoupon);
+        return updated != null
+            ? ResponseEntity.ok(updated)
+            : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{code}")
     public ResponseEntity<Void> delete(@PathVariable String code) {
         boolean deleted = service.deleteCoupon(code);
         return deleted
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+            ? ResponseEntity.noContent().build()
+            : ResponseEntity.notFound().build();
     }
 }
