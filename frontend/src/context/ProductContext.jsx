@@ -144,3 +144,26 @@ export const addCategory = async (categoryData) => {
     throw new Error("Không thể thêm danh mục mới.");
   }
 };
+
+export const getReviewsByProductId = async (productId) => {
+  if (!productId) {
+    throw new Error("❌ Product ID không được để trống.");
+  }
+  
+  const url = `${API_BASE_URL}/reviews/product/${productId}`;
+
+  try {
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data; 
+  } catch (error) {
+    console.error(`❌ Lỗi khi fetch đánh giá cho sản phẩm ${productId}:`, error);
+    // Tùy chỉnh thông báo lỗi cho người dùng
+    throw new Error("Không thể kết nối tới server hoặc tải dữ liệu đánh giá.");
+  }
+};

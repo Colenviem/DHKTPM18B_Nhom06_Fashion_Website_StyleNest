@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProductById } from "../../context/ProductContext";
+import { getProductById, getReviewsByProductId } from "../../context/ProductContext"; 
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { CartContext } from "../../context/CartContext";
@@ -11,24 +11,47 @@ const ProductDetail = () => {
     const { addToCart, userId } = useContext(CartContext);
 
     const [product, setProduct] = useState(null);
+    const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [error, setError] = useState(null);
+    const [reviewsError, setReviewsError] = useState(null);
 
+    // 🌟 useEffect để tải Sản phẩm và Reviews
     useEffect(() => {
-        const fetchProduct = async () => {
+        const fetchData = async () => {
+            setLoading(true);
+            setError(null);
+            setReviewsError(null);
+            
             try {
-                const data = await getProductById(id);
-                //console.log("Chi tiết sản phẩm:", data);
-                setProduct(data);
+                // Tải chi tiết sản phẩm
+                const productData = await getProductById(id);
+                console.log("Chi tiết sản phẩm:", productData);
+                setProduct(productData);
+                
+                // Tải Reviews sau khi có ID sản phẩm
+                if (productData?.id) {
+                    const reviewsData = await getReviewsByProductId(productData.id);
+                    console.log("Danh sách Reviews:", reviewsData);
+                    setReviews(reviewsData);
+                }
             } catch (err) {
-                //console.error("Lỗi khi tải sản phẩm:", err);
-                setError("Không thể tải thông tin sản phẩm. Vui lòng thử lại sau.");
+                console.error("Lỗi khi tải dữ liệu:", err);
+                if (err.message.includes("sản phẩm")) {
+                     setError("Không thể tải thông tin sản phẩm. Vui lòng thử lại sau.");
+                } else {
+                    setReviewsError("Không thể tải danh sách đánh giá.");
+                }
+
             } finally {
                 setLoading(false);
             }
         };
-        fetchProduct();
+
+        if (id) {
+            fetchData();
+        }
     }, [id]);
 
     const handleAddToCart = () => {
@@ -156,12 +179,12 @@ const ProductDetail = () => {
                             </p>
                             {product.discount > 0 && (
                                 <span className="text-lg text-red-500 line-through">
-                  {product.price.toLocaleString("vi-VN")}₫
+                    {product.price.toLocaleString("vi-VN")}₫
                 </span>
                             )}
                             {product.discount > 0 && (
                                 <span className="text-white bg-red-500 px-2 py-1 rounded-md text-sm font-semibold">
-                  -{product.discount}%
+                    -{product.discount}%
                 </span>
                             )}
                         </div>
@@ -199,7 +222,7 @@ const ProductDetail = () => {
                                     -
                                 </button>
                                 <span className="px-4 text-lg font-bold text-[#111827]">
-                  {quantity}
+                    {quantity}
                 </span>
                                 <button
                                     onClick={() => setQuantity((q) => q + 1)}
@@ -227,6 +250,65 @@ const ProductDetail = () => {
                         </div>
                     </div>
                 </div>
+                
+                {/* --- 💬 Phần Hiển thị Reviews --- */}
+                <div className="mt-16 pt-8 border-t border-gray-200">
+                    <h2 className="text-3xl font-bold text-[#111827] mb-6">
+                        💬 Đánh giá sản phẩm ({reviews.length})
+                    </h2>
+                    
+                    {reviewsError && (
+                        <p className="text-red-500 italic mb-4">{reviewsError}</p>
+                    )}
+
+                    {reviews.length === 0 && !reviewsError ? (
+                        <p className="text-[#4B5563] italic">Sản phẩm này chưa có đánh giá nào.</p>
+                    ) : (
+                        <div className="space-y-6">
+                            {reviews.map((review) => (
+                                <div key={review.id} className="p-4 border rounded-lg shadow-sm bg-gray-50">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="font-semibold text-[#111827]">
+                                            👤 {review.user.userName || "Người dùng ẩn danh"}
+                                        </p>
+                                        <p className="text-sm text-yellow-500 font-bold">
+                                            {Array(review.rating).fill('⭐').join('')}
+                                        </p>
+                                    </div>
+                                    <p className="text-gray-700 italic mb-3">
+                                        "{review.comment}"
+                                    </p>
+                                    
+                                    {/* NEW CODE: Hiển thị hình ảnh review */}
+                                    {review.images && review.images.length > 0 && (
+                                        <div className="mt-3 flex flex-wrap gap-2 border-t pt-3 border-gray-200">
+                                            {review.images.map((imgUrl, imgIndex) => (
+                                                <img
+                                                    key={imgIndex}
+                                                    src={imgUrl}
+                                                    alt={`Ảnh đánh giá ${review.id}-${imgIndex + 1}`}
+                                                    className="w-20 h-20 object-cover rounded-md border border-gray-300 shadow-sm cursor-pointer"
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                    {/* END NEW CODE */}
+
+                                    <div className="flex items-center justify-between text-sm text-[#6B7280] mt-3">
+                                        <span>
+                                            👍 {review.likes} lượt thích
+                                        </span>
+                                        <span>
+                                            {new Date(review.createdAt).toLocaleDateString('vi-VN')}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                {/* --- Hết phần Reviews --- */}
+
             </div>
         </div>
     );
