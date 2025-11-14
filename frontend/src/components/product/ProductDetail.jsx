@@ -43,6 +43,7 @@ const ProductDetail = () => {
                 } else {
                     setReviewsError("Không thể tải danh sách đánh giá.");
                 }
+
             } finally {
                 setLoading(false);
             }

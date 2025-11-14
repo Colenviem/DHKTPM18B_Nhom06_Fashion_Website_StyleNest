@@ -42,6 +42,8 @@ function LoginPage() {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
 
+        window.dispatchEvent(new Event("auth-change"));
+        
         // Logic điều hướng theo vai trò
         // Vui lòng kiểm tra cấu trúc data của bạn
         if (user.role === "ADMIN") {

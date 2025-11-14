@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
+import axios from "axios";
 
 export const CategoriesContext = createContext();
 
@@ -16,7 +17,7 @@ export const getAllProducts = async () => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("❌ Lỗi khi fetch dữ liệu sản phẩm:", error);
+    console.error("Lỗi khi fetch dữ liệu sản phẩm:", error);
     throw new Error("Không thể kết nối tới server hoặc tải dữ liệu.");
   }
 };
