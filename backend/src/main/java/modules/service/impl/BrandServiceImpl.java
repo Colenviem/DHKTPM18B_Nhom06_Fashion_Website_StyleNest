@@ -56,27 +56,19 @@ public class BrandServiceImpl implements BrandService {
                     existing.setName(brand.getName());
                     existing.setDescription(brand.getDescription());
                     existing.setLogoUrl(brand.getLogoUrl());
-                    existing.setActive(brand.isActive());
-                    existing.setFeatured(brand.isFeatured());
+                    existing.setIsActive(brand.getIsActive());
+                    existing.setIsFeatured(brand.getIsFeatured());
                     existing.setUpdatedAt(Instant.now());
                     return repository.save(existing);
                 })
                 .orElse(null);
     }
 
+
     @Override
     public void deleteById(String id) {
         repository.deleteById(id);
     }
 
-    @Override
-    public Brand toggleActive(String id) {
-        return repository.findById(id)
-                .map(brand -> {
-                    brand.setActive(!brand.isActive());
-                    brand.setUpdatedAt(Instant.now());
-                    return repository.save(brand);
-                })
-                .orElse(null);
-    }
+
 }

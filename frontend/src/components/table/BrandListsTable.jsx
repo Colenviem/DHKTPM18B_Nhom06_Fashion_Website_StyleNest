@@ -75,43 +75,51 @@ const BrandListsTable = () => {
 
 
     const openModal = (brand = null) => {
-    setEditingBrand(brand);
-    setFormData({
-      name: brand?.name || "",
-      description: brand?.description || "",
-      logoUrl: brand?.logoUrl || "",
-      isActive: brand?.active ?? true,
-      isFeatured: brand?.featured ?? false,
-    });
-    setIsModalOpen(true);
-  };
+        setEditingBrand(brand);
+        setFormData({
+            name: brand?.name ?? "",
+            description: brand?.description ?? "",
+            logoUrl: brand?.logoUrl ?? "",
+            isActive: brand?.isActive ?? false,
+            isFeatured: brand?.isFeatured ?? false
+        });
 
-  const closeModal = () => { setEditingBrand(null); setIsModalOpen(false); };
+        setIsModalOpen(true);
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-        const payload = { ...formData, isActive: formData.isActive, isFeatured: formData.isFeatured };
-      if (editingBrand) await axios.put(`http://localhost:8080/api/brands/${editingBrand.id}`, payload);
-      else await axios.post("http://localhost:8080/api/brands", payload);
-      await fetchBrands();
-      setSearchInput(""); setSearchKeyword("");
-      closeModal();
-    } catch (error) { console.error("Lỗi khi thêm/sửa thương hiệu:", error); }
-  };
 
-  // const toggleActive = async (brand) => {
-  //   setBrandsData(prev => prev.map(b => b.id === brand.id ? { ...b, active: !b.active, updatedAt: new Date().toISOString() } : b));
-  //   try { await axios.put(`http://localhost:8080/api/brands/${brand.id}/toggle-active`);
-  //   } catch (error) { console.error("Toggle Active lỗi:", error); }
-  // };
-  //
-  // const handleDelete = async (id) => {
-  //   if (!window.confirm("Bạn có chắc muốn xóa thương hiệu này?")) return;
-  //   try { await axios.delete(`http://localhost:8080/api/brands/${id}`); fetchBrands(); } catch (error) { console.error("Xóa lỗi:", error); }
-  // };
+    const closeModal = () => { setEditingBrand(null); setIsModalOpen(false); };
 
-  if (loading || searchLoading) return <Spinner size={12} content="Đang tải dữ liệu nhãn hàng" />;
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+             const payload = {
+                name: formData.name,
+                description: formData.description,
+                logoUrl: formData.logoUrl,
+                isActive: formData.isActive,
+                isFeatured: formData.isFeatured
+            };
+
+            if (editingBrand) {
+                await axios.put(`http://localhost:8080/api/brands/${editingBrand.id}`, payload);
+            } else {
+                await axios.post("http://localhost:8080/api/brands", payload);
+            }
+            await fetchBrands();
+            setSearchInput("");
+            setSearchKeyword("");
+
+            // Đóng modal
+            closeModal();
+        } catch (error) {
+            console.error("Lỗi khi thêm/sửa thương hiệu:", error);
+        }
+    };
+
+
+
+    if (loading || searchLoading) return <Spinner size={12} content="Đang tải dữ liệu nhãn hàng" />;
   if (!brandsData || !Array.isArray(brandsData)) return <div className="p-6 pt-24 bg-gray-50 min-h-screen">Không có dữ liệu</div>;
 
   return (
@@ -170,7 +178,7 @@ const BrandListsTable = () => {
       animate="visible"
     >
       {brandsData.map((brand) => {
-        const status = getBrandStatus(brand.active);
+          const status = getBrandStatus(brand.isActive);
         return (
           <motion.tr key={brand.id} variants={rowVariants} className="hover:bg-gray-50 transition-colors">
             {/* Thương hiệu */}
@@ -189,7 +197,7 @@ const BrandListsTable = () => {
 
             {/* Nổi bật */}
             <td className="px-6 py-4 text-center whitespace-nowrap">
-              {brand.featured ? <FiStar className="w-5 h-5 text-yellow-500 mx-auto" /> : <span className="text-gray-300">—</span>}
+                {brand.isFeatured ? <FiStar className="w-5 h-5 text-yellow-500 mx-auto" /> : <span className="text-gray-300">—</span>}
             </td>
 
             {/* Ngày tạo */}
