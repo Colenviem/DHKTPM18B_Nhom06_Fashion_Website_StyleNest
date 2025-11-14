@@ -3,11 +3,13 @@ package modules.service;
 import modules.dto.request.WeeklyStatResultRepuest;
 import modules.entity.Order;
 import modules.entity.ShippingAddress;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+@Service
 public interface OrderService {
 
     List<Order> findAll();

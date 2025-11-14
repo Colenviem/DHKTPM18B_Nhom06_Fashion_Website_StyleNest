@@ -10,8 +10,11 @@ export const BrandsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:8080/api/brands")
+      .get("http://localhost:8080/api/brands", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
       .then((response) => {
         setBrandsData(response.data);
         setLoading(false);

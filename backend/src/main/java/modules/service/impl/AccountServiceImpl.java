@@ -3,10 +3,7 @@ package modules.service.impl;
 import jakarta.mail.internet.MimeMessage;
 import modules.config.RabbitMQConfig;
 import modules.dto.message.NotificationMessage;
-import modules.dto.request.CreateUserRequest;
-import modules.dto.request.ForgotPasswordRequest;
-import modules.dto.request.LoginRequest;
-import modules.dto.request.ResetPasswordRequest;
+import modules.dto.request.*;
 import modules.dto.response.UserResponse;
 import modules.entity.Account;
 import modules.entity.Role;
@@ -331,5 +328,27 @@ public class AccountServiceImpl implements AccountService {
         response.setActive(account.isActive());
 
         return response;
+    }
+
+    public Account createAccountByAdmin(AccountUserRequest.AccountDTO dto, String userId) {
+        Account account = new Account();
+        account.setUserName(dto.getUsername());
+        account.setRole(Role.valueOf(dto.getRole()));
+        account.setActive(dto.isActive());
+        account.setUserId(userId);
+
+        return accountRepository.save(account);
+    }
+
+    public Account updateAccountByAdmin(String accountId, AccountUserRequest.AccountDTO dto, String userId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account không tồn tại"));
+
+        account.setUserName(dto.getUsername());
+        account.setRole(Role.valueOf(dto.getRole()));
+        account.setActive(dto.isActive());
+        account.setUserId(userId);
+
+        return accountRepository.save(account);
     }
 }

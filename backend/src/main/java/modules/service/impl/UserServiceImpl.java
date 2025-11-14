@@ -1,6 +1,7 @@
 // backend/src/main/java/modules/service/impl/UserServiceImpl.java
 package modules.service.impl;
 
+import modules.dto.request.AccountUserRequest;
 import modules.entity.Address;
 import modules.dto.request.CreateUserRequest; // ✅ Thêm import
 import modules.entity.User;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service // ✅ Annotation @Service nằm ở class triển khai
 public class UserServiceImpl implements UserService { // ✅ Triển khai interface UserService
@@ -22,10 +24,12 @@ public class UserServiceImpl implements UserService { // ✅ Triển khai interf
 
     private final UserRepository repository;
     private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
 
-    public UserServiceImpl(UserRepository repository, AccountRepository accountRepository) {
+    public UserServiceImpl(UserRepository repository, AccountRepository accountRepository, UserRepository userRepository) {
         this.repository = repository;
         this.accountRepository = accountRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -171,6 +175,71 @@ public class UserServiceImpl implements UserService { // ✅ Triển khai interf
         return addr;
     }
 
+    // Tạo user mới kèm addresses
+    public User createUserWithAddresses(AccountUserRequest.UserDTO dto) {
+        User user = new User();
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
 
+        List<Address> addresses = dto.getAddresses().stream()
+                .map(a -> new Address(a.getStreet(), a.getCity(), a.getPhoneNumber(), a.isDefault()))
+                .collect(Collectors.toList());
+
+        ensureSingleDefaultAddress(addresses);
+        user.setAddresses(addresses);
+
+        return userRepository.save(user);
+    }
+
+    // Cập nhật user + addresses
+    public User updateUserWithAddresses(String userId, AccountUserRequest.UserDTO dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
+
+        // Ghi đè danh sách addresses
+        List<Address> addresses = dto.getAddresses().stream()
+                .map(a -> {
+                    Address addr = new Address();
+                    addr.setId(a.getId() != null ? a.getId() : UUID.randomUUID().toString());
+                    addr.setStreet(a.getStreet());
+                    addr.setCity(a.getCity());
+                    addr.setPhoneNumber(a.getPhoneNumber());
+
+                    // 🔥 Lỗi nằm ở đây – phải dùng giá trị từ DTO
+                    addr.setDefault(a.isDefault());
+
+                    return addr;
+                })
+                .collect(Collectors.toList());
+
+        ensureSingleDefaultAddress(addresses);
+        user.setAddresses(addresses);
+
+        return userRepository.save(user);
+    }
+
+
+    private void ensureSingleDefaultAddress(List<Address> addresses) {
+        // Nếu có nhiều default → giữ cái đầu tiên, các cái khác false
+        boolean defaultFound = false;
+        for (Address a : addresses) {
+            if (a.isDefault()) {
+                if (!defaultFound) {
+                    defaultFound = true;
+                } else {
+                    a.setDefault(false);
+                }
+            }
+        }
+        // Nếu không có default → mặc định cái đầu tiên
+        if (!defaultFound && !addresses.isEmpty()) {
+            addresses.get(0).setDefault(true);
+        }
+    }
 }
 

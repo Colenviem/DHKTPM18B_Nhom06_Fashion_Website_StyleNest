@@ -10,9 +10,11 @@ import CategorieListsTable from "../../components/table/CategorieListsTable";
 import CouponListsTable from "../../components/table/CouponListsTable";
 import OrderListsTable from "../../components/table/OrderListsTable";
 import ProductListsTable from "../../components/table/ProductListsTable";
+import AccountForm from "../../components/form/AccountForm";
 import UserListsTable from "../../components/table/UserListsTable";
 import ProductForm from "../../components/formProduct/ProductForm";
 import AdminSetting from "../../components/setting/AdminSetting";
+import { AccountsProvider } from "../../context/AccountsContext";
 
 const AdminPage = () => {
   return (
@@ -25,7 +27,16 @@ const AdminPage = () => {
         <Routes>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="accounts" element={<AccountListsTable />} />
+          <Route
+            path="accounts"
+            element={
+              <AccountsProvider>
+                <AccountListsTable />
+              </AccountsProvider>
+            }
+          />
+          <Route path="accounts/form/:id" element={<AccountForm />} />
+          <Route path="accounts/form" element={<AccountForm />} />
           <Route path="brands" element={<BrandListsTable />} />
           <Route path="products/form/:id" element={<ProductForm />} />
           <Route path="products/form" element={<ProductForm />} />
