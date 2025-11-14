@@ -20,8 +20,8 @@ public class Brand {
     private String name;
     private String logoUrl;
     private String description;
-    private boolean isFeatured;
-    private boolean isActive;
+    private Boolean isFeatured;
+    private Boolean isActive;
     @CreatedDate
     private Instant createdAt;
     @LastModifiedDate
