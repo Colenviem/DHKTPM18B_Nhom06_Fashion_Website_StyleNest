@@ -63,44 +63,44 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .authenticationProvider(authProvider)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
+            .authenticationProvider(authProvider)
 
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
 
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers(
-                                "/api/accounts/login",
-                                "/api/accounts/verify",
-                                "/api/accounts/forgot-password",
-                                "/api/accounts/reset-password",
-                                "/api/accounts",
-                                "/api/chat",
-                                "/api/coupons",
-                                "/api/carts/user/**",
-                                "/api/brands/**",
-                                "/api/users/**"
-                        ).permitAll()
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers(
+                    "/api/accounts/login",
+                    "/api/accounts/verify",
+                    "/api/accounts/forgot-password",
+                    "/api/accounts/reset-password",
+                    "/api/accounts",
+                    "/api/chat",
+                    "/api/coupons",
+                    "/api/carts/user/**",
+                    "/api/brands/**",
+                    "/api/users/**"
+                ).permitAll()
 
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/products/**",
-                                "/api/categories/**",
-                                "/api/reviews/**",
-                                "/api/orders/**",
-                            "/api/coupons/**"
-                        ).permitAll()
+                .requestMatchers(HttpMethod.GET,
+                    "/api/products/**",
+                    "/api/categories/**",
+                    "/api/reviews/**",
+                    "/api/orders/**",
+                    "/api/coupons/**"
+                ).permitAll()
 
-                        .anyRequest().authenticated()
-                )
+                .anyRequest().authenticated()
+            )
 
-                .httpBasic(httpBasic -> httpBasic.disable())
-                .formLogin(form -> form.disable())
-                .logout(logout -> logout.disable());
+            .httpBasic(httpBasic -> httpBasic.disable())
+            .formLogin(form -> form.disable())
+            .logout(logout -> logout.disable());
 
         return http.build();
     }
