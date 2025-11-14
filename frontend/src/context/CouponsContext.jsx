@@ -11,8 +11,11 @@ export const CouponsProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:8080/api/coupons")
+      .get("http://localhost:8080/api/coupons", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
       .then((response) => {
         setCouponsData(response.data);
         setLoading(false);

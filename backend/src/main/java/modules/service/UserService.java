@@ -1,11 +1,15 @@
 // backend/src/main/java/modules/service/UserService.java
 package modules.service;
 
+import modules.dto.request.AccountUserRequest;
 import modules.entity.Address;
 import modules.dto.request.CreateUserRequest;
 import modules.entity.User;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
+@Service
 // ✅ Interface là hợp đồng cho lớp triển khai (UserServiceImpl)
 public interface UserService {
 
@@ -31,4 +35,8 @@ public interface UserService {
     Address updateAddress(String userId, String addressId, Address updatedAddress);
 
     Address setDefaultAddress(String userId, String addressId);
+
+    User updateUserWithAddresses(String userId, AccountUserRequest.UserDTO dto);
+
+    User createUserWithAddresses(AccountUserRequest.UserDTO dto);
 }

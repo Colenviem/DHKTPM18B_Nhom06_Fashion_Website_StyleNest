@@ -1,15 +1,15 @@
 package modules.service;
 
-import modules.dto.request.CreateUserRequest;
-import modules.dto.request.ForgotPasswordRequest;
-import modules.dto.request.LoginRequest;
-import modules.dto.request.ResetPasswordRequest;
+import modules.dto.request.*;
 import modules.entity.Account;
+import modules.entity.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 
-
+@Service
 public interface AccountService extends UserDetailsService {
 
     Map<String, Object> createAccount(CreateUserRequest request);
@@ -19,4 +19,6 @@ public interface AccountService extends UserDetailsService {
     Map<String, Object> resetPassword(ResetPasswordRequest request);
     List<Account> findAll();
     Account findById(String id);
+    Account createAccountByAdmin(AccountUserRequest.AccountDTO dto, String userId);
+    Account updateAccountByAdmin(String accountId, AccountUserRequest.AccountDTO dto, String userId);
 }

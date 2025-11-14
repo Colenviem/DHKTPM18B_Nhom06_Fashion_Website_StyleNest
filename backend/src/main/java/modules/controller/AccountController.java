@@ -1,13 +1,12 @@
 package modules.controller;
 
 import jakarta.validation.Valid;
-import modules.dto.request.CreateUserRequest;
-import modules.dto.request.ForgotPasswordRequest;
-import modules.dto.request.LoginRequest;
-import modules.dto.request.ResetPasswordRequest;
+import modules.dto.request.*;
 import modules.dto.response.ErrorResponse;
 import modules.entity.Account;
+import modules.entity.User;
 import modules.service.AccountService;
+import modules.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,16 +21,41 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountController {
-    private final AccountService service;
+    private final AccountService accountService;
+    private final UserService userService;
 
-    public AccountController(AccountService service) {
-        this.service = service;
+    public AccountController(AccountService accountService, UserService userService) {
+        this.accountService = accountService;
+        this.userService = userService;
+    }
+
+    @PostMapping("/admin")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> createAccount(@RequestBody AccountUserRequest request) {
+        try {
+            User user = userService.createUserWithAddresses(request.getUser());
+            Account account = accountService.createAccountByAdmin(request.getAccount(), user.getId());
+            return ResponseEntity.ok(account);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("error", HttpStatus.BAD_REQUEST.value()));
+        }
+    }
+
+    @PutMapping("/admin/{accountId}")
+    public ResponseEntity<?> updateAccount(@PathVariable String accountId, @RequestBody AccountUserRequest request) {
+        try {
+            User user = userService.updateUserWithAddresses(request.getAccount().getUserId(), request.getUser());
+            Account account = accountService.updateAccountByAdmin(accountId, request.getAccount(), user.getId());
+            return ResponseEntity.ok(account);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("error", HttpStatus.BAD_REQUEST.value()));
+        }
     }
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> create(@Valid @RequestBody CreateUserRequest request) {
         try {
-            return ResponseEntity.ok(service.createAccount(request));
+            return ResponseEntity.ok(accountService.createAccount(request));
         } catch (RuntimeException e) {
             Map<String, Object> error = new HashMap<>();
             error.put("message", e.getMessage());
@@ -42,7 +66,7 @@ public class AccountController {
     @PostMapping("/verify")
     public ResponseEntity<Map<String, Object>> verify(@RequestParam String email, @RequestParam String code) {
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(service.verifyCode(email, code));
+            return ResponseEntity.status(HttpStatus.CREATED).body(accountService.verifyCode(email, code));
         } catch (RuntimeException e) {
             Map<String, Object> error = new HashMap<>();
             error.put("message", e.getMessage());
@@ -53,7 +77,7 @@ public class AccountController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
         try {
-            return ResponseEntity.ok(service.login(request));
+            return ResponseEntity.ok(accountService.login(request));
         } catch (RuntimeException e) {
             Map<String, Object> error = new HashMap<>();
             error.put("message", e.getMessage());
@@ -64,7 +88,7 @@ public class AccountController {
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, Object>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         try {
-            return ResponseEntity.ok(service.forgotPassword(request));
+            return ResponseEntity.ok(accountService.forgotPassword(request));
         } catch (IllegalArgumentException e) {
             Map<String, Object> error = new HashMap<>();
             error.put("message", e.getMessage());
@@ -75,7 +99,7 @@ public class AccountController {
     @PostMapping("/reset-password")
     public ResponseEntity<Map<String, Object>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
-            return ResponseEntity.ok(service.resetPassword(request));
+            return ResponseEntity.ok(accountService.resetPassword(request));
         } catch (IllegalArgumentException e) {
             Map<String, Object> error = new HashMap<>();
             error.put("message", e.getMessage());
@@ -86,13 +110,13 @@ public class AccountController {
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<Account> findAll() {
-        return service.findAll();
+        return accountService.findAll();
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN') or #id == principal.userId")
     public Account findById(@PathVariable String id) {
-        return service.findById(id);
+        return accountService.findById(id);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -115,4 +139,5 @@ public class AccountController {
         ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+
 }
