@@ -50,5 +50,8 @@ public class BrandController {
         brandService.deleteById(id);
     }
 
-
+    @PutMapping("/{id}/toggle-active")
+    public Brand toggleActive(@PathVariable String id) {
+        return brandService.toggleActive(id);
+    }
 }

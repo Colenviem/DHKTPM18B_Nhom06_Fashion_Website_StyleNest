@@ -75,51 +75,43 @@ const BrandListsTable = () => {
 
 
     const openModal = (brand = null) => {
-        setEditingBrand(brand);
-        setFormData({
-            name: brand?.name ?? "",
-            description: brand?.description ?? "",
-            logoUrl: brand?.logoUrl ?? "",
-            isActive: brand?.isActive ?? false,
-            isFeatured: brand?.isFeatured ?? false
-        });
+    setEditingBrand(brand);
+    setFormData({
+      name: brand?.name || "",
+      description: brand?.description || "",
+      logoUrl: brand?.logoUrl || "",
+      isActive: brand?.active ?? true,
+      isFeatured: brand?.featured ?? false,
+    });
+    setIsModalOpen(true);
+  };
 
-        setIsModalOpen(true);
-    };
+  const closeModal = () => { setEditingBrand(null); setIsModalOpen(false); };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+        const payload = { ...formData, isActive: formData.isActive, isFeatured: formData.isFeatured };
+      if (editingBrand) await axios.put(`http://localhost:8080/api/brands/${editingBrand.id}`, payload);
+      else await axios.post("http://localhost:8080/api/brands", payload);
+      await fetchBrands();
+      setSearchInput(""); setSearchKeyword("");
+      closeModal();
+    } catch (error) { console.error("Lỗi khi thêm/sửa thương hiệu:", error); }
+  };
 
-    const closeModal = () => { setEditingBrand(null); setIsModalOpen(false); };
+  const toggleActive = async (brand) => {
+    setBrandsData(prev => prev.map(b => b.id === brand.id ? { ...b, active: !b.active, updatedAt: new Date().toISOString() } : b));
+    try { await axios.put(`http://localhost:8080/api/brands/${brand.id}/toggle-active`);
+    } catch (error) { console.error("Toggle Active lỗi:", error); }
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-             const payload = {
-                name: formData.name,
-                description: formData.description,
-                logoUrl: formData.logoUrl,
-                isActive: formData.isActive,
-                isFeatured: formData.isFeatured
-            };
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa thương hiệu này?")) return;
+    try { await axios.delete(`http://localhost:8080/api/brands/${id}`); fetchBrands(); } catch (error) { console.error("Xóa lỗi:", error); }
+  };
 
-            if (editingBrand) {
-                await axios.put(`http://localhost:8080/api/brands/${editingBrand.id}`, payload);
-            } else {
-                await axios.post("http://localhost:8080/api/brands", payload);
-            }
-            await fetchBrands();
-            setSearchInput("");
-            setSearchKeyword("");
-
-            // Đóng modal
-            closeModal();
-        } catch (error) {
-            console.error("Lỗi khi thêm/sửa thương hiệu:", error);
-        }
-    };
-
-
-
-    if (loading || searchLoading) return <Spinner size={12} content="Đang tải dữ liệu nhãn hàng" />;
+  if (loading || searchLoading) return <Spinner size={12} content="Đang tải dữ liệu nhãn hàng" />;
   if (!brandsData || !Array.isArray(brandsData)) return <div className="p-6 pt-24 bg-gray-50 min-h-screen">Không có dữ liệu</div>;
 
   return (
@@ -178,7 +170,7 @@ const BrandListsTable = () => {
       animate="visible"
     >
       {brandsData.map((brand) => {
-          const status = getBrandStatus(brand.isActive);
+        const status = getBrandStatus(brand.active);
         return (
           <motion.tr key={brand.id} variants={rowVariants} className="hover:bg-gray-50 transition-colors">
             {/* Thương hiệu */}
@@ -197,7 +189,7 @@ const BrandListsTable = () => {
 
             {/* Nổi bật */}
             <td className="px-6 py-4 text-center whitespace-nowrap">
-                {brand.isFeatured ? <FiStar className="w-5 h-5 text-yellow-500 mx-auto" /> : <span className="text-gray-300">—</span>}
+              {brand.featured ? <FiStar className="w-5 h-5 text-yellow-500 mx-auto" /> : <span className="text-gray-300">—</span>}
             </td>
 
             {/* Ngày tạo */}
@@ -236,94 +228,79 @@ const BrandListsTable = () => {
   </table>
 </div>
 
-        
+
+      {/* Modal */}
 {isModalOpen && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 animate-fadeIn">
+      {/* Header */}
       <h2 className="text-2xl font-bold text-gray-800 pb-4">
         {editingBrand ? "Sửa Thương hiệu" : "Thêm Thương hiệu mới"}
       </h2>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <input
+          type="text"
+          placeholder="Tên thương hiệu"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          className="border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-500 transition-shadow w-full"
+          required
+        />
+        <input
+          type="text"
+          placeholder="Mô tả"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-500 transition-shadow w-full"
+        />
+        <input
+          type="text"
+          placeholder="URL Logo"
+          value={formData.logoUrl}
+          onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+          className="border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-500 transition-shadow w-full"
+        />
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
+          <label className="flex items-center gap-3">
             <input
-                type="text"
-                placeholder="Tên thương hiệu"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-500 transition-shadow w-full"
-                required
+              type="checkbox"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
             />
+            <span className="text-gray-700 font-medium">Đang hoạt động</span>
+          </label>
+          <label className="flex items-center gap-3">
             <input
-                type="text"
-                placeholder="Mô tả"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-500 transition-shadow w-full"
+              type="checkbox"
+              checked={formData.isFeatured}
+              onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+              className="w-5 h-5 text-yellow-500 rounded focus:ring-yellow-400"
             />
+            <span className="text-gray-700 font-medium">Nổi bật</span>
+          </label>
+        </div>
 
-            {/* Image Upload */}
-            <div className="flex flex-col gap-2">
-                <label className="text-gray-700 font-medium">Logo Thương hiệu</label>
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            const reader = new FileReader();
-                            reader.onload = () => setFormData({ ...formData, logoUrl: reader.result });
-                            reader.readAsDataURL(file);
-                        }
-                    }}
-                    className="border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-500 transition-shadow w-full"
-                />
-                {formData.logoUrl && (
-                    <img
-                        src={formData.logoUrl}
-                        alt="Preview Logo"
-                        className="w-24 h-24 object-cover rounded-lg border border-gray-200 mt-2"
-                    />
-                )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
-                <label className="flex items-center gap-3">
-                    <input
-                        type="checkbox"
-                        checked={formData.isActive}
-                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                        className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
-                    />
-                    <span className="text-gray-700 font-medium">Đang hoạt động</span>
-                </label>
-                <label className="flex items-center gap-3">
-                    <input
-                        type="checkbox"
-                        checked={formData.isFeatured}
-                        onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                        className="w-5 h-5 text-yellow-500 rounded focus:ring-yellow-400"
-                    />
-                    <span className="text-gray-700 font-medium">Nổi bật</span>
-                </label>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-6">
-                <button
-                    type="button"
-                    onClick={closeModal}
-                    className="px-5 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition-colors shadow-sm"
-                >
-                    Hủy
-                </button>
-                <button
-                    type="submit"
-                    className="px-5 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
-                >
-                    Lưu
-                </button>
-            </div>
-        </form>
-
+        {/* Buttons */}
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            type="button"
+            onClick={closeModal}
+            className="px-5 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition-colors shadow-sm"
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            className="px-5 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            Lưu
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 )}

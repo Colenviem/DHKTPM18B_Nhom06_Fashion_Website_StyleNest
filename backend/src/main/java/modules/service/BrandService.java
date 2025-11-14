@@ -16,4 +16,6 @@ public interface BrandService {
     Brand update(String id, Brand brand);
 
     void deleteById(String id);
+
+    Brand toggleActive(String id);
 }
