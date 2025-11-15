@@ -1,9 +1,11 @@
 package modules.service;
 
 import modules.entity.Brand;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public interface BrandService {
     List<Brand> findAll();
 
@@ -16,6 +18,4 @@ public interface BrandService {
     Brand update(String id, Brand brand);
 
     void deleteById(String id);
-
-    Brand toggleActive(String id);
 }

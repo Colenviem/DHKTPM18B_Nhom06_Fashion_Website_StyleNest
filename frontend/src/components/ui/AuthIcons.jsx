@@ -1,9 +1,8 @@
-import React, { useContext } from "react";
+// src/components/ui/AuthIcons.jsx
+
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CartContext } from "../../context/CartContext.jsx";
-
-import { useAuth } from "../../context/AuthContext.jsx";
-
 import {
     FiSearch,
     FiShoppingBag,
@@ -14,17 +13,51 @@ import {
 } from "react-icons/fi";
 
 const AuthIcons = ({ toggleSearch }) => {
+    // --- Lấy giỏ hàng từ context ---
     const { cartItems } = useContext(CartContext);
     const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-    const { authUser, logout } = useAuth();
+    // --- Quản lý đăng nhập ---
+    const [authUser, setAuthUser] = useState(null);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const loadUser = () => {
+            const userString = localStorage.getItem("user");
+            if (userString) {
+                try {
+                    setAuthUser(JSON.parse(userString));
+                } catch (e) {
+                    console.error("Failed to parse user from localStorage", e);
+                    localStorage.clear();
+                }
+            } else {
+                setAuthUser(null);
+            }
+        };
+
+        loadUser();
+
+        // ✅ Lắng nghe event
+        window.addEventListener("auth-change", loadUser);
+
+        return () => {
+            window.removeEventListener("auth-change", loadUser);
+        };
+    }, []);
+
     const handleLogout = () => {
-        logout();
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+
+        // 🔥 Notify component khác
+        window.dispatchEvent(new Event("auth-change"));
+
+        setAuthUser(null);
         navigate("/login");
     };
 
+    // --- Các class CSS ---
     const dropdownClasses =
         "absolute top-full right-0 mt-4 w-52 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible -translate-y-2 " +
         "group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 ease-out z-20";
@@ -34,6 +67,8 @@ const AuthIcons = ({ toggleSearch }) => {
 
     const authButtonClasses =
         "text-[15px] font-medium py-2 px-3 rounded-full text-[#4B5563] hover:text-[#6F47EB] transition-all duration-300 flex items-center";
+
+    // --- JSX chính ---
     return (
         <div className="flex items-center space-x-6 text-2xl font-[Manrope]">
             {/* Nút tìm kiếm */}
@@ -60,7 +95,7 @@ const AuthIcons = ({ toggleSearch }) => {
                     <div className="relative group">
                         <button className={authButtonClasses}>
                             <FiUser className="mr-2" />
-                            {authUser.userName}
+                            {authUser.firstName + " " + authUser.lastName}
                             <FiChevronDown className="ml-1 w-4 h-4" />
                         </button>
 

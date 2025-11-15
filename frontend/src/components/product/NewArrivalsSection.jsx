@@ -6,55 +6,60 @@ const NewArrivalsSection = ({ products, title, subtitle }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const categoryMap = {
-    "All": "",
-    "Quần áo nam": "CAT001",
-    "Quần áo nữ": "CAT002",
-    "Phụ kiện": "CAT003",
-    "Giày dép": "CAT004",
-    "Khuyến mãi": "sale"
-  };
+  const categoryMap = [
+    { id: "", name: "Hiện tất cả" }
+  ];
 
-  const categories = Object.keys(categoryMap);
+  products.forEach(p => {
+    if (!categoryMap.some(c => c.id === p.category.id)) {
+      categoryMap.push({
+        id: p.category.id,
+        name: p.category.name
+      });
+    }
+  });
 
-  const [activeCategory, setActiveCategory] = useState("All");
+  const categoryNames = categoryMap.map(c => c.name);
 
-  // Cập nhật activeCategory từ query param khi component mount hoặc location thay đổi
+  const [activeCategory, setActiveCategory] = useState("Hiện tất cả");
+
+  // ⭐ Thêm state để hiển thị toàn bộ sản phẩm
+  const [showAll, setShowAll] = useState(false);
+
+  // Cập nhật category từ URL
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const categoryParam = queryParams.get("category");
 
     if (!categoryParam) {
-      setActiveCategory("All");
+      setActiveCategory("Hiện tất cả");
       return;
     }
 
-    const found = Object.entries(categoryMap).find(
-      ([, value]) => value === categoryParam
-    );
-
+    const found = categoryMap.find(c => c.id === categoryParam);
     if (found) {
-      setActiveCategory(found[0]);
+      setActiveCategory(found.name);
     }
   }, [location.search]);
 
   // Lọc sản phẩm theo category
   const filteredProducts = useMemo(() => {
-    if (activeCategory === "All") return products;
-    return products.filter(
-      (p) => p.category?.id === categoryMap[activeCategory]
-    );
+    if (activeCategory === "Hiện tất cả") return products;
+    const c = categoryMap.find(x => x.name === activeCategory);
+    return products.filter(p => p.category?.id === c.id);
   }, [products, activeCategory]);
 
-  const handleCategoryClick = (categoryName) => {
-    setActiveCategory(categoryName);
-    const catId = categoryMap[categoryName];
+  // ⭐ Lấy 6 sản phẩm đầu — trừ khi user nhấn Xem thêm
+  const displayedProducts = showAll 
+    ? filteredProducts
+    : filteredProducts.slice(0, 6);
 
-    if (!catId) {
-      navigate("/fashion");
-    } else {
-      navigate(`/fashion?category=${catId}`);
-    }
+  const handleCategoryClick = (categoryName) => {
+    const selected = categoryMap.find(c => c.name === categoryName);
+    navigate(`?category=${selected?.id || ""}`);
+    setActiveCategory(categoryName);
+
+    setShowAll(false);
   };
 
   return (
@@ -66,7 +71,7 @@ const NewArrivalsSection = ({ products, title, subtitle }) => {
         </div>
 
         <div className="flex flex-wrap justify-center gap-4">
-          {categories.map((category) => (
+          {categoryNames.map((category) => (
             <button
               key={category}
               onClick={() => handleCategoryClick(category)}
@@ -81,19 +86,25 @@ const NewArrivalsSection = ({ products, title, subtitle }) => {
           ))}
         </div>
 
-        {filteredProducts.length > 0 ? (
-          <ListProduct products={filteredProducts} activeCategory={activeCategory} />
+        {displayedProducts.length > 0 ? (
+          <ListProduct products={displayedProducts} activeCategory={activeCategory} />
         ) : (
           <div className="text-center py-10 text-lg text-gray-500 font-medium">
             Hiện tại chưa có sản phẩm đang chọn.
           </div>
         )}
 
-        <div className="text-center">
-          <button className="bg-[#6F47EB] text-white font-semibold border-2 border-[#6F47EB] hover:bg-[#5a38d1] px-10 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.05] shadow-lg shadow-[#6F47EB]/30 cursor-pointer">
-            Xem Thêm Sản Phẩm
-          </button>
-        </div>
+        {/* ⭐ Nút xem thêm */}
+        {filteredProducts.length > 6 && (
+          <div className="text-center">
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="bg-[#6F47EB] text-white font-semibold border-2 border-[#6F47EB] hover:bg-[#5a38d1] px-10 py-3 rounded-full transition-all duration-300 transform hover:scale-[1.05] shadow-lg shadow-[#6F47EB]/30 cursor-pointer"
+            >
+              {showAll ? "Thu gọn" : "Xem Thêm Sản Phẩm"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

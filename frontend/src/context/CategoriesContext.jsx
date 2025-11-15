@@ -10,8 +10,11 @@ export const CategoriesProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:8080/api/categories")
+      .get("http://localhost:8080/api/categories", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
       .then((response) => {
         setCategoriesData(response.data);
         setLoading(false);

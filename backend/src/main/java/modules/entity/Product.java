@@ -64,7 +64,10 @@ public class Product {
     private String brand;
 
     @NotBlank(message = "Chất liệu không được để trống")
-    @Pattern(regexp = "^[\\p{L}\\p{N}\\s\\-.,'()]+$", message = "Chất liệu chỉ chứa chữ cái, số, khoảng trắng và các ký tự -.,'()")
+    @Pattern(
+            regexp = "^[\\p{L}\\p{N}\\s\\-.,'%]+$",
+            message = "Chất liệu chỉ chứa chữ cái, số, khoảng trắng và các ký tự đặc biệt được phép."
+    )
     private String material;
 
     @NotBlank(message = "Xuất xứ không được để trống")

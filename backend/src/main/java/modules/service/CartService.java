@@ -2,9 +2,11 @@ package modules.service;
 
 import modules.entity.Cart;
 import modules.entity.ProductRef;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public interface CartService {
     List<Cart> findAll();
 

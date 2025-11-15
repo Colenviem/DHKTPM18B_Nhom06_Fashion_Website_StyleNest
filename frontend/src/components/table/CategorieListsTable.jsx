@@ -1,6 +1,6 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { FiSearch, FiEdit, FiTrash2, FiPlus } from "react-icons/fi"; // Thêm icons cho tìm kiếm và hành động
+import { FiSearch, FiEdit, FiTrash2, FiAlertCircle } from "react-icons/fi"; // Thêm icons cho tìm kiếm và hành động
 import axios from "axios";
 import { CategoriesContext } from "../../context/CategoriesContext";
 import AddCategoryForm from "../form/AddCategoryForm";
@@ -36,12 +36,59 @@ const rowVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+// Component Skeleton cho bảng
+const SkeletonRow = () => (
+    <tr className="animate-pulse">
+        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-40"></div></td>
+        <td className="px-6 py-4 text-center"><div className="h-6 w-12 bg-gray-200 rounded-full mx-auto"></div></td>
+        <td className="px-6 py-4 text-center"><div className="h-6 w-12 bg-gray-200 rounded-full mx-auto"></div></td>
+        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+    </tr>
+);
+
 const CategorieListsTable = () => {
-  const { categoriesData, setCategoriesData, loading } = useContext(CategoriesContext);
+  const [categoriesData, setCategoriesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
 
-  if (loading) return <div>Đang tải dữ liệu...</div>;
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Người dùng chưa đăng nhập.");
+        }
+
+        const response = await axios.get(
+          "http://localhost:8080/api/categories",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setCategoriesData(response.data);
+        setError(null);
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách danh mục:", err);
+        setError(
+          err.response?.data?.message ||
+            "Không thể tải dữ liệu. Bạn có thể chưa đăng nhập hoặc không có quyền."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // Logic Lọc dữ liệu
   const filteredCategories = categoriesData.filter((category) => {
@@ -110,7 +157,42 @@ const CategorieListsTable = () => {
 
           {/* --- BODY --- */}
           <motion.tbody className="bg-white divide-y divide-gray-100">
-            {filteredCategories.map((category) => (
+            {/* Loading */}
+            {loading && (
+              <>
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+              </>
+            )}
+            {/* Error */}
+            {!loading && error && (
+              <tr className="border-t border-gray-100">
+                <td
+                  colSpan="5"
+                  className="text-center py-8 text-red-500 italic"
+                >
+                  <div className="flex justify-center items-center gap-2">
+                    <FiAlertCircle />
+                    {error}
+                  </div>
+                </td>
+              </tr>
+            )}
+            {/* Empty */}
+            {!loading && !error && filteredCategories.length === 0 && (
+              <tr className="border-t border-gray-100">
+                <td
+                  colSpan="6"
+                  className="text-center py-8 text-gray-500 italic"
+                >
+                  {categoriesData.length === 0
+                    ? "Không có danh mục nào trong hệ thống."
+                    : `Không tìm thấy danh mục nào phù hợp với từ khóa "${searchTerm}".`}
+                </td>
+              </tr>
+            )}
+            {!loading && !error && filteredCategories.map((category) => (
               <motion.tr
                 key={category.id}
                 variants={rowVariants}
@@ -163,18 +245,6 @@ const CategorieListsTable = () => {
                 </td>
               </motion.tr>
             ))}
-
-            {filteredCategories.length === 0 && (
-              <tr className="border-t border-gray-100">
-                <td
-                  colSpan="5"
-                  className="text-center py-8 text-gray-500 italic"
-                >
-                  Không tìm thấy danh mục nào phù hợp với từ khóa "{searchTerm}
-                  ".
-                </td>
-              </tr>
-            )}
           </motion.tbody>
         </table>
       </div>

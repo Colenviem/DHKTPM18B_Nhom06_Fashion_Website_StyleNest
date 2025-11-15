@@ -1,19 +1,17 @@
+// src/pages/LoginPage.jsx
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Đã import useNavigate
 import { motion } from "framer-motion";
 import { SkeletonInput, SkeletonButton } from "../../components/loadings/Skeleton";
-
-import { useAuth } from "../../context/AuthContext";
 
 function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const navigate = useNavigate(); // <-- ĐÃ THÊM: Sử dụng hook useNavigate
 
   useEffect(() => {
     if (error) {
@@ -34,14 +32,29 @@ function LoginPage() {
           { withCredentials: true }
       );
 
+      // --- BẮT ĐẦU PHẦN SỬA ĐỔI ---
+      // Logic cũ (if (res.status === 200...)) đã được thay thế bằng logic dưới đây
       if (res.status === 200 && res.data.token) {
-        const user = login(res.data.user, res.data.token);
+        // Lấy token và user từ response
+        const { token, user } = res.data;
+
+        // Lưu vào localStorage
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+
+        window.dispatchEvent(new Event("auth-change"));
+        
+        // Logic điều hướng theo vai trò
+        // Vui lòng kiểm tra cấu trúc data của bạn
         if (user.role === "ADMIN") {
+          // Nếu là ADMIN, chuyển đến trang admin
           navigate("/admin/dashboard");
         } else {
+          // Nếu là user thường, chuyển về trang chủ
           navigate("/");
         }
       }
+      // --- KẾT THÚC PHẦN SỬA ĐỔI ---
 
     } catch (err) {
       setError(

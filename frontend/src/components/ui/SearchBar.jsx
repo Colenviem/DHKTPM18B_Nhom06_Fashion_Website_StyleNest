@@ -10,12 +10,7 @@ const SearchBar = ({ isSearchOpen, toggleSearch }) => {
   const searchRef = useRef(null);
 
   const handleSearch = async () => {
-
-    // check enter 'null'
-    const trimmed = query.trim();
-    if (!trimmed) return;
-
-    setSearchQuery(trimmed);
+    setSearchQuery(query);
     navigate("/fashion");
     toggleSearch();
   };
