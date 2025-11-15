@@ -1,17 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FiUser, FiEdit, FiSave, FiXCircle, FiMapPin, FiTag, FiPlus } from 'react-icons/fi';
+import {
+    FiUser,
+    FiEdit,
+    FiSave,
+    FiXCircle,
+    FiMapPin,
+    FiTag,
+    FiPlus,
+    FiTrash2 // --- Thêm icon Thùng rác ---
+} from 'react-icons/fi';
 import { motion } from 'framer-motion';
 
-const NewAddressForm = ({ onSave, onCancel }) => {
-    const [address, setAddress] = useState({
+// --- BẮT ĐẦU: Component NewAddressForm được định nghĩa bên trong file ---
+
+const NewAddressForm = ({ onSave, onCancel, initialData }) => {
+    // State mặc định
+    const defaultAddress = {
         street: '',
         city: '',
         province: '',
         postalCode: '',
         isDefault: false,
-    });
+    };
+
+    const [address, setAddress] = useState(defaultAddress);
+
+    // Tự động điền form nếu ở chế độ "Sửa" (có initialData)
+    // Hoặc reset form nếu chuyển từ "Sửa" sang "Thêm"
+    useEffect(() => {
+        if (initialData) {
+            setAddress(initialData);
+        } else {
+            setAddress(defaultAddress);
+        }
+    }, [initialData]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -38,7 +62,9 @@ const NewAddressForm = ({ onSave, onCancel }) => {
             className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50 overflow-hidden"
         >
             <form onSubmit={handleSubmit} className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-700">Thêm địa chỉ mới</h3>
+                <h3 className="text-lg font-semibold text-gray-700">
+                    {initialData ? 'Sửa địa chỉ' : 'Thêm địa chỉ mới'}
+                </h3>
                 {/* Tên đường */}
                 <div>
                     <label className="text-sm font-medium text-gray-600">Địa chỉ (Số nhà, Tên đường)</label>
@@ -117,7 +143,7 @@ const NewAddressForm = ({ onSave, onCancel }) => {
                         className="flex items-center justify-center bg-green-600 text-white py-2 px-4 rounded-lg font-semibold
                        hover:bg-green-700 transition-all duration-300"
                     >
-                        Lưu địa chỉ
+                        {initialData ? 'Cập nhật' : 'Lưu địa chỉ'}
                     </button>
                 </div>
             </form>
@@ -125,6 +151,10 @@ const NewAddressForm = ({ onSave, onCancel }) => {
     );
 };
 
+// --- KẾT THÚC: Component NewAddressForm ---
+
+
+// --- BẮT ĐẦU: Component ProfilePage chính ---
 
 function ProfilePage() {
     const [user, setUser] = useState(null);
@@ -139,6 +169,10 @@ function ProfilePage() {
     });
     const [isEditMode, setIsEditMode] = useState(false);
     const [isAddingAddress, setIsAddingAddress] = useState(false);
+
+    // +++ THÊM STATE ĐỂ BIẾT ĐANG SỬA ĐỊA CHỈ NÀO +++
+    const [editingAddress, setEditingAddress] = useState(null);
+
     const [message, setMessage] = useState({ type: '', content: '' });
     const navigate = useNavigate();
 
@@ -165,6 +199,8 @@ function ProfilePage() {
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    // (Hàm này giữ nguyên)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage({ type: '', content: '' });
@@ -192,13 +228,14 @@ function ProfilePage() {
         }
     };
 
+    // (Hàm này giữ nguyên)
     const handleAddAddress = async (newAddress) => {
         setMessage({ type: '', content: '' });
 
         try {
             const res = await axios.post(
                 `http://localhost:8080/api/users/${user.id}/addresses`,
-                newAddress, // Chỉ gửi địa chỉ mới
+                newAddress,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const addedAddress = res.data;
@@ -215,10 +252,87 @@ function ProfilePage() {
             setFormData(prev => ({ ...prev, addresses: newAddressList }));
 
             setMessage({ type: 'success', content: 'Thêm địa chỉ mới thành công!' });
-            setIsAddingAddress(false);
+            setIsAddingAddress(false); // Đóng form
         } catch (err) {
             setMessage({ type: 'error', content: err.response?.data?.message || 'Lỗi khi thêm địa chỉ.' });
         }
+    };
+
+    // +++ HÀM MỚI: Cập nhật địa chỉ +++
+    const handleUpdateAddress = async (addressData) => {
+        setMessage({ type: '', content: '' });
+        try {
+            const res = await axios.put(
+                `http://localhost:8080/api/users/${user.id}/addresses/${addressData.id}`,
+                addressData,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const updatedAddress = res.data;
+
+            let newAddressList = formData.addresses.map(addr =>
+                addr.id === updatedAddress.id ? updatedAddress : addr
+            );
+
+            if (updatedAddress.isDefault) {
+                newAddressList = newAddressList.map(addr =>
+                    addr.id === updatedAddress.id ? addr : { ...addr, isDefault: false }
+                );
+            }
+
+            const updatedUserInStorage = { ...user, addresses: newAddressList };
+            localStorage.setItem('user', JSON.stringify(updatedUserInStorage));
+
+            setUser(updatedUserInStorage);
+            setFormData(prev => ({ ...prev, addresses: newAddressList }));
+
+            setMessage({ type: 'success', content: 'Cập nhật địa chỉ thành công!' });
+            setEditingAddress(null); // Đóng form sửa
+
+        } catch (err) {
+            setMessage({ type: 'error', content: err.response?.data?.message || 'Lỗi khi cập nhật địa chỉ.' });
+        }
+    };
+
+    // +++ HÀM MỚI: Xóa địa chỉ +++
+    const handleDeleteAddress = async (addressId) => {
+        if (!window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
+            return;
+        }
+
+        setMessage({ type: '', content: '' });
+        try {
+            await axios.delete(
+                `http://localhost:8080/api/users/${user.id}/addresses/${addressId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const newAddressList = formData.addresses.filter(addr => addr.id !== addressId);
+
+            const updatedUserInStorage = { ...user, addresses: newAddressList };
+            localStorage.setItem('user', JSON.stringify(updatedUserInStorage));
+
+            setUser(updatedUserInStorage);
+            setFormData(prev => ({ ...prev, addresses: newAddressList }));
+
+            setMessage({ type: 'success', content: 'Xóa địa chỉ thành công!' });
+
+        } catch (err)
+        {
+            setMessage({ type: 'error', content: err.response?.data?.message || 'Lỗi khi xóa địa chỉ.' });
+        }
+    };
+
+    // +++ HÀM MỚI: Để bắt đầu sửa (bật form sửa) +++
+    const handleStartEdit = (addressToEdit) => {
+        setEditingAddress(addressToEdit);
+        setIsAddingAddress(false); // Tắt form thêm (nếu đang bật)
+    };
+
+    // +++ HÀM MỚI: Để hủy/đóng form (cho cả thêm và sửa) +++
+    const handleCancelForm = () => {
+        setIsAddingAddress(false);
+        setEditingAddress(null);
     };
 
     if (!user) {
@@ -339,16 +453,23 @@ function ProfilePage() {
                         </form>
 
                         <hr className="my-8 border-gray-200" />
+
+                        {/* === PHẦN SỔ ĐỊA CHỈ (ĐÃ CẬP NHẬT) === */}
                         <div>
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-xl font-semibold text-gray-800 flex items-center">
                                     <FiMapPin className="mr-3 text-gray-500" />
                                     Sổ địa chỉ
                                 </h2>
-                                {!isAddingAddress && (
+
+                                {/* +++ SỬA: Chỉ hiện nút "Thêm" khi không có form nào đang mở +++ */}
+                                {!isAddingAddress && !editingAddress && (
                                     <button
                                         type="button"
-                                        onClick={() => setIsAddingAddress(true)}
+                                        onClick={() => {
+                                            setIsAddingAddress(true);
+                                            setEditingAddress(null); // Tắt sửa (nếu có)
+                                        }}
                                         className="flex items-center text-sm text-[#6F47EB] font-semibold hover:underline"
                                     >
                                         <FiPlus className="mr-1" />
@@ -359,35 +480,68 @@ function ProfilePage() {
 
                             {formData.addresses.length > 0 ? (
                                 <ul className="space-y-3">
-                                    {formData.addresses.map((addr, index) => (
-                                        <li key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200 ">
-                                            <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-800">
-                          {addr.street}
-                        </span>
-                                                {addr.isDefault && (
-                                                    <span className="text-xs font-bold text-green-600 bg-green-100 py-1 px-2 rounded-full">
-                            Mặc định
-                          </span>
-                                                )}
+                                    {/* +++ SỬA: Dùng addr.id làm key (giả sử API trả về id) +++ */}
+                                    {formData.addresses.map((addr) => (
+                                        <li key={addr.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 ">
+
+                                            {/* +++ SỬA: Bố cục lại để thêm nút Sửa/Xóa +++ */}
+                                            <div className="flex justify-between items-start">
+                                                {/* Thông tin */}
+                                                <div>
+                                                    <span className="font-medium text-gray-800">
+                                                        {addr.street}
+                                                    </span>
+                                                    <p className="text-sm text-gray-600">
+                                                        {addr.city}, {addr.province} - {addr.postalCode}
+                                                    </p>
+                                                </div>
+
+                                                {/* Nút & Tag */}
+                                                <div className="flex flex-col items-end flex-shrink-0 ml-4 space-y-2">
+                                                    {addr.isDefault && (
+                                                        <span className="text-xs font-bold text-green-600 bg-green-100 py-1 px-2 rounded-full">
+                                                            Mặc định
+                                                        </span>
+                                                    )}
+                                                    {/* +++ THÊM NÚT SỬA/XÓA +++ */}
+                                                    <div className="flex items-center space-x-3">
+                                                        <button
+                                                            onClick={() => handleStartEdit(addr)}
+                                                            className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center"
+                                                        >
+                                                            <FiEdit className="w-3 h-3 mr-1"/> Sửa
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteAddress(addr.id)}
+                                                            className="text-sm font-medium text-red-600 hover:text-red-800 flex items-center"
+                                                        >
+                                                            <FiTrash2 className="w-3 h-3 mr-1"/> Xóa
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-gray-600">
-                                                {addr.city}, {addr.province} - {addr.postalCode}
-                                            </p>
                                         </li>
                                     ))}
                                 </ul>
                             ) : (
-                                !isAddingAddress && <p className="text-gray-500">Bạn chưa có địa chỉ nào.</p>
+                                !isAddingAddress && !editingAddress &&
+                                <p className="text-gray-500">Bạn chưa có địa chỉ nào.</p>
                             )}
 
-                            {isAddingAddress && (
+                            {/* +++ SỬA: Logic hiển thị form động (cho cả Thêm và Sửa) +++ */}
+                            {(isAddingAddress || editingAddress) && (
                                 <NewAddressForm
-                                    onSave={handleAddAddress}
-                                    onCancel={() => setIsAddingAddress(false)}
+                                    // Gửi dữ liệu nếu là "Sửa", nếu không thì là null
+                                    initialData={editingAddress}
+                                    // Tự động chọn hàm 'handleUpdateAddress' hoặc 'handleAddAddress'
+                                    onSave={editingAddress ? handleUpdateAddress : handleAddAddress}
+                                    onCancel={handleCancelForm}
                                 />
                             )}
                         </div>
+                        {/* === KẾT THÚC SỔ ĐỊA CHỈ === */}
+
+
                         <div className="mt-8">
                             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                                 <FiTag className="mr-3 text-gray-500" />
