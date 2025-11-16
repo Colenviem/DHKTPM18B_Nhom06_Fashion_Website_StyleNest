@@ -130,7 +130,7 @@ public class OrderServiceImpl implements OrderService {
         Product product = productRepo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
 
-        long unitPrice = Math.round(product.getPrice() * 100);
+        long unitPrice = Math.round(product.getPrice());
 
         if (product.getVariants() == null || product.getVariants().isEmpty()) {
             throw new RuntimeException("Product has no variants: " + productId);
@@ -150,9 +150,9 @@ public class OrderServiceImpl implements OrderService {
 
         return new OrderItem(ref, null, quantity, unitPrice);
     }
-    private double calcSubtotal(List<OrderItem> items) {
+    private long calcSubtotal(List<OrderItem> items) {
         return items.stream()
-                .mapToDouble(i -> i.getQuantity() * i.getUnitPrice())
+                .mapToLong(i -> i.getQuantity() * i.getUnitPrice())
                 .sum();
     }
 
