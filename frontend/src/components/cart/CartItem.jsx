@@ -5,16 +5,49 @@ import React, { useState, useEffect } from "react";
 const CartItem = ({ item = {}, index, onChange }) => {
     const [quantity, setQuantity] = useState(item.quantity || 1);
 
-    // ✅ SỬA Ở ĐÂY — không dùng item.product nữa
     const price = item.price || 0;
     const discount = item.discount || 0;
     const name = item.name || "Sản phẩm";
-    const thumbnails = item.thumbnails?.length ? item.thumbnails : [""];
 
-    const colors = item.colors || ["Trắng", "Đen"];
-    const sizes = item.size || ["M", "L"];
+    const thumbnails = item.thumbnails?.length
+        ? item.thumbnails
+        : ["https://via.placeholder.com/300x400?text=No+Image"];
+
+    const colors = Array.isArray(item.colors) ? item.colors : ["Trắng", "Đen"];
+    const sizes = Array.isArray(item.sizes) ? item.sizes : ["M", "L"];
+
     const selectedColor = item.selectedColor || colors[0];
     const selectedSize = item.selectedSize || sizes[0];
+
+    const COLOR_MAP = {
+        red: "Đỏ",
+        blue: "Xanh dương",
+        black: "Đen",
+        white: "Trắng",
+        green: "Xanh lá",
+        yellow: "Vàng",
+        orange: "Cam",
+        pink: "Hồng",
+        purple: "Tím",
+        brown: "Nâu",
+        gray: "Xám",
+        silver: "Bạc",
+        gold: "Vàng kim",
+        default: "Không rõ"
+    };
+
+    const toVietnameseColor = (color) => {
+        if (!color) return COLOR_MAP.default;
+        return COLOR_MAP[color.toLowerCase()] || color;
+    };
+
+    const handleColorChange = (color) => {
+        onChange && onChange({ ...item, selectedColor: color });
+    };
+
+    const handleSizeChange = (size) => {
+        onChange && onChange({ ...item, selectedSize: size });
+    };
 
     const handleIncrease = () => setQuantity(prev => prev + 1);
     const handleDecrease = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
@@ -52,17 +85,20 @@ const CartItem = ({ item = {}, index, onChange }) => {
                 <div className="flex gap-3 text-sm text-gray-700">
                     <select
                         value={selectedColor}
-                        onChange={() => {}}
+                        onChange={(e) => handleColorChange(e.target.value)}
                         className="border border-gray-300 rounded-md py-1 px-3"
                     >
                         {colors.map(color => (
-                            <option key={color} value={color}>{color}</option>
+                            <option key={color} value={color}>
+                                {toVietnameseColor(color)}
+                            </option>
                         ))}
+
                     </select>
 
                     <select
                         value={selectedSize}
-                        onChange={() => {}}
+                        onChange={(e) => handleSizeChange(e.target.value)}
                         className="border border-gray-300 rounded-md py-1 px-3"
                     >
                         {sizes.map(s => (

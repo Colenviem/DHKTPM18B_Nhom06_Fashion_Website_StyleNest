@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductRepository extends MongoRepository<Product, String> {
     List<Product> findByCategory_Id(String categoryId);
@@ -21,5 +22,7 @@ public interface ProductRepository extends MongoRepository<Product, String> {
       "{ 'material': { $regex: ?0, $options: 'i' } } " +
       "] }")
   List<Product> searchProducts(String keyword);
+
+  Optional<Product> findByVariantsSku(String sku);
 
 }
