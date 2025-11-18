@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProductById, getReviewsByProductId } from "../../context/ProductContext"; 
+import { getProductById, getReviewsByProductId } from "../../context/ProductContext";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { CartContext } from "../../context/CartContext";
@@ -17,25 +17,42 @@ const ProductDetail = () => {
     const [error, setError] = useState(null);
     const [reviewsError, setReviewsError] = useState(null);
 
-    // 🌟 useEffect để tải Sản phẩm và Reviews
+    const [selectedColor, setSelectedColor] = useState("");
+    const [selectedSize, setSelectedSize] = useState("");
+    const [selectedVariant, setSelectedVariant] = useState(null);
+
+    const [modalMessage, setModalMessage] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+
+    const openModal = (message) => {
+        setModalMessage(message);
+        setIsModalOpen(true);
+    };
+
+
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             setError(null);
             setReviewsError(null);
-            
+
             try {
-                // Tải chi tiết sản phẩm
                 const productData = await getProductById(id);
                 console.log("Chi tiết sản phẩm:", productData);
                 setProduct(productData);
-                
-                // Tải Reviews sau khi có ID sản phẩm
+
                 if (productData?.id) {
                     const reviewsData = await getReviewsByProductId(productData.id);
                     console.log("Danh sách Reviews:", reviewsData);
                     setReviews(reviewsData);
                 }
+                if (productData?.variants?.length > 0) {
+                    setSelectedColor(productData.variants[0].color);
+                    setSelectedSize(productData.variants[0].size);
+                    setSelectedVariant(productData.variants[0]);
+                }
+
             } catch (err) {
                 console.error("Lỗi khi tải dữ liệu:", err);
                 if (err.message.includes("sản phẩm")) {
@@ -56,33 +73,77 @@ const ProductDetail = () => {
 
     const handleAddToCart = () => {
         if (!userId) {
-            alert("⚠️ Bạn phải đăng nhập để thêm sản phẩm vào giỏ hàng!");
+            openModal("⚠️ Bạn phải đăng nhập để thêm sản phẩm vào giỏ hàng!");
             navigate("/login");
             return;
         }
 
         if (!product) return;
+
+        if (!selectedVariant || selectedVariant.inStock < quantity) {
+            openModal(`⚠️ Số lượng tồn kho không đủ! Chỉ còn ${selectedVariant?.inStock || 0} sản phẩm.`);
+            return;
+        }
 
         const productData = {
             id: product.id,
             name: product.name,
-            image: product.image || product.variants?.[0]?.images?.[0] || "/placeholder.png",
-            price: Math.round(product.price * (1 - (product.discount || 0) / 100)),
-            discount: product.discount || 0
+
+            price: product.price,
+            discount: product.discount,
+
+            thumbnails: selectedVariant?.images?.length > 0
+                ? selectedVariant.images
+                : [product.image],
+
+            colors: [...new Set(product.variants.map(v => v.color))],
+            sizes: [...new Set(product.variants.map(v => v.size))],
+
+            selectedColor,
+            selectedSize,
+
+            maxInStock: selectedVariant?.inStock,
+
+            quantity: quantity,
         };
 
-        addToCart(productData, quantity);
-        alert(`🛒 Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
+
+        console.log("👉 Dữ liệu gửi vào giỏ:", productData);
+
+        addToCart(productData);
+
+        openModal(`🛒 Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
     };
+
+
+
+
+    const updateSelectedVariant = (color, size) => {
+        if (!product?.variants) return;
+
+        const found = product.variants.find(
+            v => v.color === color && v.size === size
+        );
+
+        setSelectedColor(color);
+        setSelectedSize(size);
+        setSelectedVariant(found || null);
+    };
+
 
     const handleBuyNow = () => {
         if (!userId) {
-            alert("⚠️ Bạn phải đăng nhập để mua sản phẩm!");
+            openModal("⚠️ Bạn phải đăng nhập để mua sản phẩm!");
             navigate("/login");
             return;
         }
 
         if (!product) return;
+
+        if (!selectedVariant || selectedVariant.inStock < quantity) {
+            openModal(`⚠️ Không đủ hàng! Chỉ còn ${selectedVariant?.inStock || 0} sản phẩm.`);
+            return;
+        }
 
         const productData = {
             id: product.id,
@@ -92,13 +153,14 @@ const ProductDetail = () => {
             discount: product.discount || 0,
             quantity,
             colors: product.variants?.map(v => v.color) || ["Trắng", "Đen"],
-            selectedColor: product.variants?.[0]?.color || "Trắng",
+            selectedColor: selectedColor,
             size: product.variants?.map(v => v.size) || ["M", "L"],
-            selectedSize: product.variants?.[0]?.size || "M",
+            selectedSize: selectedSize,
         };
 
         navigate("/checkout", { state: { products: [productData] } });
     };
+
 
 
     if (loading)
@@ -202,7 +264,70 @@ const ProductDetail = () => {
                                 {product.description || "Không có mô tả chi tiết."}
                             </p>
 
+                            <div className="mt-6">
+                                <h3 className="text-lg font-semibold text-[#111827]">Màu sắc:</h3>
+
+                                <select
+                                    value={selectedColor}
+                                    onChange={(e) => updateSelectedVariant(e.target.value, selectedSize)}
+                                    className="mt-2 w-40 p-2 border rounded-md focus:ring-2 focus:ring-[#6F47EB] text-sm"
+                                >
+                                    {[...new Set(product.variants.map(v => v.color))].map(color => {
+                                        const colorVi = {
+                                            black: "Màu Đen",
+                                            white: "Màu Trắng",
+                                            red: "Màu Đỏ",
+                                            blue: "Màu Xanh dương",
+                                            green: "Màu Xanh lá",
+                                            yellow: "Màu Vàng",
+                                            pink: "Màu Hồng",
+                                            gray: "Màu Xám",
+                                            orange: "Màu Cam",
+                                        }[color.toLowerCase()] || color;
+
+                                        return (
+                                            <option key={color} value={color}>
+                                                {colorVi}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                            </div>
+
+
+
+                            <div className="mt-6">
+                                <h3 className="text-lg font-semibold text-[#111827]">Kích thước:</h3>
+
+                                <div className="flex gap-3 mt-2">
+                                    {[...new Set(product.variants.map(v => v.size))].map(size => (
+                                        <button
+                                            key={size}
+                                            onClick={() => updateSelectedVariant(selectedColor, size)}
+                                            className={`w-12 h-12 flex items-center justify-center rounded-full border text-sm font-semibold transition 
+                    ${selectedSize === size
+                                                ? "bg-[#6F47EB] text-white border-[#6F47EB]"
+                                                : "bg-white text-[#111827] border-gray-300 hover:bg-gray-100"
+                                            }`}
+                                        >
+                                            {size}
+                                        </button>
+                                    ))}
+                                </div>
+
+
+                            </div>
+
+
+
                             <ul className="text-[#4B5563] space-y-1 pt-2">
+                                <li>
+                                    <b>Còn lại: </b>
+                                    <span className="text-sm text-gray-600">
+                                        {selectedVariant?.inStock} sản phẩm
+                                    </span>
+                                </li>
+
                                 <li><b>Thương hiệu:</b> {product.brand}</li>
                                 <li><b>Chất liệu:</b> {product.material}</li>
                                 <li><b>Xuất xứ:</b> {product.origin}</li>
@@ -250,13 +375,13 @@ const ProductDetail = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 {/* --- 💬 Phần Hiển thị Reviews --- */}
                 <div className="mt-16 pt-8 border-t border-gray-200">
                     <h2 className="text-3xl font-bold text-[#111827] mb-6">
                         💬 Đánh giá sản phẩm ({reviews.length})
                     </h2>
-                    
+
                     {reviewsError && (
                         <p className="text-red-500 italic mb-4">{reviewsError}</p>
                     )}
@@ -278,7 +403,7 @@ const ProductDetail = () => {
                                     <p className="text-gray-700 italic mb-3">
                                         "{review.comment}"
                                     </p>
-                                    
+
                                     {/* NEW CODE: Hiển thị hình ảnh review */}
                                     {review.images && review.images.length > 0 && (
                                         <div className="mt-3 flex flex-wrap gap-2 border-t pt-3 border-gray-200">
@@ -307,7 +432,42 @@ const ProductDetail = () => {
                         </div>
                     )}
                 </div>
-                {/* --- Hết phần Reviews --- */}
+                {isModalOpen && (
+                    <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none">
+                        <div
+                            className="pointer-events-auto bg-white rounded-2xl p-6 w-[320px] shadow-[0_10px_35px_rgba(0,0,0,0.15)] border border-gray-100
+                       animate-fadeInUp transform transition-all"
+                        >
+                            {/* Icon */}
+                            <div className="flex justify-center mb-3">
+                                <div className="w-12 h-12 rounded-full bg-[#6F47EB]/10 flex items-center justify-center">
+                                    <span className="text-3xl">✨</span>
+                                </div>
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="text-xl font-semibold text-[#111827] text-center mb-2">
+                                Thông báo
+                            </h3>
+
+                            {/* Message */}
+                            <p className="text-gray-700 text-center mb-5">
+                                {modalMessage}
+                            </p>
+
+                            {/* Button */}
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="w-full py-2.5 bg-[#6F47EB] text-white rounded-full font-semibold
+                           shadow-md hover:bg-[#5a38d1] active:scale-95 transition"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+
 
             </div>
         </div>
