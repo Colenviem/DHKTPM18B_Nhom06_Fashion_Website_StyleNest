@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiFilter, FiChevronDown, FiChevronUp, FiSearch, FiX } from 'react-icons/fi';
+import axios from "axios";
 
 const orderTypes = [
     { id: 'NORMAL', label: 'Nhanh' },
@@ -77,7 +78,6 @@ const OrderListsTable = () => {
     const [filterDate, setFilterDate] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [dateRange, setDateRange] = useState({ from: '', to: '' });
-
     // Sorting state
     const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
 
@@ -93,7 +93,7 @@ const OrderListsTable = () => {
                 const data = await res.json();
 
                 const mapped = data.map(order => ({
-                    id: order.orderNumber,
+                    id: order.id,
                     name: order.user?.userName || "No Name",
                     location: order.shippingAddress?.street || "No Address",
                     date: order.createdAt,
@@ -118,6 +118,23 @@ const OrderListsTable = () => {
         const options = { day: '2-digit', month: 'short', year: 'numeric' };
         return new Date(dateStr).toLocaleDateString('en-GB', options);
     };
+
+    const updateStatus = async (id, newStatus) => {
+        try {
+            await axios.put(
+                `http://localhost:8080/api/orders/${id}/status`,
+                { status: newStatus },   // 🔥 phải là "status"
+                { headers: { "Content-Type": "application/json" } }
+            );
+
+            alert("Cập nhật trạng thái thành công!");
+        } catch (err) {
+            console.error("Error updating status", err);
+            throw new Error("Failed to update status");
+        }
+    };
+
+
 
     // Sorting function
     const handleSort = (key) => {
@@ -204,16 +221,6 @@ const OrderListsTable = () => {
         return filtered;
     }, [orders, selectedTypes, selectedStatuses, filterDate, dateRange, searchQuery, sortConfig]);
 
-    const handleReset = () => {
-        setFilterDate('');
-        setSelectedTypes([]);
-        setSelectedStatuses([]);
-        setSearchQuery('');
-        setDateRange({ from: '', to: '' });
-        setIsTypeFilterOpen(false);
-        setIsStatusFilterOpen(false);
-        setSortConfig({ key: 'date', direction: 'desc' });
-    };
 
     const activeFiltersCount =
         selectedTypes.length +
@@ -336,12 +343,6 @@ const OrderListsTable = () => {
                             </div>
                         </div>
 
-                        <button
-                            onClick={handleReset}
-                            className="px-4 py-2 text-red-500 font-medium text-sm hover:bg-red-50 rounded-xl transition-colors"
-                        >
-                            Reset ({activeFiltersCount})
-                        </button>
                     </div>
 
                     {/* Results count */}
@@ -399,6 +400,7 @@ const OrderListsTable = () => {
                                     <div className="flex items-center gap-2">
                                         Payment {getSortIcon('paymentMethod')}
                                     </div>
+
                                 </th>
                                 <th
                                     className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
@@ -438,10 +440,17 @@ const OrderListsTable = () => {
                                         <td className="px-6 py-3 whitespace-nowrap font-mono">{formatDate(order.date)}</td>
                                         <td className="px-6 py-3">{order.paymentMethod}</td>
                                         <td className="px-6 py-3">
-                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClasses(order.status)}`}>
-                        {order.status}
-                      </span>
+                                            <select
+                                                value={order.status}
+                                                onChange={(e) => updateStatus(order.id, e.target.value)}
+                                                className={`px-3 py-1 text-xs font-semibold rounded-lg border ${getStatusClasses(order.status)}`}
+                                            >
+                                                <option value="Delivered">Delivered</option>
+                                                <option value="PENDING">Pending</option>
+                                                <option value="Cancelled">Cancelled</option>
+                                            </select>
                                         </td>
+
                                     </motion.tr>
                                 ))}
                             </motion.tbody>
