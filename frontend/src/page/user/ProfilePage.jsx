@@ -39,7 +39,6 @@ const OrderDetail = ({ order, onBack }) => {
         Code: "Thanh toán khi nhận"
     };
 
-
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleString('vi-VN', {
             year: 'numeric',

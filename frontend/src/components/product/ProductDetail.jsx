@@ -324,7 +324,7 @@ const ProductDetail = () => {
                                 <li>
                                     <b>Còn lại: </b>
                                     <span className="text-sm text-gray-600">
-                                        {selectedVariant?.inStock} sản phẩm
+                                        {selectedVariant?.inStock || 0} sản phẩm
                                     </span>
                                 </li>
 
