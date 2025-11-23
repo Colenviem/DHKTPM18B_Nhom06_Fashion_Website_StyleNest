@@ -15,7 +15,7 @@ const Checkout = () => {
 
     const [note, setNote] = useState("");
     const navigate = useNavigate();
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cod");
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("Code");
 
     const location = useLocation();
     const productsFromBuyNow = location.state?.products || [];
