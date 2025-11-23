@@ -60,6 +60,7 @@ const Checkout = () => {
         isDefault: false
     });
 
+
     // Load danh sách tỉnh/thành phố khi component mount
     useEffect(() => {
         fetch('https://provinces.open-api.vn/api/p/')
@@ -140,13 +141,12 @@ const Checkout = () => {
 
             const orderPayload = {
                 userId: userId,
+                paymentMethod: selectedPaymentMethod,
                 shippingAddress: {
                     id: selectedAddress.id || null,
                     name: selectedAddress.name || "Khách hàng",
                     street: `${selectedAddress.street}, ${selectedAddress.city || ""}`.trim(),
-                    phoneNumber: selectedAddress.phone && selectedAddress.phone !== "Chưa có"
-                        ? selectedAddress.phone
-                        : "0000000000"
+                    phoneNumber: selectedAddress.phoneNumber
                 },
                 items: itemsToCheckout.map(item => ({
                     productId: item.id,
@@ -812,16 +812,16 @@ const Checkout = () => {
                     <div>
                         <h3 className="text-lg font-medium mb-4">Phương thức thanh toán</h3>
                         <div className="flex space-x-4">
-                            {["credit", "googlepay", "cod"].map(method => (
+                            {["Credit", "Googlepay", "Code"].map(method => (
                                 <button
                                     key={method}
                                     className={`border rounded px-4 py-2 text-sm transition-all duration-200 hover:scale-105 ${selectedPaymentMethod === method ? "border-[#6F47EB] text-[#6F47EB]" : "hover:border-gray-400"}`}
                                     onClick={() => setSelectedPaymentMethod(method)}
                                 >
                                     {{
-                                        credit: "Thẻ Tín dụng",
-                                        googlepay: "Google Pay",
-                                        cod: "Thanh toán khi nhận"
+                                        Credit: "Thẻ Tín dụng",
+                                        Googlepay: "Google Pay",
+                                        Code: "Thanh toán khi nhận"
                                     }[method]}
                                 </button>
                             ))}
@@ -895,7 +895,7 @@ const Checkout = () => {
 
                         <div className="flex justify-center gap-3">
                             <button
-                                onClick={() => navigate("/orders")}
+                                onClick={() => navigate("/profile")}
                                 className="bg-[#6F47EB] text-white px-4 py-2 rounded-lg hover:bg-[#5E3FB9] transition-all duration-200"
                             >
                                 Xem đơn hàng

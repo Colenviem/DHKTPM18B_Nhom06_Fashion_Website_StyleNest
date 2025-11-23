@@ -82,7 +82,7 @@ public class OrderServiceImpl implements OrderService {
     }
     @Override
     @Transactional
-    public Order createOrder(ShippingAddress address, Map<String, Integer> products) {
+    public Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod) {
         try {
             String userId = getCurrentUserId();
 
@@ -112,6 +112,7 @@ public class OrderServiceImpl implements OrderService {
             order.setUser(userRef);
             order.setOrderNumber("ORD-" + UUID.randomUUID().toString().substring(0, 8));
             order.setStatus("PENDING");
+            order.setPaymentMethod(paymentMethod);
             order.setShippingAddress(cleanAddress);
             order.setItems(items);
             order.setSubtotal(subtotal);
@@ -120,8 +121,6 @@ public class OrderServiceImpl implements OrderService {
             order.setTotalAmount(subtotal + order.getShippingFee() - order.getDiscountAmount());
             order.setCreatedAt(Instant.now());
             order.setUpdatedAt(Instant.now());
-
-
 
             reduceStock(products);
             Order savedOrder = orderRepo.save(order);

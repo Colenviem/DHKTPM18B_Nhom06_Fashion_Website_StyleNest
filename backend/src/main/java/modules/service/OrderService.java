@@ -16,7 +16,7 @@ public interface OrderService {
 
     Order findById(String id);
 
-    Order createOrder(ShippingAddress address, Map<String, Integer> products);
+    Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod);
 
     Order updateStatus(String orderId, String status);
 

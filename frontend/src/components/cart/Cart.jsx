@@ -1,4 +1,4 @@
-import React, { useContext , useCallback } from "react";
+import React, { useContext  } from "react";
 import { FiShoppingCart } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { CartContext } from "../../context/CartContext.jsx";
