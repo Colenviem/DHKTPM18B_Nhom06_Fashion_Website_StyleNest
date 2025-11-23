@@ -1,15 +1,19 @@
-import React, { useContext, useState, useMemo, useEffect } from "react";
+import React, { useContext, useState, useMemo, useEffect, use } from "react";
 import FilterSidebar from "../../components/filter/FilterSidebar";
 import NewArrivalsSection from "../../components/product/NewArrivalsSection";
 import { ProductsContext } from "../../context/ProductsContext";
 
 const ListProductPage = () => {
-    const { productsData, loading, searchQuery, searchResults } = useContext(ProductsContext);
+    const { productsData, loading, searchQuery, searchResults, setSearchResults } = useContext(ProductsContext);
+
+    useEffect(() => {
+        setSearchResults([]);
+    }, []);
 
     const [displayProducts, setDisplayProducts] = useState([]);
 
     useEffect(() => {
-        if (searchQuery && searchResults.length > 0) {
+        if (searchResults.length > 0) {
             setDisplayProducts(searchResults);
         } else {
             setDisplayProducts(productsData);
