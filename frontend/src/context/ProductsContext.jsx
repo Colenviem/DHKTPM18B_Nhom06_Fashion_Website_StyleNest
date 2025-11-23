@@ -9,16 +9,8 @@ export const ProductsContext = createContext();
 // Provider component
 export const ProductsProvider = ({ children }) => {
   const [productsData, setProductsData] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(() => {
-    return localStorage.getItem("searchQuery") || "";
-  });
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (searchQuery) localStorage.setItem("searchQuery", searchQuery);
-    else localStorage.removeItem("searchQuery");
-  }, [searchQuery]);
 
   useEffect(() => {
     axios
@@ -33,38 +25,12 @@ export const ProductsProvider = ({ children }) => {
       });
   }, []);
 
-  useEffect(() => {
-    // console.log("Search Query changed:", searchQuery);
-    // if (!searchQuery) return;
-
-    // when u del search? => reset
-    if (searchQuery.trim() === "") {
-      setSearchResults([]);
-      return;
-    }
-    setLoading(true);
-    axios
-      .get(`${API_BASE_URL}/products/search`, {
-        params: { keyword: searchQuery },
-      })
-      .then((response) => {
-        setSearchResults(response.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Lỗi khi fetch dữ liệu:", error);
-        setLoading(false);
-      });
-  }, [searchQuery]);
-
   return (
     <ProductsContext.Provider
       value={{
         productsData,
         setProductsData,
         loading,
-        searchQuery,
-        setSearchQuery,
         searchResults,
         setSearchResults,
       }}
