@@ -182,7 +182,7 @@ const BrandListsTable = () => {
         return (
           <motion.tr key={brand.id} variants={rowVariants} className="hover:bg-gray-50 transition-colors">
             {/* Thương hiệu */}
-            <td className="px-6 py-4 font-extrabold text-gray-900 whitespace-nowrap flex items-center justify-center gap-3">
+            <td className="px-6 py-4 font-extrabold text-gray-900 whitespace-nowrap flex text-left gap-3">
               <img
                 src={brand.logoUrl}
                 alt={brand.name}
@@ -193,7 +193,7 @@ const BrandListsTable = () => {
             </td>
 
             {/* Mô tả */}
-            <td className="px-6 py-4 text-gray-700 max-w-xs truncate text-center">{brand.description}</td>
+            <td className="px-6 py-4 text-gray-700 max-w-xs truncate text-left">{brand.description}</td>
 
             {/* Nổi bật */}
             <td className="px-6 py-4 text-center whitespace-nowrap">

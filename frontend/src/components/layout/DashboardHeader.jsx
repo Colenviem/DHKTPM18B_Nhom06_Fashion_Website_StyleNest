@@ -13,7 +13,7 @@ const DashboardHeader = () => {
             className="flex justify-between items-center bg-white px-6 py-4 shadow-sm border-b border-gray-200
             fixed top-0 left-64 right-0 z-10"
         >
-            <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
+            <h1 className="text-2xl font-semibold text-gray-800">Bảng điều khiển</h1>
 
             <div className="flex items-center gap-6">
                 <div className="relative hidden md:block">

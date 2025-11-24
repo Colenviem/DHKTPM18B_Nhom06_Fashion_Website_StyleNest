@@ -11,14 +11,14 @@ const menuStructure = [
     {
         group: null,
         items: [
-            { label: "Dashboard", icon: <FiHome />, path: "/admin/dashboard" },
-            { label: "Products", icon: <FiBox />, path: "/admin/products" },
-            { label: "Orders", icon: <FiClipboard />, path: "/admin/orders" },
-            { label: "Categories", icon: <FiTag />, path: "/admin/categories" },
-            { label: "Coupons", icon: <FiGift />, path: "/admin/coupons" },
-            { label: "Accounts", icon: <FiLock />, path: "/admin/accounts" },
-            { label: "Users", icon: <FiUser />, path: "/admin/users" },
-            { label: "Brands", icon: <FiAward />, path: "/admin/brands" },
+            { label: "Bảng điều khiển", icon: <FiHome />, path: "/admin/dashboard" },
+            { label: "Sản phẩm", icon: <FiBox />, path: "/admin/products" },
+            { label: "Hóa đơn", icon: <FiClipboard />, path: "/admin/orders" },
+            { label: "Danh mục", icon: <FiTag />, path: "/admin/categories" },
+            { label: "Ưu đãi", icon: <FiGift />, path: "/admin/coupons" },
+            { label: "Tài khoản", icon: <FiLock />, path: "/admin/accounts" },
+            { label: "Người dùng", icon: <FiUser />, path: "/admin/users" },
+            { label: "Thương hiệu", icon: <FiAward />, path: "/admin/brands" },
         ],
     },
 ];
@@ -93,13 +93,13 @@ const DashboardSidebar = () => {
                     to="/admin/settings"
                     className="flex items-center gap-3 p-3 rounded-lg text-sm hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 font-medium transition duration-200"
                 >
-                    <FiSettings className='text-indigo-400' /> Settings
+                    <FiSettings className='text-indigo-400' /> Cài đặt
                 </NavLink>
                 <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 p-3 rounded-lg text-sm hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 font-medium transition duration-200"
                 >
-                    <FiLogOut className='text-indigo-400' /> Logout
+                    <FiLogOut className='text-indigo-400' /> Đăng xuất
                 </button>
             </div>
         </motion.aside>
