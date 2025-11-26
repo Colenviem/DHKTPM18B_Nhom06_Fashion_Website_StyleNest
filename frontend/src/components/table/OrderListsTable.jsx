@@ -1,206 +1,465 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiFilter, FiChevronDown } from 'react-icons/fi';
+import { FiFilter, FiChevronDown, FiChevronUp, FiSearch, FiX } from 'react-icons/fi';
+import axios from "axios";
 
 const orderTypes = [
-  { id: 1, label: 'Health & Medicine' },
-  { id: 2, label: 'Book & Stationary' },
-  { id: 3, label: 'Services & Industry' },
-  { id: 4, label: 'Fashion & Beauty' },
-  { id: 5, label: 'Home & Living' },
-  { id: 6, label: 'Electronics' },
-  { id: 7, label: 'Mobile & Phone' },
-  { id: 8, label: 'Accessories' },
+    { id: 'NORMAL', label: 'Nhanh' },
+    { id: 'EXPRESS', label: 'Hỏa tốc' },
 ];
 
-const orderData = [
-  { id: '00001', name: 'Chris Evans', location: '124 Lyfa Forge Suite 975', date: '2019-02-14', type: 'Electronics', status: 'Completed' },
-  { id: '00002', name: 'Rosie Todd', location: '543 Weimann Mountain', date: '2019-07-29', type: 'Book & Stationary', status: 'Processing' },
-  { id: '00003', name: 'Danial Hine', location: 'New Scottleberg', date: '2019-04-30', type: 'Health & Medicine', status: 'Rejected' },
-  { id: '00004', name: 'Gilbert Smith', location: '042 Mylene Throughway', date: '2019-12-21', type: 'Mobile & Phone', status: 'Completed' },
-  { id: '00005', name: 'Alan Cain', location: '124 Lyfa Forge Suite 975', date: '2019-01-09', type: 'Accessories', status: 'Processing' },
+const statusOptions = [
+    { id: 'Delivered', label: 'Delivered', color: 'green' },
+    { id: 'PENDING', label: 'Pending', color: 'red' },
+    { id: 'Cancelled', label: 'Cancelled', color: 'gray' },
 ];
 
 const getStatusClasses = (status) => {
-  switch (status) {
-    case 'Completed': return 'bg-green-100 text-green-700';
-    case 'Processing': return 'bg-purple-100 text-purple-700';
-    case 'Rejected': return 'bg-red-100 text-red-700';
-    case 'On Hold': return 'bg-yellow-100 text-yellow-700';
-    case 'In Transit': return 'bg-indigo-100 text-indigo-700';
-    default: return 'bg-gray-100 text-gray-700';
-  }
+    switch (status) {
+        case 'Delivered': return 'bg-green-100 text-green-700';
+        case 'PENDING': return 'bg-red-100 text-red-700';
+        case 'Cancelled': return 'bg-gray-100 text-gray-700';
+        default: return 'bg-gray-100 text-gray-700';
+    }
 };
 
 const modalVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
-  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15, ease: "easeIn" } },
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.2 } },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } },
 };
 
-const OrderTypeFilterModal = ({ onClose, selectedTypes, setSelectedTypes }) => {
-  const toggleType = (id) => {
-    setSelectedTypes(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
-  };
+const FilterModal = ({ onClose, selectedItems, setSelectedItems, options, title }) => {
+    const toggleItem = (id) => {
+        setSelectedItems((prev) =>
+            prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+        );
+    };
 
-  return (
-    <motion.div
-      className="absolute top-full mt-2 left-0 w-80 bg-white rounded-xl shadow-xl p-6 z-20 border border-gray-200"
-      variants={modalVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-    >
-      <h3 className="font-semibold text-lg text-gray-800 mb-4">Select Order Type</h3>
-      <div className="flex flex-wrap gap-2 mb-4">
-        {orderTypes.map(type => (
-          <button
-            key={type.id}
-            onClick={() => toggleType(type.id)}
-            className={`px-3 py-1.5 text-sm rounded-lg border transition-all
-              ${selectedTypes.includes(type.id)
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-indigo-50 hover:text-indigo-700'}
-            `}
-          >
-            {type.label}
-          </button>
-        ))}
-      </div>
-      <button
-        onClick={onClose}
-        className="w-full py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow"
-      >
-        Apply Now
-      </button>
-    </motion.div>
-  );
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '';
-  const options = { day: '2-digit', month: 'short', year: 'numeric' };
-  return new Date(dateStr).toLocaleDateString('en-GB', options);
+    return (
+        <motion.div
+            className="absolute top-full mt-2 left-0 w-80 bg-white rounded-xl shadow-xl p-6 z-20 border border-gray-200"
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+        >
+            <h3 className="font-semibold text-lg text-gray-800 mb-4">{title}</h3>
+            <div className="flex flex-wrap gap-2 mb-4">
+                {options.map((option) => (
+                    <button
+                        key={option.id}
+                        onClick={() => toggleItem(option.id)}
+                        className={`px-3 py-1.5 text-sm rounded-lg border transition-all
+              ${selectedItems.includes(option.id)
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-indigo-50 hover:text-indigo-700'
+                        }`}
+                    >
+                        {option.label}
+                    </button>
+                ))}
+            </div>
+            <button
+                onClick={onClose}
+                className="w-full py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700"
+            >
+                Apply
+            </button>
+        </motion.div>
+    );
 };
 
 const OrderListsTable = () => {
-  const [isTypeFilterOpen, setIsTypeFilterOpen] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState([]);
-  const [filterDate, setFilterDate] = useState('');
-  const [currentOrderData] = useState(orderData);
+    const [isTypeFilterOpen, setIsTypeFilterOpen] = useState(false);
+    const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
+    const [selectedTypes, setSelectedTypes] = useState([]);
+    const [selectedStatuses, setSelectedStatuses] = useState([]);
+    const [filterDate, setFilterDate] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [dateRange, setDateRange] = useState({ from: '', to: '' });
+    // Sorting state
+    const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
 
-  const filteredOrders = currentOrderData.filter(order => {
-    const matchesType = selectedTypes.length === 0 || selectedTypes.map(id => orderTypes.find(t => t.id === id)?.label).includes(order.type);
-    const matchesDate = filterDate ? order.date === filterDate : true;
-    return matchesType && matchesDate;
-  });
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  const handleReset = () => {
-    setFilterDate('');
-    setSelectedTypes([]);
-    setIsTypeFilterOpen(false);
-  };
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const res = await fetch("http://localhost:8080/api/orders");
+                if (!res.ok) throw new Error("Failed to fetch orders");
+                const data = await res.json();
 
-  return (
-    <div className="p-6  bg-gray-50 min-h-screen pt-24">
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Danh sách đặt hàng</h1>
+                const mapped = data.map(order => ({
+                    id: order.id,
+                    name: order.user?.userName || "No Name",
+                    location: order.shippingAddress?.street || "No Address",
+                    date: order.createdAt,
+                    paymentMethod: order.paymentMethod || "Unknown",
+                    status: order.status
+                }));
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 bg-white rounded-xl shadow-md border border-gray-200">
-        <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white border border-indigo-600 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-shadow shadow-sm">
-            <FiFilter className="w-4 h-4" /> Lọc Theo
-          </button>
+                setOrders(mapped);
+            } catch (err) {
+                console.error(err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-          <input
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-medium shadow-sm cursor-pointer transition focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 appearance-none"
-          />
+        fetchOrders();
+    }, []);
 
-          <div className="relative">
-            <button
-              onClick={() => setIsTypeFilterOpen(!isTypeFilterOpen)}
-              className={`flex items-center gap-1 px-4 py-2 border rounded-xl text-sm font-medium transition-all ${
-                selectedTypes.length > 0
-                  ? 'bg-indigo-50 text-indigo-700 border-indigo-300 shadow-sm'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              Loại Đơn Hàng {selectedTypes.length > 0 && `(${selectedTypes.length})`}
-              <FiChevronDown className="ml-1 w-4 h-4" />
-            </button>
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const options = { day: '2-digit', month: 'short', year: 'numeric' };
+        return new Date(dateStr).toLocaleDateString('en-GB', options);
+    };
 
-            <AnimatePresence>
-              {isTypeFilterOpen && (
-                <OrderTypeFilterModal
-                  onClose={() => setIsTypeFilterOpen(false)}
-                  selectedTypes={selectedTypes}
-                  setSelectedTypes={setSelectedTypes}
-                />
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+    const updateStatus = async (id, newStatus) => {
+        try {
+            await axios.put(
+                `http://localhost:8080/api/orders/${id}/status`,
+                { status: newStatus },   // 🔥 phải là "status"
+                { headers: { "Content-Type": "application/json" } }
+            );
 
-        <button
-          onClick={handleReset}
-          className="px-3 py-2 text-red-500 font-medium text-sm hover:text-red-700 transition-colors rounded-xl hover:bg-red-50"
-        >
-          Reset Filter
-        </button>
-      </div>
+            alert("Cập nhật trạng thái thành công!");
+        } catch (err) {
+            console.error("Error updating status", err);
+            throw new Error("Failed to update status");
+        }
+    };
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-xl shadow-md border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-gray-600 uppercase tracking-wider font-semibold text-xs">
-              <th className="px-6 py-3 text-left">ID</th>
-              <th className="px-6 py-3 text-left">Name</th>
-              <th className="px-6 py-3 text-left">Location</th>
-              <th className="px-6 py-3 text-left">Date</th>
-              <th className="px-6 py-3 text-left">Type</th>
-              <th className="px-6 py-3 text-left">Status</th>
-            </tr>
-          </thead>
-          <motion.tbody
-            className="bg-white divide-y divide-gray-100"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            {filteredOrders.length === 0 && (
-              <tr>
-                <td colSpan="6" className="text-center py-8 text-gray-500 italic">Không tìm thấy đơn hàng nào phù hợp với bộ lọc.</td>
-              </tr>
+
+
+    // Sorting function
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIcon = (columnKey) => {
+        if (sortConfig.key !== columnKey) {
+            return <FiChevronDown className="w-4 h-4 text-gray-400" />;
+        }
+        return sortConfig.direction === 'asc'
+            ? <FiChevronUp className="w-4 h-4 text-indigo-600" />
+            : <FiChevronDown className="w-4 h-4 text-indigo-600" />;
+    };
+
+    // Filter and sort orders
+    const filteredAndSortedOrders = React.useMemo(() => {
+        let filtered = orders.filter((order) => {
+            // Type filter
+            const matchesType = selectedTypes.length === 0 || selectedTypes.includes(order.type);
+
+            // Status filter
+            const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(order.status);
+
+            // Date filter (single date)
+            const matchesDate = filterDate ? order.date?.slice(0, 10) === filterDate : true;
+
+            // Date range filter
+            const matchesDateRange = (() => {
+                if (!dateRange.from && !dateRange.to) return true;
+                const orderDate = new Date(order.date);
+                const fromDate = dateRange.from ? new Date(dateRange.from) : null;
+                const toDate = dateRange.to ? new Date(dateRange.to) : null;
+
+                if (fromDate && toDate) {
+                    return orderDate >= fromDate && orderDate <= toDate;
+                } else if (fromDate) {
+                    return orderDate >= fromDate;
+                } else if (toDate) {
+                    return orderDate <= toDate;
+                }
+                return true;
+            })();
+
+            // Search filter
+            const matchesSearch = searchQuery === '' ||
+                order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                order.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                order.location.toLowerCase().includes(searchQuery.toLowerCase());
+
+            return matchesType && matchesStatus && matchesDate && matchesDateRange && matchesSearch;
+        });
+
+        // Sort
+        filtered.sort((a, b) => {
+            let aValue = a[sortConfig.key];
+            let bValue = b[sortConfig.key];
+
+            // Special handling for date sorting
+            if (sortConfig.key === 'date') {
+                aValue = new Date(aValue).getTime();
+                bValue = new Date(bValue).getTime();
+            }
+
+            // String comparison
+            if (typeof aValue === 'string') {
+                aValue = aValue.toLowerCase();
+                bValue = bValue.toLowerCase();
+            }
+
+            if (aValue < bValue) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+
+        return filtered;
+    }, [orders, selectedTypes, selectedStatuses, filterDate, dateRange, searchQuery, sortConfig]);
+
+
+    const activeFiltersCount =
+        selectedTypes.length +
+        selectedStatuses.length +
+        (filterDate ? 1 : 0) +
+        (dateRange.from || dateRange.to ? 1 : 0) +
+        (searchQuery ? 1 : 0);
+
+    return (
+        <div className="p-6 bg-gray-50 min-h-screen pt-24">
+            <div className="flex items-center justify-between mb-8">
+                <h1 className="text-3xl font-extrabold text-gray-900">Danh sách đặt hàng</h1>
+                {activeFiltersCount > 0 && (
+                    <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
+            {activeFiltersCount} bộ lọc đang áp dụng
+          </span>
+                )}
+            </div>
+
+            {loading && (
+                <p className="text-center text-gray-600 text-lg">Đang tải dữ liệu...</p>
             )}
-            {filteredOrders.map(order => (
-              <motion.tr
-                key={order.id}
-                className="hover:bg-gray-50 transition-colors cursor-pointer"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <td className="px-6 py-3 font-semibold text-gray-900">{order.id}</td>
-                <td className="px-6 py-3 text-gray-700">{order.name}</td>
-                <td className="px-6 py-3 text-gray-700 whitespace-nowrap">{order.location}</td>
-                <td className="px-6 py-3 text-gray-700 whitespace-nowrap font-mono">{formatDate(order.date)}</td>
-                <td className="px-6 py-3 text-gray-700">{order.type}</td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClasses(order.status)}`}>
-                    {order.status}
-                  </span>
-                </td>
-              </motion.tr>
-            ))}
-          </motion.tbody>
-        </table>
-      </div>
-    </div>
-  );
+
+            {error && (
+                <p className="text-center text-red-600 text-lg">Lỗi: {error}</p>
+            )}
+
+            {!loading && !error && (
+                <>
+                    {/* SEARCH BAR */}
+                    <div className="mb-4">
+                        <div className="relative">
+                            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm theo ID, tên, hoặc địa chỉ..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-12 pr-10 py-3 bg-white border border-gray-300 rounded-xl text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    <FiX className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* FILTER BAR */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 bg-white rounded-xl shadow-md border border-gray-200">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white border border-indigo-600 rounded-xl text-sm font-medium">
+                                <FiFilter className="w-4 h-4" /> Lọc Theo
+                            </button>
+
+                            {/* Date Range */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="date"
+                                    value={dateRange.from}
+                                    onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+                                    placeholder="Từ ngày"
+                                    className="px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm shadow-sm"
+                                />
+                                <span className="text-gray-500">-</span>
+                                <input
+                                    type="date"
+                                    value={dateRange.to}
+                                    onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+                                    placeholder="Đến ngày"
+                                    className="px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm shadow-sm"
+                                />
+                            </div>
+
+                            {/* Order Type Filter */}
+                            <div className="relative">
+
+
+                                <AnimatePresence>
+                                    {isTypeFilterOpen && (
+                                        <FilterModal
+                                            onClose={() => setIsTypeFilterOpen(false)}
+                                            selectedItems={selectedTypes}
+                                            setSelectedItems={setSelectedTypes}
+                                            options={orderTypes}
+                                            title="Chọn loại đơn hàng"
+                                        />
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Status Filter */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsStatusFilterOpen(!isStatusFilterOpen)}
+                                    className={`flex items-center gap-1 px-4 py-2 border rounded-xl text-sm
+                    ${selectedStatuses.length > 0
+                                        ? 'bg-indigo-50 text-indigo-700 border-indigo-300'
+                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    Trạng thái {selectedStatuses.length > 0 && `(${selectedStatuses.length})`}
+                                    <FiChevronDown className="ml-1 w-4 h-4" />
+                                </button>
+
+                                <AnimatePresence>
+                                    {isStatusFilterOpen && (
+                                        <FilterModal
+                                            onClose={() => setIsStatusFilterOpen(false)}
+                                            selectedItems={selectedStatuses}
+                                            setSelectedItems={setSelectedStatuses}
+                                            options={statusOptions}
+                                            title="Chọn trạng thái"
+                                        />
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {/* Results count */}
+                    <div className="mb-4 text-sm text-gray-600">
+                        Hiển thị <span className="font-semibold text-gray-900">{filteredAndSortedOrders.length}</span> đơn hàng
+                        {sortConfig.key && (
+                            <span className="ml-2">
+                • Sắp xếp theo <span className="font-semibold">{sortConfig.key === 'date' ? 'Ngày' : sortConfig.key}</span>
+                                {sortConfig.direction === 'desc' ? ' (mới → cũ)' : ' (cũ → mới)'}
+              </span>
+                        )}
+                    </div>
+
+                    {/* TABLE */}
+                    <div className="overflow-x-auto bg-white rounded-xl shadow-md border border-gray-200">
+                        <table className="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead className="bg-gray-50">
+                            <tr className="text-gray-600 uppercase tracking-wider font-semibold text-xs">
+                                <th
+                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    onClick={() => handleSort('id')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        ID {getSortIcon('id')}
+                                    </div>
+                                </th>
+                                <th
+                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    onClick={() => handleSort('name')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        Name {getSortIcon('name')}
+                                    </div>
+                                </th>
+                                <th
+                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    onClick={() => handleSort('location')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        Location {getSortIcon('location')}
+                                    </div>
+                                </th>
+                                <th
+                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    onClick={() => handleSort('date')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        Date {getSortIcon('date')}
+                                    </div>
+                                </th>
+                                <th
+                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    onClick={() => handleSort('paymentMethod')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        Payment {getSortIcon('paymentMethod')}
+                                    </div>
+
+                                </th>
+                                <th
+                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    onClick={() => handleSort('status')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        Status {getSortIcon('status')}
+                                    </div>
+                                </th>
+                            </tr>
+                            </thead>
+
+                            <motion.tbody
+                                className="bg-white divide-y divide-gray-100"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                {filteredAndSortedOrders.length === 0 && (
+                                    <tr>
+                                        <td colSpan="6" className="text-center py-8 text-gray-500 italic">
+                                            Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
+                                        </td>
+                                    </tr>
+                                )}
+
+                                {filteredAndSortedOrders.map((order) => (
+                                    <motion.tr
+                                        key={order.id}
+                                        className="hover:bg-gray-50 transition-colors"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                    >
+                                        <td className="px-6 py-3 font-semibold">{order.id}</td>
+                                        <td className="px-6 py-3">{order.name}</td>
+                                        <td className="px-6 py-3 whitespace-nowrap">{order.location}</td>
+                                        <td className="px-6 py-3 whitespace-nowrap font-mono">{formatDate(order.date)}</td>
+                                        <td className="px-6 py-3">{order.paymentMethod}</td>
+                                        <td className="px-6 py-3">
+                                            <select
+                                                value={order.status}
+                                                onChange={(e) => updateStatus(order.id, e.target.value)}
+                                                className={`px-3 py-1 text-xs font-semibold rounded-lg border ${getStatusClasses(order.status)}`}
+                                            >
+                                                <option value="Delivered">Delivered</option>
+                                                <option value="PENDING">Pending</option>
+                                                <option value="Cancelled">Cancelled</option>
+                                            </select>
+                                        </td>
+
+                                    </motion.tr>
+                                ))}
+                            </motion.tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+        </div>
+    );
 };
 
 export default OrderListsTable;

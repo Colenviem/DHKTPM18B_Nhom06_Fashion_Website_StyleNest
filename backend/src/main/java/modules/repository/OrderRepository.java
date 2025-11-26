@@ -2,6 +2,7 @@ package modules.repository;
 
 import modules.entity.Account;
 import modules.entity.Order;
+import modules.entity.Product;
 import modules.entity.User;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -38,4 +39,5 @@ public interface OrderRepository extends MongoRepository<Order, String> {
             "{ $sort: { 'createdAt': 1 } }"
     })
     List<Order> findAllByMonthAndYear(int year, int month);
+
 }

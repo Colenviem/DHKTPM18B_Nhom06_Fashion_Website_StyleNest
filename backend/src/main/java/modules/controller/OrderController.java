@@ -49,7 +49,6 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody Map<String, Object> body) {
         try {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             Map<String, Object> addr = (Map<String, Object>) body.get("shippingAddress");
 
             ShippingAddress address = new ShippingAddress(
@@ -66,7 +65,10 @@ public class OrderController {
                             item -> (Integer) item.get("quantity")
                     ));
 
-            Order order = orderService.createOrder(address, products);
+            String paymentMethod = (String) body.get("paymentMethod");
+
+            Order order = orderService.createOrder(address, products, paymentMethod);
+
             return ResponseEntity.ok(order);
 
         } catch (Exception e) {

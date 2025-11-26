@@ -38,11 +38,11 @@ public class Product {
     private CategoryRef category;
 
     @Positive(message = "Giá sản phẩm phải lớn hơn 0")
-    private double price;
+    private long price;
 
     @DecimalMin(value = "0.0", inclusive = true, message = "Giảm giá không được nhỏ hơn 0")
     @DecimalMax(value = "100", inclusive = true, message = "Giảm giá tối đa là 100%")
-    private double discount;
+    private long discount;
 
     @Min(value = 0, message = "Số lượng bán không được âm")
     private int sold;

@@ -9,5 +9,5 @@ public class OrderItem {
     private ProductRef product;
     private String variantId;
     private int quantity;
-    private double unitPrice;
+    private long unitPrice;
 }

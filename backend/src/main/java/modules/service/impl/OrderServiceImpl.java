@@ -10,6 +10,7 @@ import modules.service.OrderService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
@@ -80,12 +81,15 @@ public class OrderServiceImpl implements OrderService {
         throw new RuntimeException("Cannot extract user ID from principal: " + principal.getClass().getName());
     }
     @Override
-    public Order createOrder(ShippingAddress address, Map<String, Integer> products) {
+    @Transactional
+    public Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod) {
         try {
             String userId = getCurrentUserId();
 
             User user = userRepo.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+
+            checkStock(products);
 
             List<OrderItem> items = new ArrayList<>();
             for (Map.Entry<String, Integer> e : products.entrySet()) {
@@ -108,6 +112,7 @@ public class OrderServiceImpl implements OrderService {
             order.setUser(userRef);
             order.setOrderNumber("ORD-" + UUID.randomUUID().toString().substring(0, 8));
             order.setStatus("PENDING");
+            order.setPaymentMethod(paymentMethod);
             order.setShippingAddress(cleanAddress);
             order.setItems(items);
             order.setSubtotal(subtotal);
@@ -117,6 +122,7 @@ public class OrderServiceImpl implements OrderService {
             order.setCreatedAt(Instant.now());
             order.setUpdatedAt(Instant.now());
 
+            reduceStock(products);
             Order savedOrder = orderRepo.save(order);
             return savedOrder;
 
@@ -130,41 +136,45 @@ public class OrderServiceImpl implements OrderService {
         Product product = productRepo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
 
-        long unitPrice = Math.round(product.getPrice() * 100);
+        long unitPrice = Math.round(product.getPrice());
 
         if (product.getVariants() == null || product.getVariants().isEmpty()) {
             throw new RuntimeException("Product has no variants: " + productId);
         }
 
-        if (product.getVariants().get(0).getImages() == null ||
-                product.getVariants().get(0).getImages().isEmpty()) {
+        // Lấy variant đầu tiên (hoặc variant được chọn từ FE)
+        ProductVariant selectedVariant = product.getVariants().get(0);
+
+        if (selectedVariant.getImages() == null || selectedVariant.getImages().isEmpty()) {
             throw new RuntimeException("Product variant has no images: " + productId);
         }
 
         ProductRef ref = new ProductRef();
         ref.setId(product.getId());
         ref.setName(product.getName());
-        ref.setImage(product.getVariants().get(0).getImages().get(0));
+        ref.setImage(selectedVariant.getImages().get(0));
         ref.setPrice(unitPrice);
         ref.setDiscount((int) product.getDiscount());
 
-        return new OrderItem(ref, null, quantity, unitPrice);
+        // LƯU VARIANT ID VÀO ORDER ITEM - QUAN TRỌNG!
+        return new OrderItem(ref, selectedVariant.getSku(), quantity, unitPrice);
     }
-    private double calcSubtotal(List<OrderItem> items) {
+
+    private long calcSubtotal(List<OrderItem> items) {
         return items.stream()
-                .mapToDouble(i -> i.getQuantity() * i.getUnitPrice())
+                .mapToLong(i -> i.getQuantity() * i.getUnitPrice())
                 .sum();
     }
 
 
 
-    @Override
-    public Order updateStatus(String id, String status) {
-        Order order = findById(id);
-        order.setStatus(status);
-        order.setUpdatedAt(Instant.now());
-        return orderRepo.save(order);
-    }
+//    @Override
+//    public Order updateStatus(String id, String status) {
+//        Order order = findById(id);
+//        order.setStatus(status);
+//        order.setUpdatedAt(Instant.now());
+//        return orderRepo.save(order);
+//    }
 
 
     @Override
@@ -341,5 +351,60 @@ public class OrderServiceImpl implements OrderService {
         // Có thể thêm logic nghiệp vụ khác ở đây nếu cần (ví dụ: lọc thêm, tính toán tổng,...)
 
         return orders;
+    }
+
+    private void checkStock(Map<String, Integer> products) {
+        for (Map.Entry<String, Integer> entry : products.entrySet()) {
+            String productId = entry.getKey();
+            int qty = entry.getValue();
+
+            Product product = productRepo.findById(productId)
+                    .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+
+            // Giả sử check variant đầu tiên (hoặc sửa FE để gửi variantId)
+            if (product.getVariants() == null || product.getVariants().isEmpty()) {
+                throw new RuntimeException("Product has no variants: " + productId);
+            }
+
+            ProductVariant variant = product.getVariants().get(0);
+
+            if (variant.getInStock() < qty) {
+                throw new RuntimeException(
+                        "Sản phẩm " + product.getName() + " chỉ còn " + variant.getInStock() + " sản phẩm!"
+                );
+            }
+        }
+    }
+
+    private void reduceStock(Map<String, Integer> products) {
+        for (Map.Entry<String, Integer> entry : products.entrySet()) {
+            String productId = entry.getKey();
+            int qty = entry.getValue();
+
+            Product product = productRepo.findById(productId)
+                    .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+
+            if (product.getVariants() == null || product.getVariants().isEmpty()) {
+                throw new RuntimeException("Product has no variants: " + productId);
+            }
+
+            ProductVariant variant = product.getVariants().get(0);
+
+            if (variant.getInStock() < qty) {
+                throw new RuntimeException("Không đủ hàng trong kho cho sản phẩm: " + product.getName());
+            }
+
+            variant.setInStock(variant.getInStock() - qty);
+            productRepo.save(product);
+        }
+    }
+
+    @Override
+    public Order updateStatus(String id, String status) {
+        Order order = findById(id);
+
+        order.setStatus(status);
+        order.setUpdatedAt(Instant.now());
+        return orderRepo.save(order);
     }
 }
