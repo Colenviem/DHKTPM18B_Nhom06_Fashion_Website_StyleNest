@@ -16,15 +16,28 @@ public class Address {
     private String street;
     private String city;
     private String phoneNumber;
+    private String province;
+    private String postalCode;
     @JsonProperty("isDefault")
     @Field("isDefault")
     private boolean isDefault;
+
+    public Address(String street, String city, String phoneNumber, String province, String postalCode, boolean isDefault) {
+        this.id = UUID.randomUUID().toString();
+        this.street = street;
+        this.city = city;
+        this.phoneNumber = phoneNumber;
+        this.province = province;
+        this.postalCode = postalCode;
+        this.isDefault = isDefault;
+    }
 
     public Address(String street, String city, String phoneNumber, boolean isDefault) {
         this.id = UUID.randomUUID().toString();
         this.street = street;
         this.city = city;
         this.phoneNumber = phoneNumber;
+
         this.isDefault = isDefault;
     }
 }

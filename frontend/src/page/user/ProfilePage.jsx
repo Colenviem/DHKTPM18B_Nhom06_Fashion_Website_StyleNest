@@ -21,7 +21,7 @@ import {
 
 import { motion } from 'framer-motion';
 
-// --- Component OrderDetail được định nghĩa bên trong file ---
+// --- Component OrderDetail ---
 const OrderDetail = ({ order, onBack }) => {
     const getStatusColor = (status) => {
         const statusColors = {
@@ -106,7 +106,7 @@ const OrderDetail = ({ order, onBack }) => {
                         <FiCreditCard className="w-5 h-5 text-[#6F47EB] mt-1 flex-shrink-0" />
                         <div>
                             <p className="text-sm text-gray-500">Phương thức thanh toán</p>
-                                {paymentText[order.paymentMethod] || "Không xác định"}
+                            {paymentText[order.paymentMethod] || "Không xác định"}
                         </div>
                     </div>
 
@@ -388,7 +388,6 @@ function ProfilePage() {
     const [orders, setOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(false);
 
-    // +++ THÊM STATE ĐỂ THEO DÕI ĐƠN HÀNG ĐANG XEM +++
     const [selectedOrder, setSelectedOrder] = useState(null);
 
     const [isEditMode, setIsEditMode] = useState(false);
@@ -592,12 +591,10 @@ function ProfilePage() {
         setEditingAddress(null);
     };
 
-    // +++ HÀM MỚI: Xem chi tiết đơn hàng +++
     const handleViewOrderDetail = (order) => {
         setSelectedOrder(order);
     };
 
-    // +++ HÀM MỚI: Quay lại danh sách đơn hàng +++
     const handleBackToOrders = () => {
         setSelectedOrder(null);
     };
@@ -611,409 +608,399 @@ function ProfilePage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="max-w-8xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden"
+                className="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden"
             >
-                <div className="md:flex">
-                    <div className="md:w-1/3 bg-gray-100 p-8 flex flex-col items-center justify-center border-r border-gray-200">
-                        <FiUser className="text-8xl text-gray-400" />
-                        <h2 className="text-2xl font-bold text-gray-800 mt-4">{user.userName}</h2>
-                        <p className="text-gray-500">{user.email}</p>
-                        {!isEditMode && (
-                            <button
-                                onClick={() => setIsEditMode(true)}
-                                className="mt-6 flex items-center justify-center bg-[#6F47EB] text-white py-2 px-5 rounded-lg font-semibold hover:bg-indigo-700 transition-all duration-300"
-                            >
-                                <FiEdit className="mr-2" />
-                                Chỉnh sửa
-                            </button>
-                        )}
+                {/* Đã xóa div sidebar (md:w-1/3) và sửa md:w-2/3 thành w-full */}
+                <div className="w-full p-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="text-3xl font-bold text-gray-900">Hồ Sơ Của Tôi</h1>
+
                     </div>
 
-                    <div className="md:w-2/3 p-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-6">Hồ Sơ Của Tôi</h1>
+                    <div className="flex space-x-6 border-b pb-2 mb-6 text-gray-600 font-medium overflow-x-auto">
+                        <button
+                            onClick={() => setActiveTab('profile')}
+                            className={`whitespace-nowrap ${
+                                activeTab === 'profile'
+                                    ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]'
+                                    : ''
+                            }`}
+                        >
+                            Thông tin cá nhân
+                        </button>
 
-                        <div className="flex space-x-6 border-b pb-2 mb-6 text-gray-600 font-medium">
-                            <button
-                                onClick={() => setActiveTab('profile')}
-                                className={`${
-                                    activeTab === 'profile'
-                                        ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]'
-                                        : ''
-                                }`}
-                            >
-                                Thông tin cá nhân
-                            </button>
+                        <button
+                            onClick={() => setActiveTab('address')}
+                            className={`whitespace-nowrap ${
+                                activeTab === 'address'
+                                    ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]'
+                                    : ''
+                            }`}
+                        >
+                            Sổ địa chỉ
+                        </button>
 
-                            <button
-                                onClick={() => setActiveTab('address')}
-                                className={`${
-                                    activeTab === 'address'
-                                        ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]'
-                                        : ''
-                                }`}
-                            >
-                                Sổ địa chỉ
-                            </button>
+                        <button
+                            onClick={() => {
+                                setActiveTab('orders');
+                                setSelectedOrder(null);
+                            }}
+                            className={`whitespace-nowrap ${
+                                activeTab === 'orders'
+                                    ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]'
+                                    : ''
+                            }`}
+                        >
+                            Đơn hàng
+                        </button>
 
-                            <button
-                                onClick={() => {
-                                    setActiveTab('orders');
-                                    setSelectedOrder(null); // Reset khi chuyển tab
-                                }}
-                                className={`${
-                                    activeTab === 'orders'
-                                        ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]'
-                                        : ''
-                                }`}
-                            >
-                                Đơn hàng
-                            </button>
+                        <button
+                            onClick={() => setActiveTab('coupons')}
+                            className={`whitespace-nowrap ${
+                                activeTab === 'coupons'
+                                    ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]'
+                                    : ''
+                            }`}
+                        >
+                            Mã giảm giá
+                        </button>
+                    </div>
 
-                            <button
-                                onClick={() => setActiveTab('coupons')}
-                                className={`${
-                                    activeTab === 'coupons'
-                                        ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]'
-                                        : ''
-                                }`}
-                            >
-                                Mã giảm giá
-                            </button>
-                        </div>
+                    {message.content && (
+                        <p
+                            className={`text-sm p-3 rounded-lg mb-4 ${
+                                message.type === 'success'
+                                    ? 'bg-green-50 text-green-700 border border-green-200'
+                                    : 'bg-red-50 text-red-700 border border-red-200'
+                            }`}
+                        >
+                            {message.content}
+                        </p>
+                    )}
 
-                        {message.content && (
-                            <p
-                                className={`text-sm p-3 rounded-lg mb-4 ${
-                                    message.type === 'success'
-                                        ? 'bg-green-50 text-green-700 border border-green-200'
-                                        : 'bg-red-50 text-red-700 border border-red-200'
-                                }`}
-                            >
-                                {message.content}
-                            </p>
-                        )}
-
-                        {/* TAB 1: THÔNG TIN CÁ NHÂN */}
-                        {activeTab === 'profile' && (
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-600">Họ</label>
-                                        <input
-                                            type="text"
-                                            name="lastName"
-                                            value={formData.lastName}
-                                            onChange={handleChange}
-                                            disabled={!isEditMode}
-                                            className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F47EB] disabled:bg-gray-100"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-600">Tên</label>
-                                        <input
-                                            type="text"
-                                            name="firstName"
-                                            value={formData.firstName}
-                                            onChange={handleChange}
-                                            disabled={!isEditMode}
-                                            className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F47EB] disabled:bg-gray-100"
-                                        />
-                                    </div>
-                                </div>
-
+                    {/* TAB 1: THÔNG TIN CÁ NHÂN */}
+                    {activeTab === 'profile' && (
+                        <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl mx-auto">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">Email</label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        disabled
-                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F47EB] disabled:bg-gray-100"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-sm font-medium text-gray-600">Tên đăng nhập</label>
+                                    <label className="text-sm font-medium text-gray-600">Họ</label>
                                     <input
                                         type="text"
-                                        name="userName"
-                                        value={formData.userName}
-                                        disabled
-                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F47EB] disabled:bg-gray-100"
+                                        name="lastName"
+                                        value={formData.lastName}
+                                        onChange={handleChange}
+                                        disabled={!isEditMode}
+                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F47EB] disabled:bg-gray-50 disabled:text-gray-500"
                                     />
                                 </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-600">Tên</label>
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleChange}
+                                        disabled={!isEditMode}
+                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F47EB] disabled:bg-gray-50 disabled:text-gray-500"
+                                    />
+                                </div>
+                            </div>
 
-                                {isEditMode && (
-                                    <div className="flex justify-end space-x-4 mt-8">
+                            <div>
+                                <label className="text-sm font-medium text-gray-600">Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    disabled
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-medium text-gray-600">Tên đăng nhập</label>
+                                <input
+                                    type="text"
+                                    name="userName"
+                                    value={formData.userName}
+                                    disabled
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-4 mt-8 pt-4 border-t border-gray-100">
+                                {!isEditMode ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditMode(true)}
+                                        className="flex items-center justify-center bg-[#6F47EB] text-white py-2 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg"
+                                    >
+                                        <FiEdit className="mr-2" />
+                                        Chỉnh sửa thông tin
+                                    </button>
+                                ) : (
+                                    <>
                                         <button
                                             type="button"
                                             onClick={() => setIsEditMode(false)}
-                                            className="flex items-center justify-center bg-gray-200 text-gray-700 py-2 px-5 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-300"
+                                            className="flex items-center justify-center bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-300"
                                         >
                                             <FiXCircle className="mr-2" />
                                             Hủy
                                         </button>
                                         <button
                                             type="submit"
-                                            className="flex items-center justify-center bg-green-600 text-white py-2 px-5 rounded-lg font-semibold hover:bg-green-700 transition-all duration-300"
+                                            className="flex items-center justify-center bg-green-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-green-700 transition-all duration-300 shadow-md hover:shadow-lg"
                                         >
                                             <FiSave className="mr-2" />
-                                            Lưu
+                                            Lưu thay đổi
                                         </button>
-                                    </div>
-                                )}
-                            </form>
-                        )}
-
-                        {/* TAB 2: SỔ ĐỊA CHỈ */}
-                        {activeTab === 'address' && (
-                            <div>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                                        <FiMapPin className="mr-3 text-gray-500" />
-                                        Sổ địa chỉ
-                                    </h2>
-
-                                    {!isAddingAddress && !editingAddress && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setIsAddingAddress(true);
-                                                setEditingAddress(null);
-                                            }}
-                                            className="flex items-center text-sm text-[#6F47EB] font-semibold hover:underline"
-                                        >
-                                            <FiPlus className="mr-1" />
-                                            Thêm địa chỉ mới
-                                        </button>
-                                    )}
-                                </div>
-
-                                {formData.addresses.length > 0 ? (
-                                    <ul className="space-y-3">
-                                        {formData.addresses.map((addr) => (
-                                            <li
-                                                key={addr.id}
-                                                className="p-4 bg-gray-50 rounded-lg border border-gray-200"
-                                            >
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <span className="font-medium text-gray-800">
-                                                            {addr.street}
-                                                        </span>
-                                                        <p className="text-sm text-gray-600">
-                                                            {addr.city}, {addr.province} - {addr.postalCode}
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="flex flex-col items-end flex-shrink-0 ml-4 space-y-2">
-                                                        {addr.isDefault && (
-                                                            <span className="text-xs font-bold text-green-600 bg-green-100 py-1 px-2 rounded-full">
-                                                                Mặc định
-                                                            </span>
-                                                        )}
-                                                        <div className="flex items-center space-x-3">
-                                                            <button
-                                                                onClick={() => handleStartEdit(addr)}
-                                                                className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center"
-                                                            >
-                                                                <FiEdit className="w-3 h-3 mr-1" /> Sửa
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteAddress(addr.id)}
-                                                                className="text-sm font-medium text-red-600 hover:text-red-800 flex items-center"
-                                                            >
-                                                                <FiTrash2 className="w-3 h-3 mr-1" /> Xóa
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    !isAddingAddress &&
-                                    !editingAddress && (
-                                        <p className="text-gray-500">Bạn chưa có địa chỉ nào.</p>
-                                    )
-                                )}
-
-                                {(isAddingAddress || editingAddress) && (
-                                    <NewAddressForm
-                                        initialData={editingAddress}
-                                        onSave={editingAddress ? handleUpdateAddress : handleAddAddress}
-                                        onCancel={handleCancelForm}
-                                    />
-                                )}
-                            </div>
-                        )}
-
-                        {/* TAB 3: ĐƠN HÀNG */}
-                        {activeTab === 'orders' && (
-                            <div>
-                                {/* +++ HIỂN THỊ CHI TIẾT ĐƠN HÀNG NẾU ĐÃ CHỌN +++ */}
-                                {selectedOrder ? (
-                                    <OrderDetail order={selectedOrder} onBack={handleBackToOrders} />
-                                ) : (
-                                    <>
-                                        {/* Danh sách đơn hàng */}
-                                        {orders.length === 0 && (
-                                            <p className="text-gray-500">Bạn chưa có đơn hàng nào.</p>
-                                        )}
-
-                                        <div className="space-y-6 p-4 max-w-4xl mx-auto">
-                                            {orders?.map((order) => (
-                                                <div
-                                                    key={order._id}
-                                                    className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100"
-                                                >
-                                                    {/* Header */}
-                                                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4 border-b border-gray-100">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-2">
-                                                                <FiBox className="w-5 h-5 text-blue-600" />
-                                                                <span className="text-sm font-medium text-gray-600">
-                                                                    Mã đơn: {order.id}
-                                                                </span>
-                                                            </div>
-                                                            <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>
-                                                                {order.status}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Items - Hiển thị tóm tắt */}
-                                                    <div className="p-6 space-y-4">
-                                                        {order.items?.slice(0, 2).map((item, idx) => (
-                                                            <div
-                                                                key={idx}
-                                                                className="flex gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                                                            >
-                                                                <div className="flex-shrink-0">
-                                                                    <img
-                                                                        src={item.product?.image}
-                                                                        alt={item.product?.name}
-                                                                        className="w-20 h-20 object-cover rounded-lg shadow-md"
-                                                                    />
-                                                                </div>
-
-                                                                <div className="flex-1 min-w-0">
-                                                                    <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                                                                        {item.product?.name}
-                                                                    </h4>
-
-                                                                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                                                                        <div className="flex items-center gap-1">
-                                                                            <span className="font-medium">
-                                                                                Đơn giá:
-                                                                            </span>
-                                                                            <span className="text-blue-600 font-semibold">
-                                                                                {(
-                                                                                    Number(item.product?.price) || 0
-                                                                                ).toLocaleString('vi-VN')}
-                                                                                ₫
-                                                                            </span>
-                                                                        </div>
-
-                                                                        <div className="flex items-center gap-1">
-                                                                            <span className="font-medium">SL:</span>
-                                                                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-semibold">
-                                                                                {item.quantity}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-
-                                                        {/* Hiển thị thông báo nếu có nhiều hơn 2 sản phẩm */}
-                                                        {order.items?.length > 2 && (
-                                                            <p className="text-center text-sm text-gray-500 italic">
-                                                                và {order.items.length - 2} sản phẩm khác...
-                                                            </p>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Summary */}
-                                                    <div className="bg-gray-50 px-6 py-4 space-y-3 border-t border-gray-200">
-                                                        <div className="flex items-center justify-between text-sm">
-                                                            <div className="flex items-center gap-2 text-gray-600">
-                                                                <FiTruck className="w-4 h-4" />
-                                                                <span>Phí vận chuyển</span>
-                                                            </div>
-                                                            <span className="text-gray-900 font-semibold">
-                                                                {(
-                                                                    Number(order.shippingFee) || 0
-                                                                ).toLocaleString('vi-VN')}
-                                                                ₫
-                                                            </span>
-                                                        </div>
-
-                                                        <div className="flex items-center justify-between text-sm">
-                                                            <div className="flex items-center gap-2 text-gray-600">
-                                                                <FiCreditCard className="w-4 h-4" />
-                                                                <span>Phương thức</span>
-                                                            </div>
-                                                            <span className="text-gray-900 font-semibold">
-                                                                {paymentText[order.paymentMethod] || "Không xác định"}
-                                                            </span>
-
-                                                        </div>
-
-                                                        <div className="pt-3 border-t border-gray-300 flex items-center justify-between">
-                                                            <span className="text-base font-bold text-gray-900">
-                                                                Tổng tiền
-                                                            </span>
-                                                            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                                                {(
-                                                                    Number(order.totalAmount) || 0
-                                                                ).toLocaleString('vi-VN')}
-                                                                ₫
-                                                            </span>
-                                                        </div>
-
-                                                        {/* +++ NÚT XEM CHI TIẾT +++ */}
-                                                        <button
-                                                            onClick={() => handleViewOrderDetail(order)}
-                                                            className="w-full mt-3 flex items-center justify-center gap-2 bg-[#6F47EB] text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition-all duration-300"
-                                                        >
-                                                            <FiEye className="w-4 h-4" />
-                                                            Xem chi tiết
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
                                     </>
                                 )}
                             </div>
-                        )}
+                        </form>
+                    )}
 
-                        {/* TAB 4: MÃ GIẢM GIÁ */}
-                        {activeTab === 'coupons' && (
-                            <div className="mt-8">
-                                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                                    <FiTag className="mr-3 text-gray-500" />
-                                    Mã giảm giá của bạn
+                    {/* TAB 2: SỔ ĐỊA CHỈ */}
+                    {activeTab === 'address' && (
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                                    <FiMapPin className="mr-3 text-gray-500" />
+                                    Sổ địa chỉ
                                 </h2>
 
-                                {formData.coupons.length > 0 ? (
-                                    <ul className="space-y-3">
-                                        {formData.coupons.map((coupon, index) => (
-                                            <li
-                                                key={index}
-                                                className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs font-mono"
-                                            >
-                                                {JSON.stringify(coupon)}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p className="text-gray-500">Bạn không có mã giảm giá nào.</p>
+                                {!isAddingAddress && !editingAddress && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsAddingAddress(true);
+                                            setEditingAddress(null);
+                                        }}
+                                        className="flex items-center text-sm text-[#6F47EB] font-semibold hover:underline"
+                                    >
+                                        <FiPlus className="mr-1" />
+                                        Thêm địa chỉ mới
+                                    </button>
                                 )}
                             </div>
-                        )}
-                    </div>
+
+                            {formData.addresses.length > 0 ? (
+                                <ul className="space-y-3">
+                                    {formData.addresses.map((addr) => (
+                                        <li
+                                            key={addr.id}
+                                            className="p-4 bg-gray-50 rounded-lg border border-gray-200"
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <span className="font-medium text-gray-800">
+                                                        {addr.street}
+                                                    </span>
+                                                    <p className="text-sm text-gray-600">
+                                                        {addr.city}, {addr.province} - {addr.postalCode}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex flex-col items-end flex-shrink-0 ml-4 space-y-2">
+                                                    {addr.isDefault && (
+                                                        <span className="text-xs font-bold text-green-600 bg-green-100 py-1 px-2 rounded-full">
+                                                            Mặc định
+                                                        </span>
+                                                    )}
+                                                    <div className="flex items-center space-x-3">
+                                                        <button
+                                                            onClick={() => handleStartEdit(addr)}
+                                                            className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center"
+                                                        >
+                                                            <FiEdit className="w-3 h-3 mr-1" /> Sửa
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteAddress(addr.id)}
+                                                            className="text-sm font-medium text-red-600 hover:text-red-800 flex items-center"
+                                                        >
+                                                            <FiTrash2 className="w-3 h-3 mr-1" /> Xóa
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                !isAddingAddress &&
+                                !editingAddress && (
+                                    <p className="text-gray-500">Bạn chưa có địa chỉ nào.</p>
+                                )
+                            )}
+
+                            {(isAddingAddress || editingAddress) && (
+                                <NewAddressForm
+                                    initialData={editingAddress}
+                                    onSave={editingAddress ? handleUpdateAddress : handleAddAddress}
+                                    onCancel={handleCancelForm}
+                                />
+                            )}
+                        </div>
+                    )}
+
+                    {/* TAB 3: ĐƠN HÀNG */}
+                    {activeTab === 'orders' && (
+                        <div>
+                            {selectedOrder ? (
+                                <OrderDetail order={selectedOrder} onBack={handleBackToOrders} />
+                            ) : (
+                                <>
+                                    {orders.length === 0 && (
+                                        <p className="text-gray-500">Bạn chưa có đơn hàng nào.</p>
+                                    )}
+
+                                    <div className="space-y-6 max-w-5xl mx-auto">
+                                        {orders?.map((order) => (
+                                            <div
+                                                key={order._id}
+                                                className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100"
+                                            >
+                                                <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4 border-b border-gray-100">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <FiBox className="w-5 h-5 text-blue-600" />
+                                                            <span className="text-sm font-medium text-gray-600">
+                                                                Mã đơn: {order.id}
+                                                            </span>
+                                                        </div>
+                                                        <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>
+                                                            {order.status}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-6 space-y-4">
+                                                    {order.items?.slice(0, 2).map((item, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="flex gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+                                                        >
+                                                            <div className="flex-shrink-0">
+                                                                <img
+                                                                    src={item.product?.image}
+                                                                    alt={item.product?.name}
+                                                                    className="w-20 h-20 object-cover rounded-lg shadow-md"
+                                                                />
+                                                            </div>
+
+                                                            <div className="flex-1 min-w-0">
+                                                                <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                                                                    {item.product?.name}
+                                                                </h4>
+
+                                                                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="font-medium">
+                                                                            Đơn giá:
+                                                                        </span>
+                                                                        <span className="text-blue-600 font-semibold">
+                                                                            {(
+                                                                                Number(item.product?.price) || 0
+                                                                            ).toLocaleString('vi-VN')}
+                                                                            ₫
+                                                                        </span>
+                                                                    </div>
+
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="font-medium">SL:</span>
+                                                                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-semibold">
+                                                                            {item.quantity}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+
+                                                    {order.items?.length > 2 && (
+                                                        <p className="text-center text-sm text-gray-500 italic">
+                                                            và {order.items.length - 2} sản phẩm khác...
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <div className="bg-gray-50 px-6 py-4 space-y-3 border-t border-gray-200">
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <div className="flex items-center gap-2 text-gray-600">
+                                                            <FiTruck className="w-4 h-4" />
+                                                            <span>Phí vận chuyển</span>
+                                                        </div>
+                                                        <span className="text-gray-900 font-semibold">
+                                                            {(
+                                                                Number(order.shippingFee) || 0
+                                                            ).toLocaleString('vi-VN')}
+                                                            ₫
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <div className="flex items-center gap-2 text-gray-600">
+                                                            <FiCreditCard className="w-4 h-4" />
+                                                            <span>Phương thức</span>
+                                                        </div>
+                                                        <span className="text-gray-900 font-semibold">
+                                                            {paymentText[order.paymentMethod] || "Không xác định"}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="pt-3 border-t border-gray-300 flex items-center justify-between">
+                                                        <span className="text-base font-bold text-gray-900">
+                                                            Tổng tiền
+                                                        </span>
+                                                        <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                                            {(
+                                                                Number(order.totalAmount) || 0
+                                                            ).toLocaleString('vi-VN')}
+                                                            ₫
+                                                        </span>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => handleViewOrderDetail(order)}
+                                                        className="w-full mt-3 flex items-center justify-center gap-2 bg-[#6F47EB] text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition-all duration-300"
+                                                    >
+                                                        <FiEye className="w-4 h-4" />
+                                                        Xem chi tiết
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    {/* TAB 4: MÃ GIẢM GIÁ */}
+                    {activeTab === 'coupons' && (
+                        <div className="mt-8">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                                <FiTag className="mr-3 text-gray-500" />
+                                Mã giảm giá của bạn
+                            </h2>
+
+                            {formData.coupons.length > 0 ? (
+                                <ul className="space-y-3">
+                                    {formData.coupons.map((coupon, index) => (
+                                        <li
+                                            key={index}
+                                            className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs font-mono"
+                                        >
+                                            {JSON.stringify(coupon)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-gray-500">Bạn không có mã giảm giá nào.</p>
+                            )}
+                        </div>
+                    )}
                 </div>
             </motion.div>
         </div>
