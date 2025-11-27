@@ -257,12 +257,12 @@ function RecentDealsTable() {
             <table className="min-w-full text-sm text-left border-collapse">
                 <thead className="text-gray-500 uppercase text-xs border-b border-gray-200">
                     <tr>
-                        <th className="py-3 px-4">Product Name</th>
-                        <th className="py-3 px-4">Location</th>
-                        <th className="py-3 px-4">Date - Time</th>
-                        <th className="py-3 px-4">Total Pieces</th>
-                        <th className="py-3 px-4">Total Amount</th>
-                        <th className="py-3 px-4 text-center">Status</th>
+                        <th className="py-3 px-4">Tên sản phẩm</th>
+                        <th className="py-3 px-4">Địa điểm</th>
+                        <th className="py-3 px-4">Thời gian</th>
+                        <th className="py-3 px-4">Tổng tiền</th>
+                        <th className="py-3 px-4">Tổng số lượng</th>
+                        <th className="py-3 px-4 text-center">Trạng thái</th>
                     </tr>
                 </thead>
                 

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiFilter, FiChevronDown, FiChevronUp, FiSearch, FiX } from 'react-icons/fi';
 import axios from "axios";
 
+
 const orderTypes = [
     { id: 'NORMAL', label: 'Nhanh' },
     { id: 'EXPRESS', label: 'Hỏa tốc' },
@@ -115,7 +116,7 @@ const OrderListsTable = () => {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
-        const options = { day: '2-digit', month: 'short', year: 'numeric' };
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
         return new Date(dateStr).toLocaleDateString('en-GB', options);
     };
 
@@ -285,7 +286,6 @@ const OrderListsTable = () => {
                                     type="date"
                                     value={dateRange.from}
                                     onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                                    placeholder="Từ ngày"
                                     className="px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm shadow-sm"
                                 />
                                 <span className="text-gray-500">-</span>
@@ -293,7 +293,6 @@ const OrderListsTable = () => {
                                     type="date"
                                     value={dateRange.to}
                                     onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                                    placeholder="Đến ngày"
                                     className="px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm shadow-sm"
                                 />
                             </div>
@@ -361,57 +360,64 @@ const OrderListsTable = () => {
                         <table className="min-w-full divide-y divide-gray-200 text-sm">
                             <thead className="bg-gray-50">
                             <tr className="text-gray-600 uppercase tracking-wider font-semibold text-xs">
+
                                 <th
-                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    className="px-6 py-3 text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
                                     onClick={() => handleSort('id')}
                                 >
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex justify-center items-center gap-2">
                                         ID {getSortIcon('id')}
                                     </div>
                                 </th>
+
                                 <th
-                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    className="px-6 py-3 text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
                                     onClick={() => handleSort('name')}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        Name {getSortIcon('name')}
+                                    <div className="flex justify-center items-center gap-2">
+                                        Tên khách hàng {getSortIcon('name')}
                                     </div>
                                 </th>
+
                                 <th
-                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    className="px-6 py-3 text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
                                     onClick={() => handleSort('location')}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        Location {getSortIcon('location')}
+                                    <div className="flex justify-center items-center gap-2">
+                                        Địa điểm {getSortIcon('location')}
                                     </div>
                                 </th>
+
                                 <th
-                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    className="px-6 py-3 text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
                                     onClick={() => handleSort('date')}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        Date {getSortIcon('date')}
+                                    <div className="flex justify-center items-center gap-2">
+                                        Thời gian {getSortIcon('date')}
                                     </div>
                                 </th>
+
                                 <th
-                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    className="px-6 py-3 text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
                                     onClick={() => handleSort('paymentMethod')}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        Payment {getSortIcon('paymentMethod')}
+                                    <div className="flex justify-center items-center gap-2">
+                                        Thanh toán {getSortIcon('paymentMethod')}
                                     </div>
-
                                 </th>
+
                                 <th
-                                    className="px-6 py-3 text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                    className="px-6 py-3 text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
                                     onClick={() => handleSort('status')}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        Status {getSortIcon('status')}
+                                    <div className="flex justify-center items-center gap-2">
+                                        Trạng thái {getSortIcon('status')}
                                     </div>
                                 </th>
+
                             </tr>
                             </thead>
+
 
                             <motion.tbody
                                 className="bg-white divide-y divide-gray-100"
@@ -438,7 +444,7 @@ const OrderListsTable = () => {
                                         <td className="px-6 py-3">{order.name}</td>
                                         <td className="px-6 py-3 whitespace-nowrap">{order.location}</td>
                                         <td className="px-6 py-3 whitespace-nowrap font-mono">{formatDate(order.date)}</td>
-                                        <td className="px-6 py-3">{order.paymentMethod}</td>
+                                        <td className="px-6 py-3 text-center">{order.paymentMethod}</td>
                                         <td className="px-6 py-3">
                                             <select
                                                 value={order.status}
