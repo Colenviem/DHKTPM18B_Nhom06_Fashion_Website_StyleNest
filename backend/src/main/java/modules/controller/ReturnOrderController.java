@@ -2,6 +2,7 @@ package modules.controller;
 
 import lombok.RequiredArgsConstructor;
 import modules.dto.request.ReturnRequestDTO;
+import modules.dto.request.ReturnUpdateDTO; // Import mới
 import modules.entity.ReturnOrder;
 import modules.service.ReturnOrderService;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +12,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/returns")
-@CrossOrigin(origins = "http://localhost:5173") // Cấu hình CORS cho React
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 public class ReturnOrderController {
 
     private final ReturnOrderService returnOrderService;
 
-    // User: Tạo yêu cầu trả hàng
+    // ... (Các API create, get giữ nguyên) ...
     @PostMapping
     public ResponseEntity<?> createReturnRequest(@RequestBody ReturnRequestDTO request) {
         try {
@@ -29,36 +30,32 @@ public class ReturnOrderController {
         }
     }
 
-    // Admin: Xem tất cả yêu cầu
     @GetMapping
     public ResponseEntity<List<ReturnOrder>> getAllReturns() {
         return ResponseEntity.ok(returnOrderService.findAll());
     }
 
-    // User/Admin: Xem chi tiết
     @GetMapping("/{id}")
     public ResponseEntity<ReturnOrder> getReturnById(@PathVariable String id) {
         return ResponseEntity.ok(returnOrderService.findById(id));
     }
 
-    // User: Xem lịch sử trả hàng của mình
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<ReturnOrder>> getReturnsByUser(@PathVariable String userId) {
         return ResponseEntity.ok(returnOrderService.findByUserId(userId));
     }
 
-    // Admin: Duyệt/Từ chối yêu cầu
+    // --- API SỬA ĐỔI ---
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateReturnStatus(
             @PathVariable String id,
-            @RequestBody Map<String, String> body
+            @RequestBody ReturnUpdateDTO body // Nhận DTO thay vì Map
     ) {
         try {
-            String status = body.get("status");
-            String note = body.get("adminNote");
-            ReturnOrder updatedReturn = returnOrderService.updateStatus(id, status, note);
+            ReturnOrder updatedReturn = returnOrderService.updateStatus(id, body);
             return ResponseEntity.ok(updatedReturn);
         } catch (Exception e) {
+            e.printStackTrace(); // Log lỗi server để debug
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }

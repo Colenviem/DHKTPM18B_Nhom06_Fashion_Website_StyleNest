@@ -83,7 +83,9 @@ public class SecurityConfig {
                                 "/api/coupons",
                                 "/api/carts/user/**",
                                 "/api/brands/**",
-                                "/api/users/**"
+                                "/api/users/**",
+                                "/api/cloudinary/uploadImage",
+                                "/api/returns/**"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET,

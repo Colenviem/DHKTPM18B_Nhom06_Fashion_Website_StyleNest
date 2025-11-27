@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiSearch, FiEye, FiCheckCircle, FiXCircle, FiRotateCcw, FiBox, FiUser, FiImage } from 'react-icons/fi';
+import { FiSearch, FiEye, FiCheckCircle, FiXCircle, FiRotateCcw, FiBox, FiUser, FiImage, FiX, FiEdit } from 'react-icons/fi';
 import axios from "axios";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,9 +8,13 @@ const ReturnRequestsTable = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // State cho Modal chi tiết
+    // State cho Modal
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // State xử lý trong Modal
+    const [adminNote, setAdminNote] = useState('');
+    const [itemDecisions, setItemDecisions] = useState({}); // { "variantId": "APPROVED" }
 
     // Fetch dữ liệu
     useEffect(() => {
@@ -22,7 +26,6 @@ const ReturnRequestsTable = () => {
                 const res = await axios.get("http://localhost:8080/api/returns", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                // Sắp xếp mới nhất lên đầu
                 const sortedData = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 setRequests(sortedData);
             } catch (err) {
@@ -34,46 +37,87 @@ const ReturnRequestsTable = () => {
         fetchReturns();
     }, []);
 
-    const handleUpdateStatus = async (id, newStatus) => {
+    // Mở Modal và reset state
+    const openDetailModal = (req) => {
+        setSelectedRequest(req);
+        setAdminNote(req.adminNote || '');
+
+        // Khởi tạo quyết định mặc định cho từng món
+        const initialDecisions = {};
+        req.items.forEach(item => {
+            // Key định danh item (dùng variantId hoặc productId)
+            const key = item.variantId || item.product.id;
+            // Nếu item đã có trạng thái rồi thì lấy, chưa có thì mặc định APPROVED
+            initialDecisions[key] = item.status || 'APPROVED';
+        });
+        setItemDecisions(initialDecisions);
+
+        setIsModalOpen(true);
+    };
+
+    // Xử lý thay đổi quyết định từng món
+    const handleItemDecisionChange = (key, status) => {
+        setItemDecisions(prev => ({ ...prev, [key]: status }));
+    };
+
+    // Submit bước 1: Duyệt đơn (Gửi danh sách item decision)
+    const handleSubmitDecision = async () => {
         const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Vui lòng đăng nhập lại.");
+        if (!token) return alert("Vui lòng đăng nhập lại.");
+
+        // Validate: Nếu từ chối hết thì bắt buộc nhập lý do
+        const isAllRejected = Object.values(itemDecisions).every(s => s === 'REJECTED');
+        if (isAllRejected && !adminNote.trim()) {
+            alert("Bạn đã từ chối tất cả sản phẩm. Vui lòng nhập lý do vào ô 'Phản hồi'.");
             return;
         }
 
-        const confirmMsg = newStatus === 'APPROVED'
-            ? "Bạn có chắc muốn DUYỆT yêu cầu này? (Khách sẽ gửi hàng về)"
-            : (newStatus === 'REFUNDED'
-                ? "Xác nhận ĐÃ NHẬN HÀNG & HOÀN TIỀN cho khách?"
-                : "Bạn có chắc muốn TỪ CHỐI yêu cầu này?");
+        if (!window.confirm("Xác nhận xử lý yêu cầu này?")) return;
 
-        if (!window.confirm(confirmMsg)) return;
+        // Map state decision vào cấu trúc DTO backend cần
+        const itemsPayload = selectedRequest.items.map(item => ({
+            productId: item.product.id,
+            variantId: item.variantId,
+            status: itemDecisions[item.variantId || item.product.id]
+        }));
 
         try {
-            await axios.put(`http://localhost:8080/api/returns/${id}/status`,
+            await axios.put(`http://localhost:8080/api/returns/${selectedRequest.id}/status`,
                 {
-                    status: newStatus,
-                    adminNote: newStatus === 'APPROVED' ? "Admin đã duyệt, vui lòng gửi hàng." : "Đã xử lý."
+                    status: 'PROCESSED', // Status chung (Backend sẽ tự tính lại thành APPROVED/REJECTED)
+                    adminNote: adminNote,
+                    items: itemsPayload    // Gửi danh sách quyết định
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setRequests(prev => prev.map(req => req.id === id ? { ...req, status: newStatus } : req));
-
-            // Nếu đang mở modal của đơn này thì cũng cập nhật state modal hoặc đóng lại
-            if (selectedRequest && selectedRequest.id === id) {
-                setIsModalOpen(false);
-                setSelectedRequest(null);
-            }
-            alert("Thao tác thành công!");
+            alert("Đã lưu quyết định xử lý!");
+            setIsModalOpen(false);
+            // Reload trang để cập nhật lại dữ liệu mới nhất
+            window.location.reload();
         } catch (error) {
             alert("Lỗi: " + (error.response?.data?.error || error.message));
         }
     };
 
-    const openDetailModal = (req) => {
-        setSelectedRequest(req);
-        setIsModalOpen(true);
+    // Submit bước 2: Hoàn tiền (Chỉ gửi status update)
+    const handleRefundConfirm = async () => {
+        const token = localStorage.getItem("token");
+        if (!window.confirm("Xác nhận đã nhận hàng và hoàn tiền cho khách?")) return;
+
+        try {
+            await axios.put(`http://localhost:8080/api/returns/${selectedRequest.id}/status`,
+                {
+                    status: 'REFUNDED',
+                    adminNote: adminNote // Giữ nguyên note cũ
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            alert("Đã cập nhật trạng thái Hoàn tiền!");
+            window.location.reload();
+        } catch (error) {
+            alert("Lỗi: " + (error.response?.data?.error || error.message));
+        }
     };
 
     const getStatusBadge = (status) => {
@@ -82,7 +126,6 @@ const ReturnRequestsTable = () => {
             'APPROVED': 'bg-blue-100 text-blue-800 border-blue-200',
             'REFUNDED': 'bg-green-100 text-green-800 border-green-200',
             'REJECTED': 'bg-red-100 text-red-800 border-red-200',
-            'COMPLETED': 'bg-purple-100 text-purple-800 border-purple-200'
         };
         return (
             <span className={`px-3 py-1 rounded-full text-xs font-bold border ${styles[status] || 'bg-gray-100'}`}>
@@ -123,7 +166,7 @@ const ReturnRequestsTable = () => {
                     <tr>
                         <th className="px-6 py-4 text-left font-bold">Mã Yêu cầu</th>
                         <th className="px-6 py-4 text-left font-bold">Khách hàng</th>
-                        <th className="px-6 py-4 text-left font-bold">Lý do chính</th>
+                        <th className="px-6 py-4 text-left font-bold">Lý do</th>
                         <th className="px-6 py-4 text-left font-bold">Hoàn tiền (Dự kiến)</th>
                         <th className="px-6 py-4 text-center font-bold">Trạng thái</th>
                         <th className="px-6 py-4 text-right font-bold">Thao tác</th>
@@ -160,118 +203,157 @@ const ReturnRequestsTable = () => {
                 </table>
             </div>
 
-            {/* --- MODAL CHI TIẾT (Phần mới thêm) --- */}
+            {/* --- MODAL CHI TIẾT --- */}
             <AnimatePresence>
                 {isModalOpen && selectedRequest && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-md p-4 font-[Manrope]">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar border border-gray-100"
                         >
                             {/* Header Modal */}
-                            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 sticky top-0 z-10">
                                 <div>
-                                    <h2 className="text-xl font-bold text-gray-800">Chi tiết Yêu cầu Trả hàng</h2>
+                                    <h2 className="text-xl font-bold text-gray-800">Xử lý Yêu cầu Trả hàng</h2>
                                     <p className="text-sm text-gray-500 mt-1">Mã đơn gốc: <span className="font-mono font-bold text-gray-700">{selectedRequest.orderId}</span></p>
                                 </div>
-                                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500 transition-colors">
-                                    <FiXCircle size={28} />
+                                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500 transition-colors bg-white rounded-full p-1 hover:bg-gray-100">
+                                    <FiX size={24} />
                                 </button>
                             </div>
 
                             <div className="p-6 space-y-6">
-                                {/* Phần 1: Thông tin sản phẩm trả */}
+                                {/* 1. Bảng duyệt từng sản phẩm */}
                                 <div>
-                                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2"><FiBox className="text-indigo-600"/> Sản phẩm yêu cầu trả</h3>
+                                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <FiBox className="text-indigo-600"/> 1. Duyệt sản phẩm
+                                    </h3>
                                     <div className="border border-gray-200 rounded-lg overflow-hidden">
                                         <table className="w-full text-sm text-left">
                                             <thead className="bg-gray-50 text-gray-600">
                                             <tr>
                                                 <th className="p-3">Sản phẩm</th>
-                                                <th className="p-3">Phân loại</th>
                                                 <th className="p-3 text-center">SL</th>
-                                                <th className="p-3 text-right">Hoàn tiền</th>
-                                                <th className="p-3">Lý do / Ghi chú</th>
+                                                <th className="p-3">Ghi chú từ khách</th>
+                                                <th className="p-3 text-center w-40">Quyết định</th>
                                             </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
-                                            {selectedRequest.items?.map((item, idx) => (
-                                                <tr key={idx}>
-                                                    <td className="p-3 flex items-center gap-3">
-                                                        <img src={item.product?.image} alt="" className="w-12 h-12 rounded border object-cover" />
-                                                        <span className="font-medium text-gray-800 line-clamp-2 w-48" title={item.product?.name}>{item.product?.name}</span>
-                                                    </td>
-                                                    <td className="p-3 text-gray-500">{item.variantId || "Mặc định"}</td>
-                                                    <td className="p-3 text-center font-bold">{item.quantity}</td>
-                                                    <td className="p-3 text-right text-indigo-600 font-bold">{(item.refundPrice || 0).toLocaleString('vi-VN')}₫</td>
-                                                    <td className="p-3 text-gray-600 italic">{item.note || "Không có"}</td>
-                                                </tr>
-                                            ))}
+                                            {selectedRequest.items?.map((item, idx) => {
+                                                const key = item.variantId || item.product.id;
+                                                // Chỉ cho sửa nếu đơn đang chờ duyệt (PENDING)
+                                                const isEditable = selectedRequest.status === 'PENDING';
+
+                                                return (
+                                                    <tr key={idx}>
+                                                        <td className="p-3 flex items-center gap-3">
+                                                            <img src={item.product?.image} alt="" className="w-12 h-12 rounded border object-cover bg-gray-50" />
+                                                            <div>
+                                                                <p className="font-semibold text-gray-800 line-clamp-1">{item.product?.name}</p>
+                                                                <p className="text-xs text-gray-500">{item.variantId || "Mặc định"}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-3 text-center font-bold">{item.quantity}</td>
+                                                        <td className="p-3 text-gray-600 italic">{item.note || "---"}</td>
+                                                        <td className="p-3 text-center">
+                                                            {isEditable ? (
+                                                                <select
+                                                                    value={itemDecisions[key]}
+                                                                    onChange={(e) => handleItemDecisionChange(key, e.target.value)}
+                                                                    className={`p-2 rounded-lg border font-bold text-xs outline-none cursor-pointer w-full ${
+                                                                        itemDecisions[key] === 'APPROVED'
+                                                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                                                            : 'bg-red-50 text-red-700 border-red-200'
+                                                                    }`}
+                                                                >
+                                                                    <option value="APPROVED">✅ Đồng ý</option>
+                                                                    <option value="REJECTED">❌ Từ chối</option>
+                                                                </select>
+                                                            ) : (
+                                                                // Read-only mode
+                                                                <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                                                    (item.status || 'APPROVED') === 'APPROVED'
+                                                                        ? 'text-green-600 bg-green-100'
+                                                                        : 'text-red-600 bg-red-100'
+                                                                }`}>
+                                                                        {item.status === 'APPROVED' ? 'Đã duyệt' : 'Đã từ chối'}
+                                                                    </span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
 
-                                {/* Phần 2: Lý do & Hình ảnh */}
+                                {/* 2. Lý do & Ảnh từ khách */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                        <h4 className="font-bold text-gray-700 mb-2">Lý do chung từ khách:</h4>
+                                        <h4 className="font-bold text-gray-700 mb-2">Lý do chung:</h4>
                                         <p className="text-gray-800 whitespace-pre-wrap">{selectedRequest.reason}</p>
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FiImage /> Hình ảnh bằng chứng:</h4>
+                                        <h4 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FiImage /> Ảnh bằng chứng:</h4>
                                         {selectedRequest.images && selectedRequest.images.length > 0 ? (
                                             <div className="flex flex-wrap gap-2">
                                                 {selectedRequest.images.map((img, i) => (
-                                                    <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="block w-24 h-24 border rounded-lg overflow-hidden hover:opacity-80 transition-opacity">
+                                                    <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="block w-20 h-20 border rounded-lg overflow-hidden hover:opacity-80 transition-opacity shadow-sm">
                                                         <img src={img} alt="Proof" className="w-full h-full object-cover" />
                                                     </a>
                                                 ))}
                                             </div>
                                         ) : (
-                                            <p className="text-gray-400 text-sm italic">Khách không gửi kèm ảnh.</p>
+                                            <div className="text-gray-400 text-sm italic">Không có ảnh đính kèm.</div>
                                         )}
                                     </div>
                                 </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                                        <FiEdit className="text-indigo-600"/> 2. Phản hồi tới khách hàng
+                                    </h3>
+                                    <textarea
+                                        value={adminNote}
+                                        onChange={(e) => setAdminNote(e.target.value)}
+                                        disabled={selectedRequest.status !== 'PENDING'}
+                                        placeholder="Nhập lý do từ chối hoặc ghi chú cho khách..."
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none h-24 disabled:bg-gray-100 disabled:text-gray-500 resize-none"
+                                    ></textarea>
+                                </div>
                             </div>
 
-                            {/* Footer Modal - Action Buttons */}
-                            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                                {selectedRequest.status === 'PENDING' && (
+                            {/* Footer Actions */}
+                            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 sticky bottom-0 z-10">
+                                {selectedRequest.status === 'PENDING' ? (
                                     <>
+                                        <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Hủy bỏ</button>
                                         <button
-                                            onClick={() => handleUpdateStatus(selectedRequest.id, 'REJECTED')}
-                                            className="px-5 py-2.5 bg-white border border-red-300 text-red-600 rounded-lg font-bold hover:bg-red-50 flex items-center gap-2"
+                                            onClick={handleSubmitDecision}
+                                            className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 shadow-lg flex items-center gap-2 transition-transform transform hover:-translate-y-0.5"
                                         >
-                                            <FiXCircle /> Từ chối trả hàng
-                                        </button>
-                                        <button
-                                            onClick={() => handleUpdateStatus(selectedRequest.id, 'APPROVED')}
-                                            className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 shadow-lg flex items-center gap-2"
-                                        >
-                                            <FiCheckCircle /> Đồng ý trả hàng
+                                            <FiCheckCircle /> Xác nhận xử lý
                                         </button>
                                     </>
-                                )}
-
-                                {selectedRequest.status === 'APPROVED' && (
-                                    <div className="flex items-center gap-4">
-                                        <p className="text-sm text-blue-600 font-medium italic">
-                                            * Đơn đã được duyệt. Khi nhận được hàng hoàn, hãy bấm nút bên phải.
-                                        </p>
-                                        <button
-                                            onClick={() => handleUpdateStatus(selectedRequest.id, 'REFUNDED')}
-                                            className="px-5 py-2.5 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 shadow-lg flex items-center gap-2"
-                                        >
-                                            <FiRotateCcw /> Đã nhận hàng & Hoàn tiền
-                                        </button>
-                                    </div>
-                                )}
-
-                                {['REFUNDED', 'REJECTED'].includes(selectedRequest.status) && (
-                                    <span className="text-gray-500 font-bold italic py-2">Yêu cầu này đã kết thúc.</span>
+                                ) : (
+                                    selectedRequest.status === 'APPROVED' ? (
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-sm text-blue-600 italic font-medium">Đơn đã duyệt. Chờ nhận hàng.</span>
+                                            <button
+                                                onClick={handleRefundConfirm}
+                                                className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 shadow-lg flex items-center gap-2 transition-transform transform hover:-translate-y-0.5"
+                                            >
+                                                <FiRotateCcw /> Đã nhận hàng & Hoàn tiền
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <span className="text-gray-500 font-bold italic py-2 flex items-center gap-2">
+                                            {selectedRequest.status === 'REFUNDED' ? <FiCheckCircle className="text-green-500"/> : <FiXCircle className="text-red-500"/>}
+                                            Yêu cầu này đã kết thúc ({selectedRequest.status}).
+                                        </span>
+                                    )
                                 )}
                             </div>
                         </motion.div>

@@ -14,4 +14,5 @@ public class ReturnItem {
     private int quantity;
     private long refundPrice;
     private String note;
+    private String status;
 }

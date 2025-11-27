@@ -1,6 +1,7 @@
 package modules.service;
 
 import modules.dto.request.ReturnRequestDTO;
+import modules.dto.request.ReturnUpdateDTO; // Import mới
 import modules.entity.ReturnOrder;
 
 import java.util.List;
@@ -14,5 +15,6 @@ public interface ReturnOrderService {
 
     List<ReturnOrder> findByUserId(String userId);
 
-    ReturnOrder updateStatus(String returnOrderId, String status, String adminNote);
+    // Sửa dòng này: nhận ReturnUpdateDTO thay vì String lẻ
+    ReturnOrder updateStatus(String returnOrderId, ReturnUpdateDTO request);
 }
