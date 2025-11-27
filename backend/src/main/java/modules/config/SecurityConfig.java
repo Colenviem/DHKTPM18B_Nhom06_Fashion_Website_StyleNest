@@ -1,19 +1,19 @@
 package modules.config;
 
 import modules.service.AccountService;
-import org.springframework.beans.factory.annotation.Autowired; // <-- THÊM IMPORT NÀY
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // <-- THÊM IMPORT NÀY
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy; // <-- THÊM IMPORT NÀY
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // <-- THÊM IMPORT NÀY
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -48,7 +48,6 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        // (Giữ nguyên, không đổi)
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -63,43 +62,45 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .authenticationProvider(authProvider)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .authenticationProvider(authProvider)
 
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers(
-                    "/api/accounts/login",
-                    "/api/accounts/verify",
-                    "/api/accounts/forgot-password",
-                    "/api/accounts/reset-password",
-                    "/api/accounts",
-                    "/api/chat",
-                    "/api/coupons",
-                    "/api/carts/user/**",
-                    "/api/brands/**",
-                    "/api/users/**"
-                ).permitAll()
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(
+                                "/api/accounts/login",
+                                "/api/accounts/verify",
+                                "/api/accounts/forgot-password",
+                                "/api/accounts/reset-password",
+                                "/api/accounts",
+                                "/api/chat",
+                                "/api/coupons",
+                                "/api/carts/user/**",
+                                "/api/brands/**",
+                                "/api/users/**"
+                        ).permitAll()
 
-                .requestMatchers(HttpMethod.GET,
-                    "/api/products/**",
-                    "/api/categories/**",
-                    "/api/reviews/**",
-                    "/api/orders/**",
-                    "/api/coupons/**"
-                ).permitAll().requestMatchers(HttpMethod.PUT, "/api/orders/**").permitAll()
-                .anyRequest().authenticated()
-            )
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/products/**",
+                                "/api/categories/**",
+                                "/api/reviews/**",
+                                "/api/orders/**",
+                                "/api/coupons/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/orders/**").permitAll()
+                        .requestMatchers("/api/returns/**").authenticated()
+                        .anyRequest().authenticated()
+                )
 
-            .httpBasic(httpBasic -> httpBasic.disable())
-            .formLogin(form -> form.disable())
-            .logout(logout -> logout.disable());
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .formLogin(form -> form.disable())
+                .logout(logout -> logout.disable());
 
         return http.build();
     }
