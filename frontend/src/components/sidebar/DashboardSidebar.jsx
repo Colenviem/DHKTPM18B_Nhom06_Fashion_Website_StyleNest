@@ -11,10 +11,10 @@ const menuStructure = [
     {
         group: null,
         items: [
-            { label: "Dashboard", icon: <FiHome />, path: "/admin/dashboard" },
-            { label: "Products", icon: <FiBox />, path: "/admin/products" },
+            { label: "Bảng điều khiển", icon: <FiHome />, path: "/admin/dashboard" },
+            { label: "Sản phẩm", icon: <FiBox />, path: "/admin/products" },
             {
-                label: "Orders",
+                label: "Hóa đơn",
                 icon: <FiClipboard />,
                 path: "/admin/orders",
                 subItems: [
@@ -22,11 +22,11 @@ const menuStructure = [
                     { label: "Yêu cầu trả hàng", icon: <FiRotateCcw />, path: "/admin/ordersReturns" }
                 ]
             },
-            { label: "Categories", icon: <FiTag />, path: "/admin/categories" },
-            { label: "Coupons", icon: <FiGift />, path: "/admin/coupons" },
-            { label: "Accounts", icon: <FiLock />, path: "/admin/accounts" },
-            { label: "Users", icon: <FiUser />, path: "/admin/users" },
-            { label: "Brands", icon: <FiAward />, path: "/admin/brands" },
+            { label: "Danh mục", icon: <FiTag />, path: "/admin/categories" },
+            { label: "Ưu đãi", icon: <FiGift />, path: "/admin/coupons" },
+            { label: "Tài khoản", icon: <FiLock />, path: "/admin/accounts" },
+            { label: "Người dùng", icon: <FiUser />, path: "/admin/users" },
+            { label: "Thương hiệu", icon: <FiAward />, path: "/admin/brands" },
         ],
     },
 ];
