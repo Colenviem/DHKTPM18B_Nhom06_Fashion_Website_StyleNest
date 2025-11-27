@@ -25,10 +25,15 @@ const ProductDetail = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
 
-    const openModal = (message) => {
+    const openModal = (message, duration = 1500) => {
         setModalMessage(message);
         setIsModalOpen(true);
+
+        setTimeout(() => {
+            setIsModalOpen(false);
+        }, duration);
     };
+
 
 
     useEffect(() => {
@@ -455,14 +460,7 @@ const ProductDetail = () => {
                                 {modalMessage}
                             </p>
 
-                            {/* Button */}
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="w-full py-2.5 bg-[#6F47EB] text-white rounded-full font-semibold
-                           shadow-md hover:bg-[#5a38d1] active:scale-95 transition"
-                            >
-                                OK
-                            </button>
+
                         </div>
                     </div>
                 )}

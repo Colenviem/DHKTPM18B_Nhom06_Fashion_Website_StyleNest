@@ -157,13 +157,13 @@ const DashboardSidebar = () => {
                     to="/admin/settings"
                     className="flex items-center gap-3 p-3 rounded-lg text-sm hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 font-medium transition duration-200"
                 >
-                    <FiSettings className='text-indigo-400' /> Settings
+                    <FiSettings className='text-indigo-400' /> Cài đặt
                 </NavLink>
                 <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 p-3 rounded-lg text-sm hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 font-medium transition duration-200"
                 >
-                    <FiLogOut className='text-indigo-400' /> Logout
+                    <FiLogOut className='text-indigo-400' /> Đăng xuất
                 </button>
             </div>
         </motion.aside>
