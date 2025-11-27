@@ -31,6 +31,8 @@ public class AccountUserRequest {
         private String street;
         private String city;
         private String phoneNumber;
+        private String province;
+        private String postalCode;
         @JsonProperty("isDefault")
         private boolean isDefault;
     }

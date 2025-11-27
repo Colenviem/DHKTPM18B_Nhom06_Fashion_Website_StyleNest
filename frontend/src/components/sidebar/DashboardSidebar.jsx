@@ -1,10 +1,10 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
     FiHome, FiBox, FiClipboard, FiTag, FiGift,
-    FiLock, FiUser, FiAward, FiSettings, FiDollarSign,
-    FiList, FiBookOpen, FiBarChart2, FiLogOut
+    FiLock, FiUser, FiAward, FiSettings,
+    FiBarChart2, FiLogOut, FiChevronDown, FiChevronRight, FiRotateCcw, FiList
 } from 'react-icons/fi';
 
 const menuStructure = [
@@ -13,7 +13,15 @@ const menuStructure = [
         items: [
             { label: "Bảng điều khiển", icon: <FiHome />, path: "/admin/dashboard" },
             { label: "Sản phẩm", icon: <FiBox />, path: "/admin/products" },
-            { label: "Hóa đơn", icon: <FiClipboard />, path: "/admin/orders" },
+            {
+                label: "Hóa đơn",
+                icon: <FiClipboard />,
+                path: "/admin/orders",
+                subItems: [
+                    { label: "Danh sách đơn hàng", icon: <FiList />, path: "/admin/orders" },
+                    { label: "Yêu cầu trả hàng", icon: <FiRotateCcw />, path: "/admin/ordersReturns" }
+                ]
+            },
             { label: "Danh mục", icon: <FiTag />, path: "/admin/categories" },
             { label: "Ưu đãi", icon: <FiGift />, path: "/admin/coupons" },
             { label: "Tài khoản", icon: <FiLock />, path: "/admin/accounts" },
@@ -23,42 +31,98 @@ const menuStructure = [
     },
 ];
 
-const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0 },
-};
+const SidebarItem = ({ item }) => {
+    const location = useLocation();
 
-const SidebarItem = ({ item }) => (
-    <motion.div variants={itemVariants}>
-        <NavLink
-            to={item.path}
-            className={({ isActive }) => `
-                flex items-center gap-3 p-3 rounded-lg text-sm transition-all duration-200
-                ${isActive
-                ? "bg-indigo-600 text-white font-semibold shadow-md"
-                : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 font-medium"
-            }
-            `}
-        >
-            {item.icon}
-            {item.label}
-        </NavLink>
-    </motion.div>
-);
+    const isActiveParent = item.subItems
+        ? item.subItems.some(sub => location.pathname === sub.path)
+        : location.pathname === item.path;
+
+    const [isOpen, setIsOpen] = useState(isActiveParent);
+
+    const toggleOpen = () => setIsOpen(!isOpen);
+
+    if (!item.subItems) {
+        return (
+            <NavLink
+                to={item.path}
+                className={({ isActive }) => `
+                    flex items-center gap-3 p-3 rounded-lg text-sm transition-all duration-200
+                    ${isActive
+                    ? "bg-indigo-600 text-white font-semibold shadow-md"
+                    : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 font-medium"
+                }
+                `}
+            >
+                {item.icon}
+                {item.label}
+            </NavLink>
+        );
+    }
+
+    return (
+        <div className="flex flex-col">
+            <button
+                onClick={toggleOpen}
+                className={`
+                    flex items-center justify-between w-full p-3 rounded-lg text-sm transition-all duration-200
+                    ${isActiveParent
+                    ? "bg-indigo-50 text-indigo-700 font-semibold"
+                    : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 font-medium"
+                }
+                `}
+            >
+                <div className="flex items-center gap-3">
+                    {item.icon}
+                    {item.label}
+                </div>
+                {isOpen ? <FiChevronDown /> : <FiChevronRight />}
+            </button>
+
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden pl-4"
+                    >
+                        <div className="border-l-2 border-indigo-100 pl-2 mt-1 space-y-1">
+                            {item.subItems.map((sub, idx) => (
+                                <NavLink
+                                    key={idx}
+                                    to={sub.path}
+                                    className={({ isActive }) => `
+                                        flex items-center gap-2 p-2 rounded-lg text-sm transition-all duration-200
+                                        ${isActive
+                                        ? "text-indigo-600 bg-indigo-50 font-semibold"
+                                        : "text-gray-500 hover:text-indigo-600 hover:bg-gray-50"
+                                    }
+                                    `}
+                                >
+                                    {sub.icon}
+                                    {sub.label}
+                                </NavLink>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
 
 const DashboardSidebar = () => {
     const navigate = useNavigate();
     const handleLogout = () => {
-
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-
         navigate("/login");
     };
 
     return (
         <motion.aside
-            className="w-64 bg-white flex flex-col border-r border-gray-200 shadow-sm max-h-screen sticky top-0"
+            className="w-64 bg-white flex flex-col border-r border-gray-200 shadow-sm max-h-screen sticky top-0 font-[Manrope]"
             initial={{ x: -64 }}
             animate={{ x: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
@@ -67,7 +131,7 @@ const DashboardSidebar = () => {
                 <FiBarChart2 /> DashStack
             </div>
 
-            <nav className="flex-1 px-4 py-4 overflow-y-auto">
+            <nav className="flex-1 px-4 py-4 overflow-y-auto custom-scrollbar">
                 {menuStructure.map((group, idx) => (
                     <div key={idx} className="space-y-1 mb-4">
                         {group.group && (

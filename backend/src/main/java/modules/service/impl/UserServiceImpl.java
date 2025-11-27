@@ -183,7 +183,7 @@ public class UserServiceImpl implements UserService { // ✅ Triển khai interf
         user.setEmail(dto.getEmail());
 
         List<Address> addresses = dto.getAddresses().stream()
-                .map(a -> new Address(a.getStreet(), a.getCity(), a.getPhoneNumber(), a.isDefault()))
+                .map(a -> new Address(a.getStreet(), a.getCity(), a.getPhoneNumber(),a.getProvince() ,a.getPostalCode() , a.isDefault()))
                 .collect(Collectors.toList());
 
         ensureSingleDefaultAddress(addresses);

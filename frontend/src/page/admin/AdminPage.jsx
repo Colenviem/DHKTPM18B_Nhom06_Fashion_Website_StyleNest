@@ -14,6 +14,7 @@ import AccountForm from "../../components/form/AccountForm";
 import UserListsTable from "../../components/table/UserListsTable";
 import ProductForm from "../../components/formProduct/ProductForm";
 import AdminSetting from "../../components/setting/AdminSetting";
+import ReturnRequestsTable  from "../../components/table/ReturnRequestsTable.jsx";
 import { AccountsProvider } from "../../context/AccountsContext";
 
 const AdminPage = () => {
@@ -46,6 +47,7 @@ const AdminPage = () => {
           <Route path="products" element={<ProductListsTable />} />
           <Route path="users" element={<UserListsTable />} />
           <Route path="settings" element={<AdminSetting />} />
+          <Route path="ordersReturns" element={<ReturnRequestsTable />} />
         </Routes>
       </main>
     </div>

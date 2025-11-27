@@ -36,7 +36,8 @@ const DashboardHeader = () => {
                             {authUser ? authUser.userName : 'Loading...'}
                         </p>
                         <p className="text-sm text-gray-500">
-                            {authUser ? authUser.role : 'Guest'}
+                            {/*{authUser ? authUser.role : 'Guest'}*/}
+                            ADMIN
                         </p>
                     </div>
 
