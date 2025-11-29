@@ -19,7 +19,7 @@ spring:
   # ==========================================
   mail:
     host: in-v3.mailjet.com   # Host của Mailjet
-    port: 587                 # Cổng TLS
+    port: 2525                 # Cổng TLS
     username: ${MAIL_USERNAME} # Trên Render điền: API Key
     password: ${MAIL_PASSWORD} # Trên Render điền: Secret Key
     properties:
