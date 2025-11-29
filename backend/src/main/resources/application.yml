@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8080} # Render tự động cung cấp PORT, mặc định 8080 nếu chạy local
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -10,14 +10,17 @@ spring:
     mongodb:
       uri: ${MONGODB_URI}
 
-  # Tắt auto-config Security nếu bạn muốn tự cấu hình (như dòng exclude cũ)
+  # Tắt auto-config Security
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
-  # Cấu hình Email (SMTP)
+  # ==========================================
+  # CẤU HÌNH EMAIL (ĐÃ SỬA ĐỔI)
+  # ==========================================
   mail:
     host: smtp.gmail.com
-    port: 587
+    port: 465                 # <--- Đổi từ 587 sang 465
+    protocol: smtps           # <--- Thêm dòng này để dùng giao thức bảo mật
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
@@ -27,18 +30,21 @@ spring:
           starttls:
             enable: true
             required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
+          ssl:                # <--- Thêm cấu hình SSL cho port 465
+            enable: true
+          # Tăng thời gian chờ lên 15 giây (15000ms)
+          connectiontimeout: 15000
+          timeout: 15000
+          writetimeout: 15000
 
   # Cấu hình RabbitMQ
   rabbitmq:
     uri: ${RABBITMQ_URI}
 
-  # Cấu hình Spring AI (Dùng Gemini qua giao thức OpenAI)
+  # Cấu hình Spring AI
   ai:
     openai:
-      api-key: ${GEMINI_API_KEY} # Đặt tên biến là GEMINI cho dễ nhớ vì bạn đang dùng Google
+      api-key: ${GEMINI_API_KEY}
       chat:
         base-url: https://generativelanguage.googleapis.com
         completions-path: /v1beta/openai/chat/completions
