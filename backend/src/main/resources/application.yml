@@ -1,6 +1,13 @@
 server:
   port: ${PORT:8080}
 
+# ==============================
+# Custom App Configuration
+# ==============================
+app:
+  # Nếu có biến môi trường FRONTEND_URL thì dùng, nếu không thì mặc định là localhost
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+
 spring:
   application:
     name: spring-ai
@@ -12,9 +19,11 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
+  # Cấu hình RabbitMQ
   rabbitmq:
     uri: ${RABBITMQ_URI}
 
+  # Cấu hình Spring AI
   ai:
     openai:
       api-key: ${GEMINI_API_KEY}
@@ -24,19 +33,23 @@ spring:
         options:
           model: gemini-2.0-flash
 
+# JWT configuration
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
 
+# RabbitMQ custom configuration
 rabbitmq:
   exchange: notification.exchange
   routing-key: notification.routing.key
 
+# Cloudinary Config
 cloudinary:
   cloud_name: ${CLOUDINARY_CLOUD_NAME}
   api_key: ${CLOUDINARY_API_KEY}
   api_secret: ${CLOUDINARY_API_SECRET}
 
+# Logging levels
 logging:
   level:
     org:
@@ -49,6 +62,7 @@ logging:
     com:
       rabbitmq: DEBUG
 
+# Cấu hình Resend API Key
 resend:
   api:
     key: ${RESEND_API_KEY}
