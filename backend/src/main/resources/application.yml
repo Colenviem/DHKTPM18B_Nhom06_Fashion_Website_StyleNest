@@ -12,30 +12,9 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
-  # ==========================================
-  # CẤU HÌNH RESEND CHẠY CỔNG 2525 (QUAN TRỌNG)
-  # ==========================================
-  mail:
-    host: smtp.resend.com
-    port: 587
-    username: resend
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 10000
-          timeout: 10000
-          writetimeout: 10000
-
-  # Cấu hình RabbitMQ
   rabbitmq:
     uri: ${RABBITMQ_URI}
 
-  # Cấu hình Spring AI
   ai:
     openai:
       api-key: ${GEMINI_API_KEY}
@@ -45,7 +24,6 @@ spring:
         options:
           model: gemini-2.0-flash
 
-# ... Các cấu hình JWT, Cloudinary, Logging giữ nguyên ...
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
@@ -70,3 +48,7 @@ logging:
           mail: DEBUG
     com:
       rabbitmq: DEBUG
+
+resend:
+  api:
+    key: ${RESEND_API_KEY}
