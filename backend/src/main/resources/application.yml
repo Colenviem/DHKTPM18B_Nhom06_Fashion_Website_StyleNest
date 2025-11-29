@@ -19,23 +19,28 @@ spring:
   # ==========================================
   mail:
     host: smtp.gmail.com
-    port: 465                 # <--- Đổi từ 587 sang 465
-    protocol: smtps           # <--- Thêm dòng này để dùng giao thức bảo mật
+    port: 587
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
       mail:
+        transport:
+          protocol: smtp
         smtp:
           auth: true
           starttls:
             enable: true
             required: true
-          ssl:                # <--- Thêm cấu hình SSL cho port 465
-            enable: true
-          # Tăng thời gian chờ lên 15 giây (15000ms)
-          connectiontimeout: 15000
-          timeout: 15000
-          writetimeout: 15000
+          # Quan trọng: Tăng timeout và connection timeout
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+          # Quan trọng: Trust all certificates (Đôi khi SSL handshake bị lỗi trên Cloud)
+          ssl:
+            trust: "*"
+            checkserveridentity: false
+    # Thử nghiệm: Protocol nên để trống hoặc là smtp, không phải smtps cho cổng 587
+    protocol: smtp
 
   # Cấu hình RabbitMQ
   rabbitmq:
