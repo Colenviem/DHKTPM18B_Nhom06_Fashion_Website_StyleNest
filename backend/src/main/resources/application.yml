@@ -18,10 +18,11 @@ spring:
   # CẤU HÌNH EMAIL CHO MAILJET
   # ==========================================
   mail:
-    host: in-v3.mailjet.com   # Host của Mailjet
-    port: 2525                 # Cổng TLS
-    username: ${MAIL_USERNAME} # Trên Render điền: API Key
-    password: ${MAIL_PASSWORD} # Trên Render điền: Secret Key
+    host: smtp.resend.com
+    port: 465               # Resend chạy rất ổn định trên cổng 465 (SSL)
+    username: resend        # Luôn luôn là chữ "resend"
+    password: ${MAIL_PASSWORD} # Đây sẽ là API Key (re_...)
+    protocol: smtps
     properties:
       mail:
         smtp:
@@ -29,7 +30,8 @@ spring:
           starttls:
             enable: true
             required: true
-          # Thời gian chờ (10 giây) để tránh treo ứng dụng
+          ssl:
+            enable: true
           connectiontimeout: 10000
           timeout: 10000
           writetimeout: 10000
