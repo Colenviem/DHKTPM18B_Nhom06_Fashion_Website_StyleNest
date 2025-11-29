@@ -5,33 +5,30 @@ spring:
   application:
     name: spring-ai
 
-  # Cấu hình MongoDB
   data:
     mongodb:
       uri: ${MONGODB_URI}
 
-  # Tắt auto-config Security
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
   # ==========================================
-  # CẤU HÌNH EMAIL CHO MAILJET
+  # CẤU HÌNH RESEND CHẠY CỔNG 2525 (QUAN TRỌNG)
   # ==========================================
   mail:
     host: smtp.resend.com
-    port: 465               # Resend chạy rất ổn định trên cổng 465 (SSL)
-    username: resend        # Luôn luôn là chữ "resend"
-    password: ${MAIL_PASSWORD} # Đây sẽ là API Key (re_...)
-    protocol: smtps
+    port: 2525               # <--- ĐỔI SANG 2525
+    username: resend
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
-            enable: true
+            enable: true     # <--- BẮT BUỘC BẬT (Cho port 2525/587)
             required: true
-          ssl:
-            enable: true
+          # ssl:             # <--- XÓA hoặc COMMENT dòng ssl này đi (chỉ dùng cho 465)
+          #   enable: true
           connectiontimeout: 10000
           timeout: 10000
           writetimeout: 10000
@@ -50,27 +47,20 @@ spring:
         options:
           model: gemini-2.0-flash
 
-# ==============================
-# Custom Configurations
-# ==============================
-
-# JWT configuration
+# ... Các cấu hình JWT, Cloudinary, Logging giữ nguyên ...
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
 
-# RabbitMQ custom configuration
 rabbitmq:
   exchange: notification.exchange
   routing-key: notification.routing.key
 
-# Cloudinary Config
 cloudinary:
   cloud_name: ${CLOUDINARY_CLOUD_NAME}
   api_key: ${CLOUDINARY_API_KEY}
   api_secret: ${CLOUDINARY_API_SECRET}
 
-# Logging levels
 logging:
   level:
     org:
