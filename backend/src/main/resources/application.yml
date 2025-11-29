@@ -15,32 +15,24 @@ spring:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
   # ==========================================
-  # CẤU HÌNH EMAIL (ĐÃ SỬA ĐỔI)
+  # CẤU HÌNH EMAIL CHO MAILJET
   # ==========================================
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    host: in-v3.mailjet.com   # Host của Mailjet
+    port: 587                 # Cổng TLS
+    username: ${MAIL_USERNAME} # Trên Render điền: API Key
+    password: ${MAIL_PASSWORD} # Trên Render điền: Secret Key
     properties:
       mail:
-        transport:
-          protocol: smtp
         smtp:
           auth: true
           starttls:
             enable: true
             required: true
-          # Quan trọng: Tăng timeout và connection timeout
+          # Thời gian chờ (10 giây) để tránh treo ứng dụng
           connectiontimeout: 10000
           timeout: 10000
           writetimeout: 10000
-          # Quan trọng: Trust all certificates (Đôi khi SSL handshake bị lỗi trên Cloud)
-          ssl:
-            trust: "*"
-            checkserveridentity: false
-    # Thử nghiệm: Protocol nên để trống hoặc là smtp, không phải smtps cho cổng 587
-    protocol: smtp
 
   # Cấu hình RabbitMQ
   rabbitmq:
