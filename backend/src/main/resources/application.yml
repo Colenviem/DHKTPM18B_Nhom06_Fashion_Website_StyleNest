@@ -17,7 +17,7 @@ spring:
   # ==========================================
   mail:
     host: smtp.resend.com
-    port: 2525               # <--- ĐỔI SANG 2525
+    port: 587
     username: resend
     password: ${MAIL_PASSWORD}
     properties:
@@ -25,10 +25,8 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: true     # <--- BẮT BUỘC BẬT (Cho port 2525/587)
+            enable: true
             required: true
-          # ssl:             # <--- XÓA hoặc COMMENT dòng ssl này đi (chỉ dùng cho 465)
-          #   enable: true
           connectiontimeout: 10000
           timeout: 10000
           writetimeout: 10000
