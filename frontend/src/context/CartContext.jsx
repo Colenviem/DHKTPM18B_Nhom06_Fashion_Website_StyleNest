@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import axios from "axios";
+import axiosClient from "../api/axiosClient";
 
 export const CartContext = createContext();
 
@@ -20,24 +20,17 @@ export const CartProvider = ({ children }) => {
 
         const fetchData = async () => {
             try {
-                const cartRes = await axios.get(`http://localhost:8080/api/carts/user/${userId}`);
+
+                const cartRes = await axiosClient.get(`/carts/user/${userId}`);
                 console.log("📦 Raw cart data:", cartRes.data);
 
-                // Fetch full product details for each item in cart
                 const items = await Promise.all(
                     (cartRes.data?.items || []).map(async (item) => {
                         try {
-                            // Fetch full product details from product API
-                            const productRes = await axios.get(
-                                `http://localhost:8080/api/products/${item.product.id}`
-                            );
+                            const productRes = await axiosClient.get(`/products/${item.product.id}`);
                             const fullProduct = productRes.data;
 
-                            console.log("🛍️ Full product data:", fullProduct);
-
                             const variants = fullProduct.variants || [];
-
-                            // Get selected color/size from cart item or use first variant
                             const selectedColor = item.product.selectedColor || variants[0]?.color;
                             const selectedSize = item.product.selectedSize || variants[0]?.size;
 
@@ -63,7 +56,6 @@ export const CartProvider = ({ children }) => {
                             };
                         } catch (err) {
                             console.error(`❌ Error fetching product ${item.product.id}:`, err);
-                            // Fallback to cart data if product fetch fails
                             return {
                                 id: item.product.id,
                                 name: item.product.name,
@@ -83,9 +75,7 @@ export const CartProvider = ({ children }) => {
 
                 console.log("✅ Processed cart items:", items);
                 setCartItems(items);
-
-                // Fetch user address
-                const userRes = await axios.get(`http://localhost:8080/api/users/${userId}`);
+                const userRes = await axiosClient.get(`/users/${userId}`);
                 const userData = userRes.data;
 
                 setUser(userData);
@@ -132,7 +122,7 @@ export const CartProvider = ({ children }) => {
                 )
             };
 
-            await axios.put(`http://localhost:8080/api/carts/user/${userId}`, payload);
+            await axiosClient.put(`/carts/user/${userId}`, payload);
             console.log("✅ Cart saved successfully");
         } catch (err) {
             console.error("❌ Lỗi khi lưu giỏ hàng:", err);

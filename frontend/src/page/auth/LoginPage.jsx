@@ -1,6 +1,5 @@
-// src/pages/LoginPage.jsx
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient"; // ✅ Dùng axiosClient
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -9,7 +8,7 @@ import { SkeletonInput, SkeletonButton } from "../../components/loadings/Skeleto
 function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // 👁 Thêm state toggle
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -27,12 +26,13 @@ function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await axios.post(
-          "http://localhost:8080/api/accounts/login",
-          { userName: username.trim(), password },
-          { withCredentials: true }
-      );
+      // ✅ Sửa: Gọi qua axiosClient, endpoint ngắn gọn
+      const res = await axiosClient.post("/accounts/login", {
+        userName: username.trim(),
+        password
+      });
 
+      // Nếu axiosClient trả về response gốc (có .data)
       if (res.status === 200 && res.data.token) {
         const { token, user } = res.data;
 
@@ -127,7 +127,7 @@ function LoginPage() {
                   {/* Password + 👁 Eye icon */}
                   <div className="relative">
                     <input
-                        type={showPassword ? "text" : "password"} // <-- Toggle eye
+                        type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -136,61 +136,19 @@ function LoginPage() {
                         placeholder=" "
                     />
 
-                    {/* 👁 Eye icon */}
                     <span
                         className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer select-none"
                         onClick={() => setShowPassword((prev) => !prev)}
                     >
                   {showPassword ? (
-                      // Eye Open
-                      <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="w-6 h-6 text-gray-500 hover:text-[#6F47EB] transition"
-                      >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51
-       7.36 4.5 12 4.5c4.638 0 8.573 3.007
-       9.963 7.178.07.207.07.431 0 .639C20.577
-       16.49 16.64 19.5 12 19.5c-4.638
-       0-8.573-3.007-9.963-7.178z"
-                        />
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500 hover:text-[#6F47EB] transition">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-
                   ) : (
-                      // Eye Closed
-                      <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="w-6 h-6 text-gray-500 hover:text-[#6F47EB] transition"
-                      >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6.228 6.228A10.45 10.45 0 0112 4.5c4.756
-       0 8.773 3.162 10.065 7.5a10.523
-       10.523 0 01-4.293 5.773"
-                        />
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894
-       7.894L21 21m-3.228-3.228l-3.65-3.65m0
-       0a3 3 0 10-4.243-4.243"
-                        />
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500 hover:text-[#6F47EB] transition">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.5a10.523 10.523 0 01-4.293 5.773" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243" />
                       </svg>
                   )}
                 </span>

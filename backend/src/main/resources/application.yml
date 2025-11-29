@@ -1,12 +1,79 @@
+server:
+  port: ${PORT:8080} # Render tự động cung cấp PORT, mặc định 8080 nếu chạy local
+
 spring:
   application:
     name: spring-ai
 
+  # Cấu hình MongoDB
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+
+  # Tắt auto-config Security nếu bạn muốn tự cấu hình (như dòng exclude cũ)
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+
+  # Cấu hình Email (SMTP)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+  # Cấu hình RabbitMQ
+  rabbitmq:
+    uri: ${RABBITMQ_URI}
+
+  # Cấu hình Spring AI (Dùng Gemini qua giao thức OpenAI)
   ai:
     openai:
-      api-key: AIzaSyCHNfPNPGg_qEa9VPNB0AWUhxUM9auw5CQ
+      api-key: ${GEMINI_API_KEY} # Đặt tên biến là GEMINI cho dễ nhớ vì bạn đang dùng Google
       chat:
         base-url: https://generativelanguage.googleapis.com
         completions-path: /v1beta/openai/chat/completions
         options:
           model: gemini-2.0-flash
+
+# ==============================
+# Custom Configurations
+# ==============================
+
+# JWT configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
+# RabbitMQ custom configuration
+rabbitmq:
+  exchange: notification.exchange
+  routing-key: notification.routing.key
+
+# Cloudinary Config
+cloudinary:
+  cloud_name: ${CLOUDINARY_CLOUD_NAME}
+  api_key: ${CLOUDINARY_API_KEY}
+  api_secret: ${CLOUDINARY_API_SECRET}
+
+# Logging levels
+logging:
+  level:
+    org:
+      springframework:
+        mail: DEBUG
+        amqp: DEBUG
+      eclipse:
+        angus:
+          mail: DEBUG
+    com:
+      rabbitmq: DEBUG

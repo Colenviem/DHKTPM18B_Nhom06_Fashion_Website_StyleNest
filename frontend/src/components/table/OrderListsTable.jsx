@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiFilter, FiChevronDown, FiChevronUp, FiSearch, FiX } from 'react-icons/fi';
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 
 
 const orderTypes = [
@@ -79,7 +79,6 @@ const OrderListsTable = () => {
     const [filterDate, setFilterDate] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [dateRange, setDateRange] = useState({ from: '', to: '' });
-    // Sorting state
     const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
 
     const [orders, setOrders] = useState([]);
@@ -89,9 +88,8 @@ const OrderListsTable = () => {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const res = await fetch("http://localhost:8080/api/orders");
-                if (!res.ok) throw new Error("Failed to fetch orders");
-                const data = await res.json();
+                const res = await axiosClient.get("/orders");
+                const data = res.data;
 
                 const mapped = data.map(order => ({
                     id: order.id,
@@ -99,13 +97,14 @@ const OrderListsTable = () => {
                     location: order.shippingAddress?.street || "No Address",
                     date: order.createdAt,
                     paymentMethod: order.paymentMethod || "Unknown",
-                    status: order.status
+                    status: order.status,
+                    type: order.type || "NORMAL"
                 }));
 
                 setOrders(mapped);
             } catch (err) {
                 console.error(err);
-                setError(err.message);
+                setError(err.message || "Failed to fetch orders");
             } finally {
                 setLoading(false);
             }
@@ -122,22 +121,21 @@ const OrderListsTable = () => {
 
     const updateStatus = async (id, newStatus) => {
         try {
-            await axios.put(
-                `http://localhost:8080/api/orders/${id}/status`,
-                { status: newStatus },   // 🔥 phải là "status"
-                { headers: { "Content-Type": "application/json" } }
+            await axiosClient.put(`/orders/${id}/status`, { status: newStatus });
+            setOrders(prevOrders =>
+                prevOrders.map(order =>
+                    order.id === id ? { ...order, status: newStatus } : order
+                )
             );
 
             alert("Cập nhật trạng thái thành công!");
         } catch (err) {
             console.error("Error updating status", err);
-            throw new Error("Failed to update status");
+            const msg = err.response?.data?.message || "Failed to update status";
+            alert(msg);
         }
     };
 
-
-
-    // Sorting function
     const handleSort = (key) => {
         let direction = 'asc';
         if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -155,19 +153,11 @@ const OrderListsTable = () => {
             : <FiChevronDown className="w-4 h-4 text-indigo-600" />;
     };
 
-    // Filter and sort orders
     const filteredAndSortedOrders = React.useMemo(() => {
         let filtered = orders.filter((order) => {
-            // Type filter
             const matchesType = selectedTypes.length === 0 || selectedTypes.includes(order.type);
-
-            // Status filter
             const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(order.status);
-
-            // Date filter (single date)
             const matchesDate = filterDate ? order.date?.slice(0, 10) === filterDate : true;
-
-            // Date range filter
             const matchesDateRange = (() => {
                 if (!dateRange.from && !dateRange.to) return true;
                 const orderDate = new Date(order.date);
@@ -184,7 +174,6 @@ const OrderListsTable = () => {
                 return true;
             })();
 
-            // Search filter
             const matchesSearch = searchQuery === '' ||
                 order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 order.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -193,18 +182,14 @@ const OrderListsTable = () => {
             return matchesType && matchesStatus && matchesDate && matchesDateRange && matchesSearch;
         });
 
-        // Sort
         filtered.sort((a, b) => {
             let aValue = a[sortConfig.key];
             let bValue = b[sortConfig.key];
 
-            // Special handling for date sorting
             if (sortConfig.key === 'date') {
                 aValue = new Date(aValue).getTime();
                 bValue = new Date(bValue).getTime();
             }
-
-            // String comparison
             if (typeof aValue === 'string') {
                 aValue = aValue.toLowerCase();
                 bValue = bValue.toLowerCase();

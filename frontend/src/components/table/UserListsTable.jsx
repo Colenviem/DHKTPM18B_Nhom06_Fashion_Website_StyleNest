@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-// import { motion } from 'framer-motion'; // Tắt animation để debug
 import { FiUser, FiMapPin, FiGift, FiSearch, FiAlertCircle } from 'react-icons/fi';
-import axios from 'axios';
+import axiosClient from "../../api/axiosClient";
 
-// Hàm tiện ích để định dạng ngày tháng (Chỉ lấy ngày)
 const formatDate = (isoString) => {
     if (!isoString) return 'N/A';
     return new Date(isoString).toLocaleDateString('vi-VN');
 };
-
-// Component Skeleton cho bảng
 const SkeletonRow = () => (
     <tr className="animate-pulse">
         <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
@@ -32,22 +28,14 @@ const UserListsTable = () => {
         const fetchUsers = async () => {
             setIsLoading(true);
             try {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    throw new Error("Người dùng chưa đăng nhập.");
-                }
-
-                const response = await axios.get('http://localhost:8080/api/users', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
+                const response = await axiosClient.get('/users');
 
                 setUsers(response.data);
                 setError(null);
             } catch (err) {
                 console.error("Lỗi khi tải danh sách người dùng:", err);
-                setError(err.response?.data?.message || "Không thể tải dữ liệu. Bạn có thể chưa đăng nhập hoặc không có quyền.");
+                const errorMsg = err.response?.data?.message || "Không thể tải dữ liệu. Bạn có thể chưa đăng nhập hoặc không có quyền.";
+                setError(errorMsg);
             } finally {
                 setIsLoading(false);
             }
@@ -58,7 +46,6 @@ const UserListsTable = () => {
 
     const filteredUsers = users.filter(user => {
         const lowerCaseSearch = searchTerm.toLowerCase();
-        // Đảm bảo các trường không bị null trước khi gọi toLowerCase()
         const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase();
         const email = (user.email || '').toLowerCase();
         const id = (user.id || '').toLowerCase();
@@ -73,8 +60,6 @@ const UserListsTable = () => {
     return (
         <div className="p-6 pt-24 bg-gray-50 min-h-screen">
             <h1 className="text-3xl font-semibold text-gray-800 mb-4">Danh sách Người dùng</h1>
-
-            {/* --- Thanh Tìm Kiếm --- */}
             <div className="flex items-center justify-start flex-wrap gap-4 mb-6 p-4 bg-white rounded-xl shadow-md border border-gray-100">
                 <div className="relative w-full sm:w-80">
                     <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -102,11 +87,7 @@ const UserListsTable = () => {
                     </tr>
                     </thead>
 
-                    {/* --- BODY ---
-                     *
-                     * BỎ HẾT MOTION.TBODY
-                     *
-                     */}
+                    {/* --- BODY --- */}
                     <tbody className="bg-white divide-y divide-gray-100">
                     {/* Loading */}
                     {isLoading && (
@@ -141,11 +122,7 @@ const UserListsTable = () => {
                         </tr>
                     )}
 
-                    {/* Data
-                         *
-                         * BỎ HẾT MOTION.TR
-                         *
-                         */}
+                    {/* Data */}
                     {!isLoading && !error && filteredUsers.map(user => (
                         <tr
                             key={user.id}

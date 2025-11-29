@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { FiX } from "react-icons/fi";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { CouponsContext } from "../../context/CouponsContext";
 
 const EditCouponForm = ({ coupon, onClose }) => {
@@ -22,7 +22,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // Validation
     if (name === "discount") {
       setErrors((prev) => ({
         ...prev,
@@ -73,15 +72,13 @@ const EditCouponForm = ({ coupon, onClose }) => {
     try {
       const dataToSend = {
         ...formData,
-        expirationDate: formData.expirationDate + ":00Z", // fix lại format
+        expirationDate: formData.expirationDate + ":00Z",
         usedCount: formData.usedCount,
       };
 
-      // 🔥 FIX: dùng ID để update, KHÔNG phải code
-      const response = await axios.put(
-          `http://localhost:8080/api/coupons/${coupon.id}`,
-          dataToSend,
-          { withCredentials: true }
+      const response = await axiosClient.put(
+          `/coupons/${coupon.id}`,
+          dataToSend
       );
 
       const updatedList = couponsData.map((c) =>
@@ -94,7 +91,8 @@ const EditCouponForm = ({ coupon, onClose }) => {
       onClose();
     } catch (error) {
       console.error(error);
-      alert("❌ Cập nhật thất bại!");
+      const errorMsg = error.response?.data?.message || "Cập nhật thất bại!";
+      alert(`❌ ${errorMsg}`);
     }
   };
 
@@ -116,7 +114,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
 
           <form onSubmit={handleSubmit} className="space-y-3">
 
-            {/* Code - readonly */}
             <div className="flex items-center gap-2">
               <label className="w-36 text-sm font-medium text-gray-700">Code:</label>
               <input
@@ -127,7 +124,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               />
             </div>
 
-            {/* Type */}
             <div className="flex items-center gap-2">
               <label className="w-36 text-sm font-medium text-gray-700">Loại:</label>
               <select
@@ -142,7 +138,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               </select>
             </div>
 
-            {/* Discount */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <label className="w-36 text-sm font-medium">% Giảm giá:</label>
@@ -161,7 +156,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               )}
             </div>
 
-            {/* Description */}
             <div className="flex items-center gap-2">
               <label className="w-36 text-sm font-medium">Mô tả:</label>
               <input
@@ -173,7 +167,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               />
             </div>
 
-            {/* Minimum order */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <label className="w-36 text-sm font-medium">Đơn tối thiểu:</label>
@@ -192,7 +185,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               )}
             </div>
 
-            {/* Expiration */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <label className="w-36 text-sm font-medium">Hạn sử dụng:</label>
@@ -209,7 +201,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               )}
             </div>
 
-            {/* Usage limit */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <label className="w-36 text-sm font-medium">Giới hạn:</label>
@@ -228,7 +219,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               )}
             </div>
 
-            {/* Used Count */}
             <div className="flex items-center gap-2">
               <label className="w-36 text-sm font-medium">Đã dùng:</label>
               <input
@@ -239,7 +229,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               />
             </div>
 
-            {/* Active */}
             <div className="flex justify-end items-center gap-2">
               <input
                   type="checkbox"
@@ -251,7 +240,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               <label className="text-sm">Active</label>
             </div>
 
-            {/* Buttons */}
             <div className="flex justify-end gap-2 mt-4">
               <button
                   type="button"
