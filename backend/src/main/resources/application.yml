@@ -9,7 +9,7 @@ app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   brevo:
     api-key: ${BREVO_API_KEY}
-    sender-email: "trancongtinh20042004@gmail.com" # Email đã verify trên Brevo
+    sender-email: "tranngochung19112004@gmail.com"
     sender-name: "StyleNest"
 spring:
   application:
@@ -40,7 +40,6 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
 
-# RabbitMQ custom configuration
 rabbitmq:
   exchange: notification.exchange
   routing-key: notification.routing.key
