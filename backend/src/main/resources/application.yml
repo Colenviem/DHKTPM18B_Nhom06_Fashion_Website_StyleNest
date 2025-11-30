@@ -7,7 +7,8 @@ server:
 app:
   # Nếu có biến môi trường FRONTEND_URL thì dùng, nếu không thì mặc định là localhost
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
-
+  brevo:
+    api-key: ${BREVO_API_KEY}
 spring:
   application:
     name: spring-ai
@@ -61,8 +62,3 @@ logging:
           mail: DEBUG
     com:
       rabbitmq: DEBUG
-
-# Cấu hình Resend API Key
-resend:
-  api:
-    key: ${RESEND_API_KEY}

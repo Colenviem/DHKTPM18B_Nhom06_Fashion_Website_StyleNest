@@ -16,9 +16,9 @@ import modules.util.JwtUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value; // Import cho @Value
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,10 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class AccountServiceImpl implements AccountService, UserDetailsService {
 
     private static final Logger logger = LoggerFactory.getLogger(AccountServiceImpl.class);
@@ -43,9 +41,10 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
     private final JwtUtil jwtUtil;
     private final RabbitTemplate rabbitTemplate;
     private final UserService userService;
-    private final EmailService emailService; // Được định nghĩa trong EmailServiceImpl
+    private final EmailService emailService;
 
-    @Value("${app.frontend-url}") // <-- INJECT FRONTEND URL TỪ application.yml
+    // Inject URL Frontend từ cấu hình
+    @Value("${app.frontend-url}")
     private String frontendUrl;
 
     public AccountServiceImpl(
@@ -67,22 +66,17 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
     }
 
     // =========================================================
-    // SPRING SECURITY INTERFACE (UserDetailsService)
+    // SPRING SECURITY: UserDetailsService
     // =========================================================
-
-    /**
-     * Tải thông tin người dùng bằng tên đăng nhập cho Spring Security.
-     */
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Chỉ cần tìm Account là đủ để xác thực
         return accountRepository.findByUserName(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
     // =========================================================
-    // CORE ACCOUNT MANAGEMENT LOGIC
+    // ACCOUNT SERVICE IMPLEMENTATION
     // =========================================================
 
     @Override
@@ -95,8 +89,7 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
             throw new IllegalArgumentException("Username or email already exists");
         }
 
-        // Tạo mã xác minh và thời hạn (10 phút)
-        String code = String.format("%06d", new Random().nextInt(999999));
+        String code = generateRandomCode(6);
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(10);
 
         // 1. Tạo Account
@@ -104,7 +97,7 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
         account.setUserName(request.getUserName());
         account.setPassWord(passwordEncoder.encode(request.getPassword()));
         account.setRole(request.getRole() != null ? request.getRole() : Role.CUSTOMER);
-        account.setActive(false); // Chưa kích hoạt
+        account.setActive(false);
         account.setVerificationCode(code);
         account.setVerificationExpiry(expiry);
         account = accountRepository.save(account);
@@ -119,11 +112,11 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
         user.setCreatedAt(Instant.now());
         user = userRepository.save(user);
 
-        // 3. Liên kết và lưu
+        // 3. Link Account với User
         account.setUserId(user.getId());
         accountRepository.save(account);
 
-        // 4. Gửi email xác minh qua Resend API
+        // 4. Gửi email
         sendVerificationEmail(request.getEmail(), code, "register");
 
         Map<String, Object> response = new HashMap<>();
@@ -158,6 +151,7 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
     public Map<String, Object> verifyCode(String email, String code) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
         Account account = accountRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
@@ -171,10 +165,9 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
         account.setVerificationExpiry(null);
         accountRepository.save(account);
 
-        // Gửi thông báo chào mừng qua RabbitMQ
+        // Gửi thông báo Welcome qua RabbitMQ (Async)
         sendWelcomeNotification(user);
 
-        // Lấy lại token mới (hoặc token cũ tùy logic)
         String token = jwtUtil.generateToken(user.getEmail(), "ROLE_" + account.getRole().name(), user.getId());
 
         Map<String, Object> response = new HashMap<>();
@@ -192,13 +185,12 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
         Account account = accountRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
-        String code = String.format("%06d", new Random().nextInt(999999));
+        String code = generateRandomCode(6);
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(10);
         account.setVerificationCode(code);
         account.setVerificationExpiry(expiry);
         accountRepository.save(account);
 
-        // Gửi email đặt lại mật khẩu
         sendVerificationEmail(request.getEmail(), code, "reset-password");
 
         Map<String, Object> response = new HashMap<>();
@@ -230,10 +222,6 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
         return response;
     }
 
-    // =========================================================
-    // CRUD & ADMIN OPERATIONS
-    // =========================================================
-
     @Override
     public List<Account> findAll() {
         return accountRepository.findAll();
@@ -244,56 +232,36 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
         return accountRepository.findById(id).orElse(null);
     }
 
-    // Các hàm tạo/cập nhật tài khoản cho Admin đã được hoàn thiện logic...
-    @Override
-    public Account createAccountByAdmin(AccountUserRequest.AccountDTO dto, String userId) {
-        // ... (Logic)
-        return null;
-    }
-
-    @Override
-    public Account updateAccountByAdmin(String accountId, AccountUserRequest.AccountDTO dto, String userId) {
-        // ... (Logic)
-        return null;
-    }
-
     // =========================================================
-    // EMAIL & NOTIFICATION HELPERS
+    // HELPER METHODS
     // =========================================================
 
-    /**
-     * Gửi email xác minh tài khoản hoặc đặt lại mật khẩu (Dùng Resend API)
-     */
     private void sendVerificationEmail(String email, String code, String type) {
-
         String title = type.equals("register")
                 ? "Xác minh tài khoản StyleNest"
                 : "Đặt lại mật khẩu StyleNest";
 
         String buttonText = type.equals("register") ? "Xác minh ngay" : "Đặt lại mật khẩu";
 
-        // Xây dựng link dựa trên biến môi trường (app.frontend-url)
-        String link = type.equals("register")
-                ? frontendUrl + "/verify-email?email=" + email + "&code=" + code
-                : frontendUrl + "/reset-password?email=" + email + "&code=" + code;
+        // Sử dụng frontendUrl được inject từ cấu hình
+        String endpoint = type.equals("register") ? "/verify-email" : "/reset-password";
+        String link = frontendUrl + endpoint + "?email=" + email + "&code=" + code;
 
-        // Tạo nội dung HTML
         String html = String.format("""
-            <div style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2>%s</h2>
-                <p>Mã xác minh (Verification Code):</p>
-                <h1 style="color: #6F47EB; background: #f0f0ff; padding: 10px; border-radius: 5px;">%s</h1>
-                <p>Hoặc bấm nút dưới đây để hoàn tất:</p>
-                <a href="%s" style="background-color: #6F47EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">%s</a>
-                <p style="margin-top: 20px; font-size: 0.9em; color: #777;">Link này sẽ hết hạn sau 10 phút.</p>
-            </div>
-            """, title, code, link, buttonText);
+                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #333;">%s</h2>
+                    <p>Xin chào,</p>
+                    <p>Mã xác minh của bạn là:</p>
+                    <h1 style="color: #6F47EB; letter-spacing: 5px;">%s</h1>
+                    <p>Hoặc bấm vào nút dưới đây để tiếp tục:</p>
+                    <a href="%s" style="background-color: #6F47EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">%s</a>
+                    <p style="margin-top: 20px; font-size: 0.9em; color: #777;">Mã này có hiệu lực trong 10 phút.</p>
+                </div>
+                """, title, code, link, buttonText);
 
-        // Gửi email qua EmailService (Resend API)
+        // ✅ SỬA LẠI: Gọi đúng hàm sendEmail (không phải sendHtmlEmail)
         emailService.sendEmail(email, title, html);
-        logger.info("Email verification/reset sent via Resend API to: {}", email);
     }
-
 
     private void sendWelcomeNotification(User user) {
         try {
@@ -329,6 +297,34 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
         response.setRole(account.getRole() != null ? account.getRole().name() : "CUSTOMER");
         response.setActive(account.isActive());
         return response;
+    }
+
+    public Account createAccountByAdmin(AccountUserRequest.AccountDTO dto, String userId) {
+        Account account = new Account();
+        account.setUserName(dto.getUsername());
+        account.setRole(Role.valueOf(dto.getRole()));
+        account.setActive(dto.isActive());
+        account.setUserId(userId);
+
+        // ✅ SỬA LẠI: Fix lỗi "Cannot resolve method getPassword"
+        // Gán cứng password mặc định vì AccountDTO không có trường password
+        account.setPassWord(passwordEncoder.encode("123456"));
+
+        return accountRepository.save(account);
+    }
+
+    public Account updateAccountByAdmin(String accountId, AccountUserRequest.AccountDTO dto, String userId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account không tồn tại"));
+
+        account.setUserName(dto.getUsername());
+        account.setRole(Role.valueOf(dto.getRole()));
+        account.setActive(dto.isActive());
+        account.setUserId(userId);
+
+        // ✅ SỬA LẠI: Bỏ logic cập nhật password ở đây vì DTO thiếu trường này
+
+        return accountRepository.save(account);
     }
 
     private String generateRandomCode(int length) {
