@@ -9,10 +9,11 @@ app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   brevo:
     api-key: ${BREVO_API_KEY}
+    sender-email: "trancongtinh20042004@gmail.com" # Email đã verify trên Brevo
+    sender-name: "StyleNest"
 spring:
   application:
     name: spring-ai
-
   data:
     mongodb:
       uri: ${MONGODB_URI}
