@@ -36,16 +36,17 @@ const CouponListsTable = () => {
   });
 
   // Xóa coupon
-  const handleDelete = async (code) => {
-    if (!window.confirm(`Bạn chắc muốn xóa mã ${code}?`)) return;
+  const handleDelete = async (id) => {
+    if (!window.confirm(`Bạn chắc muốn xóa mã ${id}?`)) return;
 
     try {
-      await fetch(`http://localhost:8080/api/coupons/${code}`, {
+      await fetch(`http://localhost:8080/api/coupons/${id}`, {
         method: "DELETE",
       });
-      setCouponsData(couponsData.filter((c) => c.code !== code));
+      setCouponsData(couponsData.filter((c) => c.id !== id));
       alert("✅ Xóa thành công!");
     } catch (err) {
+      console.error("Lỗi khi xóa mã:", err);
       alert("❌ Xóa thất bại!");
     }
   };
@@ -121,7 +122,7 @@ const CouponListsTable = () => {
                           <button
                               title="Xóa"
                               className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-red-100"
-                              onClick={() => handleDelete(coupon.code)}
+                              onClick={() => handleDelete(coupon.id)}
                           >
                             <FiTrash2 className="w-4 h-4" />
                           </button>
