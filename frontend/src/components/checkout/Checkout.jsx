@@ -898,13 +898,18 @@ const Checkout = () => {
                 </div>
 
                 <div className="px-6 py-4 space-y-6 text-gray-800">
+
+                    {/* PHƯƠNG THỨC THANH TOÁN */}
                     <div>
                         <h3 className="text-lg font-medium mb-4">Phương thức thanh toán</h3>
                         <div className="flex space-x-4">
                             {["Credit", "Googlepay", "Code"].map(method => (
                                 <button
                                     key={method}
-                                    className={`border rounded px-4 py-2 text-sm transition-all duration-200 hover:scale-105 ${selectedPaymentMethod === method ? "border-[#6F47EB] text-[#6F47EB]" : "hover:border-gray-400"}`}
+                                    className={`border rounded px-4 py-2 text-sm transition-all duration-200 hover:scale-105 
+                        ${selectedPaymentMethod === method
+                                        ? "border-[#6F47EB] text-[#6F47EB]"
+                                        : "hover:border-gray-400"}`}
                                     onClick={() => setSelectedPaymentMethod(method)}
                                 >
                                     {{
@@ -916,7 +921,44 @@ const Checkout = () => {
                             ))}
                         </div>
                     </div>
+
+                    {/* HIỂN THỊ THEO PHƯƠNG THỨC ĐÃ CHỌN */}
+                    {selectedPaymentMethod === "Credit" && (
+                        <div className="space-y-3 mt-4 border p-4 rounded-lg text-center">
+                            <p className="font-semibold">Quét mã QR để thanh toán</p>
+
+                            <div className="flex justify-center">
+                                <img
+                                    src="https://res.cloudinary.com/dibguk5n6/image/upload/v1764594814/547f92f2-ad6b-4542-b998-869a3a938d76_talekm.jpg"
+                                    alt="QR thanh toán"
+                                    className="w-80 h-80 rounded-md"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {selectedPaymentMethod === "Googlepay" && (
+                        <div className="space-y-3 mt-4 border p-4 rounded-lg">
+                            <p className="font-semibold text-gray-700">Thanh toán qua Google Pay</p>
+                            <input
+                                type="email"
+                                placeholder="Email Google Pay"
+                                className="w-full border rounded px-4 py-2 focus:outline-[#6F47EB]"
+                            />
+                            <button className="bg-black text-white rounded px-4 py-2 w-full">
+                                Xác nhận Google Pay
+                            </button>
+                        </div>
+                    )}
+
+                    {selectedPaymentMethod === "Code" && (
+                        <div className="mt-4 text-sm text-gray-600">
+                            Trả tiền trực tiếp khi nhận hàng 🚚
+                        </div>
+                    )}
+
                 </div>
+
 
                 <div className="px-6 py-4 space-y-2 border-t border-b">
                     <div className="flex justify-between">

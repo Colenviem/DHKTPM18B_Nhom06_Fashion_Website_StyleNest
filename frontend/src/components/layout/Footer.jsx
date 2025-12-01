@@ -6,30 +6,30 @@ const Footer = () => {
   const companyLinks = [
     { name: "Về chúng tôi", path: "/about" },
     { name: "Liên hệ", path: "/contact" },
-    { name: "Hỗ trợ", path: "/support" },
-    { name: "Tuyển dụng", path: "/careers" },
+    { name: "Hỗ trợ", path: "/contact" },
+    { name: "Tuyển dụng", path: "/contact" },
   ];
 
   const quickLinks = [
-    { name: "Chia sẻ vị trí", path: "/location" },
-    { name: "Theo dõi đơn hàng", path: "/orders" },
-    { name: "Hướng dẫn chọn size", path: "/size-guide" },
+    { name: "Chia sẻ vị trí", path: "/contact" },
+    { name: "Theo dõi đơn hàng", path: "/profile" },
+    { name: "Hướng dẫn chọn size", path: "/size" },
     { name: "Câu hỏi thường gặp", path: "/faqs" },
   ];
 
   const legalLinks = [
-    { name: "Điều khoản & điều kiện", path: "/terms" },
+    { name: "Điều khoản & điều kiện", path: "/services" },
     { name: "Chính sách bảo mật", path: "/privacy" },
   ];
 
-  const socialIcons = [
-    { name: "facebook", icon: FiFacebook },
-    { name: "instagram", icon: FiInstagram },
-    { name: "twitter", icon: FiTwitter },
-    { name: "youtube", icon: FiYoutube },
-  ];
+    const socialIcons = [
+        { name: "facebook", icon: FiFacebook, url: "https://www.facebook.com/stylenest.hairsalon/" },
+        { name: "instagram", icon: FiInstagram, url: "https://www.instagram.com/style.nestt7/" },
+        { name: "twitter", icon: FiTwitter, url: "https://www.instagram.com/style.nestt7/" },
+        { name: "youtube", icon: FiYoutube, url: "https://www.youtube.com/@stylenest3036/videos" },
+    ];
 
-  return (
+    return (
     <footer className="bg-[#0B0B0F] text-gray-400">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-6">
         {/* Grid chính */}
@@ -43,21 +43,21 @@ const Footer = () => {
               Hoàn thiện phong cách của bạn với những bộ trang phục tuyệt vời từ chúng tôi.
             </p>
 
-            <div className="flex space-x-4">
-              {socialIcons.map((item, i) => (
-                <Link
-                  key={i}
-                  to="#"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 border-2 border-[#6F47EB] text-[#6F47EB] rounded-full flex items-center justify-center 
-                    transition-all duration-300 hover:bg-[#6F47EB] hover:text-white hover:scale-105 shadow-sm shadow-[#6F47EB]/30"
-                  aria-label={`Theo dõi chúng tôi trên ${item.name}`}
-                >
-                  <item.icon className="text-xl" />
-                </Link>
-              ))}
-            </div>
+              <div className="flex space-x-4">
+                  {socialIcons.map((item, i) => (
+                      <a
+                          key={i}
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-10 h-10 border-2 border-[#6F47EB] text-[#6F47EB] rounded-full flex items-center justify-center
+        transition-all duration-300 hover:bg-[#6F47EB] hover:text-white hover:scale-105 shadow-sm shadow-[#6F47EB]/30"
+                          aria-label={`Theo dõi chúng tôi trên ${item.name}`}
+                      >
+                          <item.icon className="text-xl" />
+                      </a>
+                  ))}
+              </div>
           </div>
 
           {/* Các cột liên kết */}

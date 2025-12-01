@@ -1,4 +1,3 @@
-// src/pages/Services/ServicesPage.jsx
 import React from "react";
 import { motion } from "framer-motion";
 import {
@@ -20,42 +19,38 @@ const containerVariants = {
 };
 
 const SERVICES = [
-  {
-    icon: FiUsers,
-    title: "Tư Vấn Phong Cách Cá Nhân",
-    description:
-      "Đội ngũ stylist chuyên nghiệp giúp bạn chọn trang phục hoàn hảo theo vóc dáng & cá tính.",
-    link: "#",
-  },
-  {
-    icon: FiRefreshCw,
-    title: "Đổi Trả Dễ Dàng Trong 30 Ngày",
-    description:
-      "An tâm mua sắm với chính sách đổi trả nhanh chóng và linh hoạt.",
-    link: "#",
-  },
-  {
-    icon: FiTruck,
-    title: "Giao Hàng Siêu Tốc & Miễn Phí",
-    description:
-      "Miễn phí giao hàng cho đơn từ 500.000đ, giao nhanh trong 24h tại thành phố lớn.",
-    link: "#",
-  },
-  {
-    icon: FiCreditCard,
-    title: "Thanh Toán Bảo Mật",
-    description:
-      "Thanh toán qua COD, thẻ, ví điện tử với công nghệ mã hóa cao cấp.",
-    link: "#",
-  },
-  {
-    icon: FiHeadphones,
-    title: "Hỗ Trợ Khách Hàng 24/7",
-    description:
-      "Đội hỗ trợ trực tuyến 24/7, sẵn sàng giải đáp mọi thắc mắc.",
-    link: "#",
-  },
+    {
+        icon: FiUsers,
+        title: "Tư Vấn Phong Cách Cá Nhân",
+        description: "Đội ngũ stylist chuyên nghiệp giúp bạn chọn trang phục hoàn hảo theo vóc dáng & cá tính.",
+        link: "/services/styling",
+    },
+    {
+        icon: FiRefreshCw,
+        title: "Đổi Trả Dễ Dàng Trong 30 Ngày",
+        description: "An tâm mua sắm với chính sách đổi trả nhanh chóng và linh hoạt.",
+        link: "/services/return-policy",
+    },
+    {
+        icon: FiTruck,
+        title: "Giao Hàng Siêu Tốc & Miễn Phí",
+        description: "Miễn phí giao hàng cho đơn từ 500.000đ, giao nhanh trong 24h tại thành phố lớn.",
+        link: "/services/shipping",
+    },
+    {
+        icon: FiCreditCard,
+        title: "Thanh Toán Bảo Mật",
+        description: "Thanh toán qua COD, thẻ, ví điện tử với công nghệ mã hóa cao cấp.",
+        link: "/services/payment-security",
+    },
+    {
+        icon: FiHeadphones,
+        title: "Hỗ Trợ Khách Hàng 24/7",
+        description: "Đội hỗ trợ trực tuyến 24/7, sẵn sàng giải đáp mọi thắc mắc.",
+        link: "/contact",
+    },
 ];
+
 
 const ServicesPage = () => {
   return (
