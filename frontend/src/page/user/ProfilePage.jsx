@@ -380,6 +380,15 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
                 <div className="space-y-3">
                     <div className="flex justify-between text-gray-700"><div className="flex items-center gap-2"><FiTruck className="w-4 h-4" /><span>Phí vận chuyển</span></div><span className="font-semibold">{(Number(order.shippingFee) || 0).toLocaleString('vi-VN')}₫</span></div>
                     {order.discountAmount > 0 && (<div className="flex justify-between text-green-600"><span>Giảm giá</span><span className="font-semibold">-{(Number(order.discountAmount) || 0).toLocaleString('vi-VN')}₫</span></div>)}
+                    <div className="flex justify-between text-gray-700">
+                        <div className="flex items-center gap-2">
+                            <span>Tổng tiền sản phẩm</span>
+                        </div>
+                        <span className="font-semibold">
+                            {(Number(order.subtotal) || 0).toLocaleString('vi-VN')}₫
+                        </span>
+                    </div>
+
                     <div className="pt-3 border-t-2 border-gray-300 flex justify-between items-center"><span className="text-base font-bold text-gray-900">Tổng tiền</span><span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{(Number(order.totalAmount) || 0).toLocaleString('vi-VN')}₫</span></div>
                 </div>
             </motion.div>
@@ -765,6 +774,32 @@ function ProfilePage() {
         return statusColors[status] || 'bg-gray-100 text-gray-800 border-gray-300';
     };
 
+    const [filterStatus, setFilterStatus] = useState("all");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const ordersPerPage = 5;
+
+    const filteredOrders = orders.filter(order => {
+        const matchesSearch = order.id
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+
+        const matchesStatus = filterStatus === "all" || order.status === filterStatus;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    const indexOfLastOrder = currentPage * ordersPerPage;
+    const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+    const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+
+    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filterStatus]);
+
+
     const paymentText = { Credit: "Thẻ Tín dụng", Googlepay: "Google Pay", Code: "Thanh toán khi nhận" };
 
     if (!user) return null;
@@ -851,9 +886,38 @@ function ProfilePage() {
                                 />
                             ) : (
                                 <>
-                                    {orders.length === 0 && (<p className="text-gray-500">Bạn chưa có đơn hàng nào.</p>)}
+                                    <div className="max-w-5xl mx-auto mb-6 flex gap-3">
+                                        <input
+                                            type="text"
+                                            placeholder="🔍 Tìm kiếm theo mã đơn..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="flex-1 p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                                        />
+
+                                        <select
+                                            className="p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                                            value={filterStatus}
+                                            onChange={(e) => setFilterStatus(e.target.value)}
+                                        >
+                                            <option value="all">Tất cả trạng thái</option>
+                                            <option value="PENDING">Chờ xác nhận</option>
+                                            <option value="PROCESSING">Đang xử lý</option>
+                                            <option value="SHIPPED">Đang giao</option>
+                                            <option value="Delivered">Đã giao</option>
+                                            <option value="Cancelled">Đã hủy</option>
+                                            <option value="ReturnRequested">Yêu cầu hoàn trả</option>
+                                        </select>
+                                    </div>
+
+                                    {filteredOrders.length === 0 && (
+                                        <p className="text-center text-gray-500 italic">
+                                            Không tìm thấy đơn hàng phù hợp.
+                                        </p>
+                                    )}
+
                                     <div className="space-y-6 max-w-5xl mx-auto">
-                                        {orders?.map((order) => (
+                                        {currentOrders?.map((order) => (
                                             <div key={order.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100">
                                                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4 border-b border-gray-100">
                                                     <div className="flex items-center justify-between">
@@ -879,6 +943,40 @@ function ProfilePage() {
                                             </div>
                                         ))}
                                     </div>
+                                    {totalPages > 1 && (
+                                        <div className="flex justify-center items-center gap-2 mt-6">
+                                            <button
+                                                disabled={currentPage === 1}
+                                                onClick={() => setCurrentPage(prev => prev - 1)}
+                                                className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-100 disabled:opacity-50"
+                                            >
+                                                ‹
+                                            </button>
+
+                                            {[...Array(totalPages)].map((_, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => setCurrentPage(i + 1)}
+                                                    className={`px-4 py-2 rounded-lg border ${
+                                                        currentPage === i + 1
+                                                            ? 'bg-indigo-600 text-white'
+                                                            : 'bg-white hover:bg-gray-100'
+                                                    }`}
+                                                >
+                                                    {i + 1}
+                                                </button>
+                                            ))}
+
+                                            <button
+                                                disabled={currentPage === totalPages}
+                                                onClick={() => setCurrentPage(prev => prev + 1)}
+                                                className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-100 disabled:opacity-50"
+                                            >
+                                                ›
+                                            </button>
+                                        </div>
+                                    )}
+
                                 </>
                             )}
                         </div>
