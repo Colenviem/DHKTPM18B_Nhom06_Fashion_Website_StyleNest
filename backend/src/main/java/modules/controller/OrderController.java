@@ -2,8 +2,10 @@ package modules.controller;
 
 import lombok.RequiredArgsConstructor;
 import modules.entity.Account;
+import modules.entity.Coupon;
 import modules.entity.Order;
 import modules.entity.ShippingAddress;
+import modules.repository.CouponRepository;
 import modules.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 public class OrderController {
 
     private final OrderService orderService;
+    private final CouponRepository couponRepository;
 
     @GetMapping
     public ResponseEntity<List<Order>> getAllOrders() {
@@ -62,12 +66,13 @@ public class OrderController {
             Map<String, Integer> products = itemsList.stream()
                     .collect(Collectors.toMap(
                             item -> (String) item.get("productId"),
-                            item -> (Integer) item.get("quantity")
+                            item -> ((Number) item.get("quantity")).intValue()
                     ));
 
             String paymentMethod = (String) body.get("paymentMethod");
+            String couponCode = (String) body.get("couponCode");
 
-            Order order = orderService.createOrder(address, products, paymentMethod);
+            Order order = orderService.createOrder(address, products, paymentMethod, couponCode);
 
             return ResponseEntity.ok(order);
 
@@ -76,6 +81,67 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
+    }
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateCoupon(
+            @RequestParam String code,
+            @RequestParam double orderAmount
+    ) {
+        Optional<Coupon> couponOpt = couponRepository.findByCodeIgnoreCase(code.trim());
+
+        if (couponOpt.isEmpty()) {
+            return ResponseEntity.ok(Map.of(
+                    "valid", false,
+                    "message", "Mã giảm giá không tồn tại"
+            ));
+        }
+
+        Coupon coupon = couponOpt.get();
+
+        if (!coupon.isActive()) {
+            return ResponseEntity.ok(Map.of(
+                    "valid", false,
+                    "message", "Mã giảm giá đã bị khóa hoặc không kích hoạt"
+            ));
+        }
+
+        if (coupon.getUsedCount() >= coupon.getUsageLimit()) {
+            return ResponseEntity.ok(Map.of(
+                    "valid", false,
+                    "message", "Mã giảm giá đã hết lượt sử dụng"
+            ));
+        }
+
+        if (coupon.getExpirationDate().isBefore(Instant.now())) {
+            return ResponseEntity.ok(Map.of(
+                    "valid", false,
+                    "message", "Mã giảm giá đã hết hạn"
+            ));
+        }
+
+        if (orderAmount < coupon.getMinimumOrderAmount()) {
+            return ResponseEntity.ok(Map.of(
+                    "valid", false,
+                    "message", "Không đủ điều kiện sử dụng mã này"
+            ));
+        }
+
+        double discountValue;
+        if ("ORDER".equalsIgnoreCase(coupon.getType())) {
+            discountValue = (coupon.getDiscount() < 100)
+                    ? orderAmount * (coupon.getDiscount() / 100.0)
+                    : coupon.getDiscount();
+        } else {
+            discountValue = coupon.getDiscount();
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "valid", true,
+                "code", coupon.getCode(),
+                "type", coupon.getType(),
+                "discount", discountValue,
+                "message", "Áp dụng mã thành công!"
+        ));
     }
 
 

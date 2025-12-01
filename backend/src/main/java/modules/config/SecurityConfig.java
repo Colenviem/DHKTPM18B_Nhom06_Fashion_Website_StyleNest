@@ -96,6 +96,7 @@ public class SecurityConfig {
                                 "/api/coupons/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/orders/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders/**").permitAll()
                         .requestMatchers("/api/returns/**").authenticated()
                         .anyRequest().authenticated()
                 )

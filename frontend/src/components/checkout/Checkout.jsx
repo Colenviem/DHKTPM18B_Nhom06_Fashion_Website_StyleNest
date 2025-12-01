@@ -25,6 +25,9 @@ const Checkout = () => {
     const [showNewAddressModal, setShowNewAddressModal] = useState(false);
     const [tempSelectedAddress, setTempSelectedAddress] = useState(null);
 
+    const [couponCode, setCouponCode] = useState("");
+    const [discountValue, setDiscountValue] = useState(0);
+
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [createdOrderCode, setCreatedOrderCode] = useState(null);
 
@@ -34,11 +37,15 @@ const Checkout = () => {
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
 
-    // State cho API địa chỉ
     const [cities, setCities] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
     const [loadingAddress, setLoadingAddress] = useState(false);
+
+    const [showCouponModal, setShowCouponModal] = useState(false);
+    const [showCouponError, setShowCouponError] = useState(false);
+    const [couponMessage, setCouponMessage] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
 
     const subtotal = useMemo(() =>
             itemsToCheckout.reduce((total, item) =>
@@ -47,7 +54,7 @@ const Checkout = () => {
         [itemsToCheckout]
     );
 
-    const total = subtotal + shippingFee;
+    const total = subtotal + shippingFee - discountValue;
 
     const [newAddressForm, setNewAddressForm] = useState({
         name: "",
@@ -60,8 +67,6 @@ const Checkout = () => {
         isDefault: false
     });
 
-
-    // Load danh sách tỉnh/thành phố khi component mount
     useEffect(() => {
         fetch('https://provinces.open-api.vn/api/p/')
             .then(res => res.json())
@@ -69,7 +74,6 @@ const Checkout = () => {
             .catch(err => console.error('Lỗi load tỉnh/thành:', err));
     }, []);
 
-    // Load quận/huyện khi chọn tỉnh/thành
     const handleCityChange = (cityCode) => {
         setNewAddressForm(prev => ({
             ...prev,
@@ -96,7 +100,47 @@ const Checkout = () => {
         }
     };
 
-    // Load phường/xã khi chọn quận/huyện
+    const applyCoupon = async () => {
+        const code = couponCode.trim();
+        if (!code) {
+            setCouponMessage("Vui lòng nhập mã giảm giá!");
+            setShowCouponError(true);
+            return;
+        }
+
+        try {
+            const res = await axios.get("http://localhost:8080/api/orders/validate", {
+                params: {
+                    code,
+                    orderAmount: Number(subtotal)
+                }
+            });
+
+            if (res.data.valid) {
+                setAppliedCoupon(res.data);
+                setDiscountValue(res.data.discount || 0);
+                setCouponMessage(res.data.message || "Áp dụng mã thành công!");
+                setShowCouponModal(true);
+                setShowCouponError(false);
+            } else {
+                setCouponMessage(res.data.message);
+                setShowCouponError(true);
+                setDiscountValue(0);
+                setAppliedCoupon(null);
+                setShowCouponModal(false);
+            }
+
+        } catch (err) {
+            const msg = err.response?.data?.message || "Mã giảm giá không hợp lệ!";
+            setCouponMessage(msg);
+            setShowCouponError(true);
+            setDiscountValue(0);
+            setAppliedCoupon(null);
+            setShowCouponModal(false);
+        }
+    };
+
+
     const handleDistrictChange = (districtCode) => {
         setNewAddressForm(prev => ({
             ...prev,
@@ -124,6 +168,7 @@ const Checkout = () => {
     const handleCheckout = async () => {
         try {
             const token = localStorage.getItem("token");
+
             if (!userId || !token) {
                 alert("Bạn chưa đăng nhập!");
                 return;
@@ -146,18 +191,19 @@ const Checkout = () => {
                     id: selectedAddress.id || null,
                     name: selectedAddress.name || "Khách hàng",
                     street: `${selectedAddress.street}, ${selectedAddress.city || ""}`.trim(),
-                    phoneNumber: selectedAddress.phoneNumber
+                    phoneNumber: selectedAddress.phone || selectedAddress.phoneNumber
                 },
                 items: itemsToCheckout.map(item => ({
                     productId: item.id,
                     quantity: item.quantity || 1
                 })),
+                discountAmount: discountValue || 0,
                 shippingFee: shippingFee,
                 note: note,
-                totalPrice: total
+                subtotal: subtotal,
+                totalAmount: subtotal + shippingFee - (discountValue || 0),
+                couponCode: appliedCoupon?.code || null
             };
-
-            console.log("📤 Sending order payload:", JSON.stringify(orderPayload, null, 2));
 
             const response = await axios.post(
                 "http://localhost:8080/api/orders",
@@ -170,8 +216,6 @@ const Checkout = () => {
                 }
             );
 
-            console.log("✅ Order created:", response.data);
-
             setCreatedOrderCode(response.data.orderCode || null);
             setShowSuccessModal(true);
 
@@ -180,13 +224,7 @@ const Checkout = () => {
             }
 
         } catch (error) {
-            console.error("❌ Checkout error:", error);
-
             if (axios.isAxiosError(error)) {
-                console.error("Status:", error.response?.status);
-                console.error("Response data:", JSON.stringify(error.response?.data, null, 2));
-                console.error("Request payload:", error.config?.data);
-
                 const errorMsg = error.response?.data?.error
                     || error.response?.data?.message
                     || error.message;
@@ -284,7 +322,6 @@ const Checkout = () => {
             return;
         }
 
-        // Lấy tên từ code
         const cityName = cities.find(c => c.code === parseInt(newAddressForm.city))?.name || "";
         const districtName = districts.find(d => d.code === parseInt(newAddressForm.district))?.name || "";
         const wardName = wards.find(w => w.code === parseInt(newAddressForm.ward))?.name || "";
@@ -393,8 +430,6 @@ const Checkout = () => {
         try {
             const token = localStorage.getItem("token");
 
-            console.log("🔄 Setting address as default:", id);
-
             await axios.put(
                 `http://localhost:8080/api/users/${userId}/addresses/${id}/default`,
                 {},
@@ -412,7 +447,6 @@ const Checkout = () => {
 
             if (defaultAddr) {
                 setSelectedAddress(defaultAddr);
-                console.log("✅ New default address set:", defaultAddr);
             }
 
             alert("Đã đặt địa chỉ này làm mặc định!");
@@ -620,7 +654,6 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                {/* Tỉnh/Thành phố */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Tỉnh/Thành phố <span className="text-red-500">*</span>
@@ -642,7 +675,6 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                {/* Quận/Huyện */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Quận/Huyện <span className="text-red-500">*</span>
@@ -665,7 +697,6 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                {/* Phường/Xã */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Phường/Xã <span className="text-red-500">*</span>
@@ -688,7 +719,6 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                {/* Địa chỉ cụ thể */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Địa chỉ cụ thể <span className="text-red-500">*</span>
@@ -773,15 +803,75 @@ const Checkout = () => {
                     ))}
                 </div>
 
-                {/* Lời nhắn */}
                 <div className="px-6 py-4 grid grid-cols-12 gap-4 items-center">
                     <label className="col-span-3 text-gray-600">Lời nhắn:</label>
                     <div className="col-span-9">
                         <input type="text" className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm" placeholder="Lưu ý cho Người bán..." value={note} onChange={e => setNote(e.target.value)} />
                     </div>
                 </div>
+                <div className="px-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Mã Giảm Giá
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="Nhập mã..."
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            className="flex-1 border rounded-lg px-4 py-2 focus:border-[#6F47EB] focus:ring-2 focus:ring-[#6F47EB]/20 outline-none transition"
+                        />
+                        <button
+                            onClick={applyCoupon}
+                            className="bg-[#6F47EB] hover:bg-[#5E3FB9] text-white px-4 py-2 rounded-lg transition font-medium"
+                        >
+                            Áp dụng
+                        </button>
+                    </div>
 
-                {/* Phương thức vận chuyển */}
+                    {discountValue > 0 && (
+                        <p className="text-green-600 mt-2 text-sm">
+                            Đã giảm: {discountValue.toLocaleString()} đ
+                        </p>
+                    )}
+                </div>
+
+                {showCouponModal && (
+                    <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+                        <div className="bg-white p-6 rounded-xl shadow-md text-center">
+                            <h2 className="text-xl font-semibold text-green-600 mb-3">
+                                🎉 Áp dụng mã thành công!
+                            </h2>
+                            <p>{couponMessage}</p>
+
+                            <button
+                                onClick={() => setShowCouponModal(false)}
+                                className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {showCouponError && (
+                    <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+                        <div className="bg-white p-6 rounded-xl shadow-md text-center">
+                            <h2 className="text-xl font-semibold text-red-600 mb-3">
+                                ⚠️ Lỗi áp dụng mã
+                            </h2>
+                            <p>{couponMessage}</p>
+
+                            <button
+                                onClick={() => setShowCouponError(false)}
+                                className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg"
+                            >
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <div className="px-6 py-4 grid grid-cols-12 gap-4 text-gray-800">
                     <div className="col-span-3 font-medium">Phương thức vận chuyển:</div>
                     <div className="col-span-7 space-y-4">
@@ -807,7 +897,6 @@ const Checkout = () => {
                     <div className="col-span-2 text-right font-medium">{shippingFee.toLocaleString()} đ</div>
                 </div>
 
-                {/* Phương thức thanh toán */}
                 <div className="px-6 py-4 space-y-6 text-gray-800">
                     <div>
                         <h3 className="text-lg font-medium mb-4">Phương thức thanh toán</h3>
@@ -829,21 +918,30 @@ const Checkout = () => {
                     </div>
                 </div>
 
-                {/* Tổng thanh toán */}
                 <div className="px-6 py-4 space-y-2 border-t border-b">
                     <div className="flex justify-between">
                         <span>Tổng tiền hàng</span>
                         <span>{subtotal.toLocaleString()} đ</span>
                     </div>
+
+                    {discountValue > 0 && (
+                        <div className="flex justify-between text-green-600">
+                            <span>Giảm giá</span>
+                            <span>-{discountValue.toLocaleString()} đ</span>
+                        </div>
+                    )}
+
                     <div className="flex justify-between">
                         <span>Phí vận chuyển</span>
                         <span>{shippingFee.toLocaleString()} đ</span>
                     </div>
+
                     <div className="flex justify-between font-bold text-xl mt-2">
                         <span>Tổng thanh toán</span>
                         <span>{total.toLocaleString()} đ</span>
                     </div>
                 </div>
+
 
                 <div className="px-6 py-4 flex justify-between items-center text-sm text-gray-600">
                     <p>
