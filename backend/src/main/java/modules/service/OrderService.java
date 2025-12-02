@@ -4,6 +4,7 @@ import modules.dto.request.WeeklyStatResultRepuest;
 import modules.entity.Order;
 import modules.entity.ShippingAddress;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -16,9 +17,9 @@ public interface OrderService {
 
     Order findById(String id);
 
-    Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod);
-
     Order updateStatus(String orderId, String status);
+
+    Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod, String couponCode);
 
     Order addProduct(String orderId, String productId, int quantity);
 

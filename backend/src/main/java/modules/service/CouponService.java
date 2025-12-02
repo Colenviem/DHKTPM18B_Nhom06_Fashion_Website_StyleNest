@@ -11,9 +11,11 @@ public interface CouponService {
 
     Coupon findById(String id);
 
+    Coupon findByCode(String code);
+
     Coupon addCoupon(Coupon coupon);
 
-    Coupon updateCoupon(String code, Coupon updatedCoupon);
+    Coupon updateCoupon(Coupon updatedCoupon);
 
     boolean deleteCoupon(String code);
 }

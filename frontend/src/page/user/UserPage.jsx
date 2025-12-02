@@ -11,6 +11,9 @@ import CartPage from '../cart/CartPage'
 import ProductDetail from '../../components/product/ProductDetail'
 import LoginPage from '../auth/LoginPage'
 import AboutPage from '../about/AboutPage'
+import FaqPage from '../../components/faq/FaqPage.jsx'
+import SizePage from '../../components/size/SizeGuide.jsx'
+import PrivacyPage from '../../components/privacy/PrivacyPolicy.jsx'
 import ContactPage from '../contact/ContactPage'
 import RegisterPage from '../auth/RegisterPage'
 import VerifyPage from '../auth/VerifyPage'
@@ -18,6 +21,11 @@ import ServicesPage from '../service/ServicesPage'
 import ProfilePage from './ProfilePage'
 import ForgotPasswordPage from "../auth/ForgotPasswordPage";
 import ChatWidget from "../../components/chat/ChatWidget";
+
+import StylingService from "../../components/service/StylingService.jsx"
+import ReturnPolicyService from "../../components/service/ReturnPolicyService.jsx"
+import ShippingService from "../../components/service/ShippingService.jsx"
+import PaymentSecurityService from "../../components/service/PaymentSecurityService.jsx"
 
 const UserPage = () => {
     return (
@@ -34,9 +42,16 @@ const UserPage = () => {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/about" element={<AboutPage />} />
+                    <Route path="/faqs" element={<FaqPage />} />
+                    <Route path="/size" element={<SizePage />} />
+                    <Route path="/privacy" element={<PrivacyPage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/services" element={<ServicesPage />} />
+                    <Route path="/services/styling" element={<StylingService />} />
+                    <Route path="/services/return-policy" element={<ReturnPolicyService />} />
+                    <Route path="/services/shipping" element={<ShippingService />} />
+                    <Route path="/services/payment-security" element={<PaymentSecurityService />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/verify-email" element={<VerifyPage />} />
                     <Route path="/profile" element={<ProfilePage />} />

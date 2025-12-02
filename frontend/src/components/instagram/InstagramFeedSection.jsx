@@ -7,7 +7,7 @@ const InstagramFeedSection = () => {
     const instagramPosts = [
         { url: "https://res.cloudinary.com/ddga6y6tm/image/upload/v1761896144/facebook_ngngzx.png", icon: <FiFacebook />, link: "https://facebook.com" },
         { url: "https://res.cloudinary.com/ddga6y6tm/image/upload/v1761896143/unnamed_piu5yn.png", icon: <FiYoutube />, link: "https://youtube.com" },
-        { url: "https://res.cloudinary.com/dixzxzdrd/image/upload/v1760695801/download_riehwg.jpg", icon: <FiInstagram />, link: "https://instagram.com" },
+        { url: "https://res.cloudinary.com/ddga6y6tm/image/upload/v1764591636/pngtree-instagram-icon-instagram-logo-png-image_3584852_jf3to1.png", icon: <FiInstagram />, link: "https://instagram.com" },
         { url: "https://res.cloudinary.com/ddga6y6tm/image/upload/v1761896143/71688f4905ece2a5ee744eaf351ec21bd51491e02025ea4a68501cc93d847e5c_200_jjjp4k.webp", icon: <FiTwitter />, link: "https://twitter.com" },
         { url: "https://res.cloudinary.com/ddga6y6tm/image/upload/v1761896143/unnamed_1_w1kjnn.png", icon: <SiTiktok />, link: "https://tiktok.com" }
     ];
@@ -50,7 +50,7 @@ const InstagramFeedSection = () => {
                                     className="bg-[#6F47EB]/90 backdrop-blur-sm p-4 rounded-full border border-white/40 hover:scale-110 transition-transform duration-300 cursor-pointer"
                                     aria-label={`View post ${index + 1}`}
                                 >
-                                    {post.icon}  {/* Hiển thị icon tương ứng từng ảnh */}
+                                    {post.icon}
                                 </a>
                             </div>
                         </div>
@@ -59,11 +59,18 @@ const InstagramFeedSection = () => {
                 </div>
 
                 <div className="text-center mt-16">
-                    <button className="bg-[#6F47EB] text-white font-semibold hover:bg-indigo-700 px-10 sm:px-12 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md shadow-[#6F47EB]/30 flex items-center justify-center gap-3 mx-auto text-lg cursor-pointer">
-                        <FiInstagram className="text-2xl" />
-                        <span className="text-white">@StyleNest</span>
-                    </button>
+                    <a
+                        href="https://www.instagram.com/style.nestt7/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <button className="bg-[#6F47EB] text-white font-semibold hover:bg-indigo-700 px-10 sm:px-12 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md shadow-[#6F47EB]/30 flex items-center justify-center gap-3 mx-auto text-lg cursor-pointer">
+                            <FiInstagram className="text-2xl" />
+                            <span className="text-white">@StyleNest</span>
+                        </button>
+                    </a>
                 </div>
+
             </div>
         </div>
     );

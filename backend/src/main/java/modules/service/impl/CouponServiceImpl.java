@@ -26,17 +26,23 @@ public class CouponServiceImpl implements CouponService {
 
   @Override
   public Coupon addCoupon(Coupon coupon) {
-    // tạo id nếu null
-    if (coupon.getId() == null) {
-      coupon.setId(coupon.getCode());
-    }
+      System.out.println("Adding coupon: " + coupon);
     return repository.save(coupon);
   }
 
   @Override
-  public Coupon updateCoupon(String code, Coupon updatedCoupon) {
-    return repository.findById(code)
+    public Coupon findByCode(String code) {
+        return repository.findAll().stream()
+            .filter(coupon -> coupon.getCode().equals(code))
+            .findFirst()
+            .orElse(null);
+    }
+
+  @Override
+  public Coupon updateCoupon(Coupon updatedCoupon) {
+    return repository.findById(updatedCoupon.getId())
         .map(existing -> {
+          existing.setCode(updatedCoupon.getCode());
           existing.setType(updatedCoupon.getType());
           existing.setDiscount(updatedCoupon.getDiscount());
           existing.setDescription(updatedCoupon.getDescription());
@@ -46,16 +52,12 @@ public class CouponServiceImpl implements CouponService {
           existing.setUsedCount(updatedCoupon.getUsedCount());
           existing.setActive(updatedCoupon.isActive());
           return repository.save(existing);
-        })
-        .orElseGet(() -> {
-          updatedCoupon.setCode(code);
-          return repository.save(updatedCoupon);
-        });
+        }).orElse(null);
   }
 
   @Override
-  public boolean deleteCoupon(String code) {
-    return repository.findById(code)
+  public boolean deleteCoupon(String id) {
+    return repository.findById(id)
         .map(existing -> {
           repository.delete(existing);
           return true;

@@ -115,7 +115,7 @@ const CouponListsTable = () => {
                           <button
                               title="Xóa"
                               className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-red-100"
-                              onClick={() => handleDelete(coupon.id)} // 3. Truyền ID vào hàm xóa
+                              onClick={() => handleDelete(coupon.id)}
                           >
                             <FiTrash2 className="w-4 h-4" />
                           </button>
