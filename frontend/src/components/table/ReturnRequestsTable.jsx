@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiSearch, FiEye, FiCheckCircle, FiXCircle, FiRotateCcw, FiBox, FiUser, FiImage, FiX, FiEdit } from 'react-icons/fi';
-import axios from "axios";
+import { FiSearch, FiCheckCircle, FiXCircle, FiRotateCcw, FiBox, FiUser, FiImage, FiX, FiEdit } from 'react-icons/fi';
+import axiosClient from "../../api/axiosClient";
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ReturnRequestsTable = () => {
@@ -8,24 +8,17 @@ const ReturnRequestsTable = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // State cho Modal
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // State xử lý trong Modal
     const [adminNote, setAdminNote] = useState('');
     const [itemDecisions, setItemDecisions] = useState({}); // { "variantId": "APPROVED" }
 
-    // Fetch dữ liệu
     useEffect(() => {
         const fetchReturns = async () => {
             try {
-                const token = localStorage.getItem("token");
-                if (!token) return;
+                const res = await axiosClient.get("/returns");
 
-                const res = await axios.get("http://localhost:8080/api/returns", {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
                 const sortedData = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 setRequests(sortedData);
             } catch (err) {
@@ -37,17 +30,13 @@ const ReturnRequestsTable = () => {
         fetchReturns();
     }, []);
 
-    // Mở Modal và reset state
     const openDetailModal = (req) => {
         setSelectedRequest(req);
         setAdminNote(req.adminNote || '');
 
-        // Khởi tạo quyết định mặc định cho từng món
         const initialDecisions = {};
         req.items.forEach(item => {
-            // Key định danh item (dùng variantId hoặc productId)
             const key = item.variantId || item.product.id;
-            // Nếu item đã có trạng thái rồi thì lấy, chưa có thì mặc định APPROVED
             initialDecisions[key] = item.status || 'APPROVED';
         });
         setItemDecisions(initialDecisions);
@@ -55,17 +44,11 @@ const ReturnRequestsTable = () => {
         setIsModalOpen(true);
     };
 
-    // Xử lý thay đổi quyết định từng món
     const handleItemDecisionChange = (key, status) => {
         setItemDecisions(prev => ({ ...prev, [key]: status }));
     };
 
-    // Submit bước 1: Duyệt đơn (Gửi danh sách item decision)
     const handleSubmitDecision = async () => {
-        const token = localStorage.getItem("token");
-        if (!token) return alert("Vui lòng đăng nhập lại.");
-
-        // Validate: Nếu từ chối hết thì bắt buộc nhập lý do
         const isAllRejected = Object.values(itemDecisions).every(s => s === 'REJECTED');
         if (isAllRejected && !adminNote.trim()) {
             alert("Bạn đã từ chối tất cả sản phẩm. Vui lòng nhập lý do vào ô 'Phản hồi'.");
@@ -73,8 +56,6 @@ const ReturnRequestsTable = () => {
         }
 
         if (!window.confirm("Xác nhận xử lý yêu cầu này?")) return;
-
-        // Map state decision vào cấu trúc DTO backend cần
         const itemsPayload = selectedRequest.items.map(item => ({
             productId: item.product.id,
             variantId: item.variantId,
@@ -82,41 +63,39 @@ const ReturnRequestsTable = () => {
         }));
 
         try {
-            await axios.put(`http://localhost:8080/api/returns/${selectedRequest.id}/status`,
+
+            await axiosClient.put(`/returns/${selectedRequest.id}/status`,
                 {
-                    status: 'PROCESSED', // Status chung (Backend sẽ tự tính lại thành APPROVED/REJECTED)
+                    status: 'PROCESSED',
                     adminNote: adminNote,
-                    items: itemsPayload    // Gửi danh sách quyết định
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
+                    items: itemsPayload
+                }
             );
 
             alert("Đã lưu quyết định xử lý!");
             setIsModalOpen(false);
-            // Reload trang để cập nhật lại dữ liệu mới nhất
             window.location.reload();
         } catch (error) {
-            alert("Lỗi: " + (error.response?.data?.error || error.message));
+            const msg = error.response?.data?.error || error.message;
+            alert("Lỗi: " + msg);
         }
     };
 
-    // Submit bước 2: Hoàn tiền (Chỉ gửi status update)
     const handleRefundConfirm = async () => {
-        const token = localStorage.getItem("token");
         if (!window.confirm("Xác nhận đã nhận hàng và hoàn tiền cho khách?")) return;
 
         try {
-            await axios.put(`http://localhost:8080/api/returns/${selectedRequest.id}/status`,
+            await axiosClient.put(`/returns/${selectedRequest.id}/status`,
                 {
                     status: 'REFUNDED',
-                    adminNote: adminNote // Giữ nguyên note cũ
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
+                    adminNote: adminNote
+                }
             );
             alert("Đã cập nhật trạng thái Hoàn tiền!");
             window.location.reload();
         } catch (error) {
-            alert("Lỗi: " + (error.response?.data?.error || error.message));
+            const msg = error.response?.data?.error || error.message;
+            alert("Lỗi: " + msg);
         }
     };
 

@@ -1,6 +1,5 @@
 package modules.service.impl;
 
-import jakarta.mail.internet.MimeMessage;
 import modules.config.RabbitMQConfig;
 import modules.dto.message.NotificationMessage;
 import modules.dto.request.*;
@@ -11,15 +10,17 @@ import modules.entity.User;
 import modules.repository.AccountRepository;
 import modules.repository.UserRepository;
 import modules.service.AccountService;
+import modules.service.EmailService;
 import modules.service.UserService;
 import modules.util.JwtUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,13 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 @Service
-public class AccountServiceImpl implements AccountService {
+public class AccountServiceImpl implements AccountService, UserDetailsService {
 
     private static final Logger logger = LoggerFactory.getLogger(AccountServiceImpl.class);
 
@@ -41,48 +39,45 @@ public class AccountServiceImpl implements AccountService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final JavaMailSender mailSender;
     private final RabbitTemplate rabbitTemplate;
     private final UserService userService;
+    private final EmailService emailService;
 
-    public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository,
-                              PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
-                              JavaMailSender mailSender, RabbitTemplate rabbitTemplate,
-                              UserService userService) {
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
+    public AccountServiceImpl(AccountRepository accountRepository,
+                              UserRepository userRepository,
+                              PasswordEncoder passwordEncoder,
+                              JwtUtil jwtUtil,
+                              RabbitTemplate rabbitTemplate,
+                              UserService userService,
+                              EmailService emailService) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
-        this.mailSender = mailSender;
         this.rabbitTemplate = rabbitTemplate;
         this.userService = userService;
+        this.emailService = emailService;
     }
 
-
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return accountRepository.findByUserName(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản: " + username));
+    }
 
     @Override
     @Transactional
     public Map<String, Object> createAccount(CreateUserRequest request) {
-        logger.info("Processing account creation for email: {}", request.getEmail());
+        logger.info("Tạo tài khoản cho email: {}", request.getEmail());
 
         if (accountRepository.findByUserName(request.getUserName()).isPresent()
                 || userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Username or email already exists");
+            throw new IllegalArgumentException("Tên đăng nhập hoặc email đã tồn tại");
         }
-
-        //validatePassword(request.getPassword());
-
-        String code = String.format("%06d", new Random().nextInt(999999));
-        LocalDateTime expiry = LocalDateTime.now().plusMinutes(10);
-
-        Account account = new Account();
-        account.setUserName(request.getUserName());
-        account.setPassWord(passwordEncoder.encode(request.getPassword()));
-        account.setRole(request.getRole() != null ? request.getRole() : Role.CUSTOMER);
-        account.setActive(false);
-        account.setVerificationCode(code);
-        account.setVerificationExpiry(expiry);
-        account = accountRepository.save(account);
 
         User user = new User();
         user.setFirstName(request.getFirstName());
@@ -93,13 +88,23 @@ public class AccountServiceImpl implements AccountService {
         user.setCreatedAt(Instant.now());
         user = userRepository.save(user);
 
+        String code = generateRandomCode(6);
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(10);
+
+        Account account = new Account();
+        account.setUserName(request.getUserName());
+        account.setPassWord(passwordEncoder.encode(request.getPassword()));
+        account.setRole(request.getRole() != null ? request.getRole() : Role.CUSTOMER);
+        account.setActive(false);
+        account.setVerificationCode(code);
+        account.setVerificationExpiry(expiry);
         account.setUserId(user.getId());
         accountRepository.save(account);
 
         sendVerificationEmail(request.getEmail(), code, "register");
 
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Verification code sent");
+        response.put("message", "Mã xác minh đã được gửi");
         response.put("email", request.getEmail());
         return response;
     }
@@ -107,13 +112,13 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public Map<String, Object> login(LoginRequest request) {
-        logger.info("Attempting login for username: {}", request.getUserName());
+        logger.info("Đăng nhập với tài khoản: {}", request.getUserName());
 
         Account account = accountRepository.findByUserName(request.getUserName())
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+                .orElseThrow(() -> new RuntimeException("Tên đăng nhập hoặc mật khẩu không chính xác"));
 
         if (!account.isActive() || !passwordEncoder.matches(request.getPassword(), account.getPassword())) {
-            throw new RuntimeException("Invalid username or password");
+            throw new RuntimeException("Tên đăng nhập hoặc mật khẩu không chính xác");
         }
 
         User user = userService.findById(account.getUserId());
@@ -128,15 +133,15 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public Map<String, Object> verifyCode(String email, String code) {
-        Account account = accountRepository.findByUserId(
-                        userRepository.findByEmail(email)
-                                .orElseThrow(() -> new IllegalArgumentException("User not found"))
-                                .getId())
-                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với email: " + email));
+
+        Account account = accountRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản"));
 
         if (!account.getVerificationCode().equals(code)
                 || LocalDateTime.now().isAfter(account.getVerificationExpiry())) {
-            throw new IllegalArgumentException("Invalid or expired code");
+            throw new IllegalArgumentException("Mã xác minh không hợp lệ hoặc đã hết hạn");
         }
 
         account.setActive(true);
@@ -144,9 +149,9 @@ public class AccountServiceImpl implements AccountService {
         account.setVerificationExpiry(null);
         accountRepository.save(account);
 
-        User user = userRepository.findByEmail(email).get();
-        String token = jwtUtil.generateToken(user.getEmail(), "ROLE_" + account.getRole().name(), user.getId());
         sendWelcomeNotification(user);
+
+        String token = jwtUtil.generateToken(user.getEmail(), "ROLE_" + account.getRole().name(), user.getId());
 
         Map<String, Object> response = new HashMap<>();
         response.put("user", mapToUserResponse(user, account));
@@ -158,12 +163,12 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public Map<String, Object> forgotPassword(ForgotPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Email not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Email không tồn tại"));
 
         Account account = accountRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản"));
 
-        String code = String.format("%06d", new Random().nextInt(999999));
+        String code = generateRandomCode(6);
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(10);
         account.setVerificationCode(code);
         account.setVerificationExpiry(expiry);
@@ -172,7 +177,7 @@ public class AccountServiceImpl implements AccountService {
         sendVerificationEmail(request.getEmail(), code, "reset-password");
 
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Verification code sent");
+        response.put("message", "Mã xác minh đã được gửi");
         response.put("email", request.getEmail());
         return response;
     }
@@ -181,23 +186,23 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public Map<String, Object> resetPassword(ResetPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
         Account account = accountRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản"));
 
-        if (!request.getVerificationCode().equals(account.getVerificationCode())
-                || LocalDateTime.now().isAfter(account.getVerificationExpiry())) {
-            throw new IllegalArgumentException("Invalid or expired code");
+        if (account.getVerificationCode() == null ||
+                !account.getVerificationCode().equals(request.getVerificationCode()) ||
+                LocalDateTime.now().isAfter(account.getVerificationExpiry())) {
+            throw new IllegalArgumentException("Mã xác minh không hợp lệ hoặc đã hết hạn");
         }
 
-      //  validatePassword(request.getNewPassword());
         account.setPassWord(passwordEncoder.encode(request.getNewPassword()));
         account.setVerificationCode(null);
         account.setVerificationExpiry(null);
         accountRepository.save(account);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Password reset successfully");
+        response.put("message", "Đặt lại mật khẩu thành công");
         return response;
     }
 
@@ -211,93 +216,36 @@ public class AccountServiceImpl implements AccountService {
         return accountRepository.findById(id).orElse(null);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return accountRepository.findByUserName(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-    }
-
-//    private void validatePassword(String password) {
-//        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
-//        if (!password.matches(passwordPattern)) {
-//            throw new IllegalArgumentException("Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.");
-//        }
-//    }
-
     private void sendVerificationEmail(String email, String code, String type) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(email);
-            helper.setFrom("StyleNest <trancongtinh20042004@gmail.com>");
-            helper.setSubject(type.equals("register") ? "Xác minh tài khoản StyleNest" : "Đặt lại mật khẩu StyleNest");
+        String subject = type.equals("register") ? "Xác minh tài khoản StyleNest" : "Đặt lại mật khẩu StyleNest";
+        String title = type.equals("register") ? "Chào mừng bạn đến với StyleNest!" : "Đặt lại mật khẩu";
+        String buttonText = type.equals("register") ? "Xác minh ngay" : "Đặt lại mật khẩu";
+        String endpoint = type.equals("register") ? "/verify-email" : "/reset-password";
+        String link = frontendUrl + endpoint + "?email=" + email + "&code=" + code;
 
-            String title = type.equals("register") ? "Chào mừng bạn đến với StyleNest!" : "Đặt lại mật khẩu của bạn";
-            String buttonText = type.equals("register") ? "Xác minh ngay" : "Đặt lại mật khẩu";
-            String link = "http://localhost:5173/verify-email?email=" + email + "&code=" + code;
-            String htmlContent = """
-                    <!DOCTYPE html>
-                    <html lang="vi">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>%s</title> </head>
-                    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f7f6;">
-                        <table border="0" cellpadding="0" cellspacing="0" width="100%%">
-                            <tr>
-                                <td style="padding: 20px 0;">
-                                    <table align="center" border="0" cellpadding="0" cellspacing="0" style="width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                                        <tr>
-                                            <td style="padding: 40px;">
-                                                <h1 style="font-size: 24px; color: #333333; margin: 0 0 20px;">%s</h1> <p style="font-size: 16px; color: #555555; line-height: 1.6; margin-bottom: 25px;">
-                                                    Cảm ơn bạn đã đăng ký. Vui lòng sử dụng mã bên dưới để hoàn tất việc xác minh:
-                                                </p>
-                                                <p style="font-size: 32px; font-weight: bold; color: #333333; letter-spacing: 2px; margin: 25px 0; text-align: center; background-color: #f0f0f0; padding: 15px 0; border-radius: 5px;">
-                                                    %s </p>
-                                                
-                                                <p style="font-size: 16px; color: #555555; line-height: 1.6; margin-bottom: 25px;">
-                                                    Hoặc, bạn có thể nhấp vào nút bên dưới:
-                                                </p>
-                                                
-                                                <table border="0" cellpadding="0" cellspacing="0" width="100%%">
-                                                    <tr>
-                                                        <td align="center">
-                                                            <a href="%s" target="_blank"
-                                                               style="display: inline-block; background-color: #007bff; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
-                                                                %s </a>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                                
-                                                <p style="font-size: 14px; color: #888888; line-height: 1.6; margin-top: 30px; text-align: center; border-top: 1px solid #eeeeee; padding-top: 20px;">
-                                                    Nếu bạn không yêu cầu email này, vui lòng bỏ qua.
-                                                    <br>
-                                                    &copy; 2025 StyleNest. All rights reserved.
-                                                </p>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </body>
-                    </html>
-                    """;
-            helper.setText(htmlContent.formatted(title, title, code, link, buttonText), true);
-            mailSender.send(message);
-        } catch (Exception e) {
-            logger.error("Error sending mail: {}", e.getMessage(), e);
-            throw new RuntimeException("Cannot send email");
-        }
+        String htmlContent = """
+        <!DOCTYPE html>
+        <html lang="vi">
+        <body>
+            <h2>%s</h2>
+            <p>Mã xác minh của bạn là:</p>
+            <h1>%s</h1>
+            <a href="%s">%s</a>
+            <p>Nếu bạn không yêu cầu thao tác này, vui lòng bỏ qua email.</p>
+        </body>
+        </html>
+        """;
+
+        String finalHtml = htmlContent.formatted(title, code, link, buttonText);
+        emailService.sendEmail(email, subject, finalHtml);
     }
 
     private void sendWelcomeNotification(User user) {
         try {
             NotificationMessage message = new NotificationMessage();
             message.setUserId(user.getId());
-            message.setMessage("Welcome " + user.getFirstName() + "!");
-            message.setType("WELCOME_MESSAGE");
+            message.setMessage("Chào mừng " + user.getFirstName() + " đã tham gia StyleNest!");
+            message.setType("THÔNG_BÁO_CHÀO_MỪNG");
 
             rabbitTemplate.convertAndSend(
                     RabbitMQConfig.NOTIFICATION_EXCHANGE,
@@ -309,13 +257,12 @@ public class AccountServiceImpl implements AccountService {
                     }
             );
         } catch (Exception e) {
-            logger.error("Failed to send welcome notification: {}", e.getMessage());
+            logger.error("Không thể gửi thông báo chào mừng: {}", e.getMessage());
         }
     }
 
     private UserResponse mapToUserResponse(User user, Account account) {
         UserResponse response = new UserResponse();
-        response.setId(account.getUserId());
         response.setId(user.getId());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
@@ -326,7 +273,6 @@ public class AccountServiceImpl implements AccountService {
         response.setUserName(account.getUsername());
         response.setRole(account.getRole() != null ? account.getRole().name() : "CUSTOMER");
         response.setActive(account.isActive());
-
         return response;
     }
 
@@ -336,19 +282,27 @@ public class AccountServiceImpl implements AccountService {
         account.setRole(Role.valueOf(dto.getRole()));
         account.setActive(dto.isActive());
         account.setUserId(userId);
-
+        account.setPassWord(passwordEncoder.encode("123456"));
         return accountRepository.save(account);
     }
 
     public Account updateAccountByAdmin(String accountId, AccountUserRequest.AccountDTO dto, String userId) {
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
         account.setUserName(dto.getUsername());
         account.setRole(Role.valueOf(dto.getRole()));
         account.setActive(dto.isActive());
         account.setUserId(userId);
-
         return accountRepository.save(account);
+    }
+
+    private String generateRandomCode(int length) {
+        Random random = new Random();
+        StringBuilder code = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            code.append(random.nextInt(10));
+        }
+        return code.toString();
     }
 }

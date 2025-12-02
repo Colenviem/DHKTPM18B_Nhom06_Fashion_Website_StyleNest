@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiX, FiMessageSquare, FiSend, FiTrash2 } from "react-icons/fi";
-import axios from "axios";
+
+import axiosClient from "../../api/axiosClient";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
@@ -41,10 +42,8 @@ const ChatWidget = () => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post(
-          "http://localhost:8080/api/chat",
-          { message: textToSend }
-      );
+      const res = await axiosClient.post("/chat", { message: textToSend });
+
       const botReply = res.data;
       setMessages((prev) => [...prev, { from: "bot", text: botReply }]);
     } catch (err) {
@@ -60,7 +59,7 @@ const ChatWidget = () => {
 
   const handleReset = async () => {
     try {
-      await axios.post("http://localhost:8080/api/chat", { message: "reset" });
+      await axiosClient.post("/chat", { message: "reset" });
     } catch (error) {
       console.error("Lỗi khi reset:", error);
     }
@@ -71,9 +70,7 @@ const ChatWidget = () => {
     }]);
   };
 
-  // --- CẤU HÌNH MARKDOWN (SỬA LỖI ESLINT TRIỆT ĐỂ) ---
   const MarkdownComponents = {
-    // eslint-disable-next-line no-unused-vars
     a: ({ node, ...props }) => {
       if (props.href && props.href.startsWith('/')) {
         return (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosClient from '../../api/axiosClient'; // ✅ Sử dụng axiosClient
 import {
     FiUser, FiEdit, FiSave, FiXCircle, FiMapPin, FiTag, FiPlus,
     FiTrash2, FiBox, FiTruck, FiCreditCard, FiEye, FiArrowLeft,
@@ -9,9 +9,9 @@ import {
 } from 'react-icons/fi';
 
 import { motion, AnimatePresence } from 'framer-motion';
-
 import { uploadImage } from '../../context/CloudinaryContext';
 
+// --- COMPONENT 1: MODAL YÊU CẦU TRẢ HÀNG ---
 const ReturnRequestModal = ({ isOpen, onClose, order, onSubmit }) => {
     const [reason, setReason] = useState('');
     const [selectedFiles, setSelectedFiles] = useState([]);
@@ -124,7 +124,6 @@ const ReturnRequestModal = ({ isOpen, onClose, order, onSubmit }) => {
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar border border-gray-100"
             >
-                {/* Header */}
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 sticky top-0 z-10">
                     <h3 className="text-xl font-bold text-gray-800">Yêu cầu Trả hàng / Hoàn tiền</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors">
@@ -133,7 +132,6 @@ const ReturnRequestModal = ({ isOpen, onClose, order, onSubmit }) => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {/* 1. Chọn sản phẩm */}
                     <div>
                         <h4 className="font-semibold text-gray-700 mb-3 text-sm uppercase tracking-wide">1. Chọn sản phẩm cần trả</h4>
                         <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
@@ -200,7 +198,6 @@ const ReturnRequestModal = ({ isOpen, onClose, order, onSubmit }) => {
                         </div>
                     </div>
 
-                    {/* 2. Lý do chung */}
                     <div>
                         <label className="block font-semibold text-gray-700 mb-2 text-sm uppercase tracking-wide">2. Lý do trả hàng chung (*)</label>
                         <textarea
@@ -212,7 +209,6 @@ const ReturnRequestModal = ({ isOpen, onClose, order, onSubmit }) => {
                         ></textarea>
                     </div>
 
-                    {/* 3. Hình ảnh */}
                     <div>
                         <label className="block font-semibold text-gray-700 mb-2 text-sm uppercase tracking-wide">3. Hình ảnh minh chứng</label>
                         <div className="flex flex-wrap gap-3">
@@ -236,7 +232,6 @@ const ReturnRequestModal = ({ isOpen, onClose, order, onSubmit }) => {
                         </div>
                     </div>
 
-                    {/* Footer */}
                     <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                         <button type="button" onClick={onClose} className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-bold text-sm">Hủy bỏ</button>
                         <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 bg-[#6F47EB] text-white rounded-lg font-bold text-sm hover:bg-indigo-700 disabled:opacity-70">
@@ -249,12 +244,10 @@ const ReturnRequestModal = ({ isOpen, onClose, order, onSubmit }) => {
     );
 };
 
-// --- COMPONENT 2: CHI TIẾT ĐƠN HÀNG (CÓ LOGIC CHẶN 7 NGÀY) ---
+// --- COMPONENT 2: CHI TIẾT ĐƠN HÀNG ---
 const OrderDetail = ({ order, onBack, onReturnRequest }) => {
 
-    // Hàm kiểm tra điều kiện trả hàng
     const checkCanReturn = (ord) => {
-        // 1. Check trạng thái đơn
         if (ord.status !== 'Delivered' && ord.status !== 'Completed') {
             return { can: false, msg: 'Chỉ có thể trả hàng khi đã Giao hàng thành công.' };
         }
@@ -265,8 +258,6 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
             return { can: false, msg: 'Đơn hàng đã hoàn tất trả hàng/hoàn tiền.' };
         }
 
-        // 2. Check thời gian 7 ngày
-        // Ưu tiên dùng updatedAt (thời điểm giao hàng), nếu không có dùng createdAt
         const deliveryDate = new Date(ord.updatedAt || ord.createdAt);
         const now = new Date();
         const diffTime = Math.abs(now - deliveryDate);
@@ -308,13 +299,11 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
                         <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>{order.status}</span>
                     </div>
 
-                    {/* HIỂN THỊ NÚT TRẢ HÀNG HOẶC THÔNG BÁO LỖI */}
                     {returnStatus.can ? (
                         <button onClick={() => onReturnRequest(order)} className="flex items-center gap-2 px-4 py-2 bg-white border border-red-500 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-semibold shadow-sm">
                             <FiRotateCcw /> Yêu cầu trả hàng
                         </button>
                     ) : (
-                        // Nếu đơn đã giao/hoàn thành nhưng không được trả thì hiện lý do
                         (order.status === 'Delivered' || order.status === 'Completed' || order.status === 'ReturnRequested') && (
                             <div className="flex items-center gap-2 text-gray-500 bg-gray-100 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200">
                                 <FiAlertCircle className="text-orange-500"/>
@@ -325,7 +314,6 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
                 </div>
             </motion.div>
 
-            {/* Các thông tin chi tiết đơn hàng */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex items-start gap-3">
@@ -396,22 +384,19 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
     );
 };
 
-// --- COMPONENT 3: DANH SÁCH LỊCH SỬ TRẢ HÀNG (ĐÃ THÊM SEARCH & FILTER) ---
-const ReturnRequestsList = ({ userId, token }) => {
+// --- COMPONENT 3: DANH SÁCH LỊCH SỬ TRẢ HÀNG ---
+const ReturnRequestsList = ({ userId }) => {
     const [returns, setReturns] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // State cho tìm kiếm và bộ lọc
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('ALL');
 
     useEffect(() => {
         const fetchReturns = async () => {
             try {
-                const res = await axios.get(`http://localhost:8080/api/returns/user/${userId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                // Sort mới nhất lên đầu
+                // ✅ Sửa: Dùng axiosClient
+                const res = await axiosClient.get(`/returns/user/${userId}`);
                 setReturns(res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
             } catch (err) {
                 console.error("Lỗi tải yêu cầu trả hàng", err);
@@ -419,18 +404,15 @@ const ReturnRequestsList = ({ userId, token }) => {
                 setLoading(false);
             }
         };
-        if (userId && token) fetchReturns();
-    }, [userId, token]);
+        if (userId) fetchReturns();
+    }, [userId]);
 
-    // Logic lọc dữ liệu
     const filteredReturns = returns.filter(req => {
-        // 1. Kiểm tra tìm kiếm (Mã yêu cầu HOẶC Mã đơn hàng)
         const term = searchTerm.toLowerCase();
         const matchesSearch =
             (req.id && req.id.toLowerCase().includes(term)) ||
             (req.orderId && req.orderId.toLowerCase().includes(term));
 
-        // 2. Kiểm tra trạng thái
         const matchesStatus = filterStatus === 'ALL' || req.status === filterStatus;
 
         return matchesSearch && matchesStatus;
@@ -450,9 +432,7 @@ const ReturnRequestsList = ({ userId, token }) => {
 
     return (
         <div className="space-y-6">
-            {/* --- THANH TÌM KIẾM & BỘ LỌC (MỚI) --- */}
             <div className="flex flex-col md:flex-row gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                {/* Search Box */}
                 <div className="flex-1 relative">
                     <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
@@ -464,7 +444,6 @@ const ReturnRequestsList = ({ userId, token }) => {
                     />
                 </div>
 
-                {/* Filter Combobox */}
                 <div className="relative min-w-[200px]">
                     <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <select
@@ -478,14 +457,12 @@ const ReturnRequestsList = ({ userId, token }) => {
                         <option value="REFUNDED">💰 Đã hoàn tiền</option>
                         <option value="REJECTED">❌ Bị từ chối</option>
                     </select>
-                    {/* Mũi tên custom cho select */}
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </div>
             </div>
 
-            {/* --- DANH SÁCH KẾT QUẢ --- */}
             {filteredReturns.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 bg-white border border-dashed border-gray-300 rounded-xl">
                     <p>Không tìm thấy yêu cầu nào phù hợp.</p>
@@ -507,7 +484,6 @@ const ReturnRequestsList = ({ userId, token }) => {
                                     </span>
                                 </div>
 
-                                {/* Items */}
                                 <div className="bg-gray-50 p-3 rounded-lg space-y-2 mb-4">
                                     {req.items.map((item, idx) => (
                                         <div key={idx} className="flex justify-between items-center text-sm">
@@ -527,7 +503,6 @@ const ReturnRequestsList = ({ userId, token }) => {
                                     ))}
                                 </div>
 
-                                {/* Admin Note / Lý do */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                     <div>
                                         <span className="font-bold text-gray-700 block mb-1">Lý do bạn trả:</span>
@@ -560,7 +535,7 @@ const ReturnRequestsList = ({ userId, token }) => {
     );
 };
 
-// --- COMPONENT 4: FORM ĐỊA CHỈ (Giữ nguyên) ---
+// --- COMPONENT 4: FORM ĐỊA CHỈ ---
 const NewAddressForm = ({ onSave, onCancel, initialData }) => {
     const defaultAddress = { street: '', city: '', province: '', postalCode: '', isDefault: false };
     const [address, setAddress] = useState(defaultAddress);
@@ -607,10 +582,9 @@ const NewAddressForm = ({ onSave, onCancel, initialData }) => {
 // --- COMPONENT CHÍNH: PROFILE PAGE ---
 function ProfilePage() {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
+    // const [token, setToken] = useState(null); // Không cần token thủ công nữa
     const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', userName: '', addresses: [], coupons: [] });
 
-    // Thêm tab 'returns' vào state
     const [activeTab, setActiveTab] = useState('profile');
 
     const [orders, setOrders] = useState([]);
@@ -628,11 +602,11 @@ function ProfilePage() {
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
-        const storedToken = localStorage.getItem('token');
-        if (storedUser && storedToken) {
+        // const storedToken = localStorage.getItem('token'); // Bỏ
+        if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
             setUser(parsedUser);
-            setToken(storedToken);
+            // setToken(storedToken);
             setFormData({
                 firstName: parsedUser.firstName || '',
                 lastName: parsedUser.lastName || '',
@@ -647,13 +621,12 @@ function ProfilePage() {
     }, [navigate]);
 
     useEffect(() => {
-        if (activeTab === 'orders' && user && token) {
+        if (activeTab === 'orders' && user) {
             const fetchOrders = async () => {
                 setLoadingOrders(true);
                 try {
-                    const res = await axios.get(`http://localhost:8080/api/orders/user/${user.id}`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
+                    // ✅ Sửa: Dùng axiosClient
+                    const res = await axiosClient.get(`/orders/user/${user.id}`);
                     setOrders(res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
                 } catch (err) {
                     console.error('Error loading orders', err);
@@ -662,7 +635,7 @@ function ProfilePage() {
             };
             fetchOrders();
         }
-    }, [activeTab, user, token]);
+    }, [activeTab, user]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -680,7 +653,8 @@ function ProfilePage() {
             coupons: formData.coupons,
         };
         try {
-            const res = await axios.put(`http://localhost:8080/api/users/${user.id}`, updateData, { headers: { Authorization: `Bearer ${token}` } });
+            // ✅ Sửa: Dùng axiosClient
+            const res = await axiosClient.put(`/users/${user.id}`, updateData);
             const updatedUserInStorage = { ...user, ...res.data };
             localStorage.setItem('user', JSON.stringify(updatedUserInStorage));
             setUser(updatedUserInStorage);
@@ -691,7 +665,8 @@ function ProfilePage() {
 
     const handleAddAddress = async (newAddress) => {
         try {
-            const res = await axios.post(`http://localhost:8080/api/users/${user.id}/addresses`, newAddress, { headers: { Authorization: `Bearer ${token}` } });
+            // ✅ Sửa: Dùng axiosClient
+            const res = await axiosClient.post(`/users/${user.id}/addresses`, newAddress);
             const addedAddress = res.data;
             let newAddressList = [...formData.addresses];
             if (addedAddress.isDefault) newAddressList = newAddressList.map((addr) => ({ ...addr, isDefault: false }));
@@ -707,7 +682,8 @@ function ProfilePage() {
 
     const handleUpdateAddress = async (addressData) => {
         try {
-            const res = await axios.put(`http://localhost:8080/api/users/${user.id}/addresses/${addressData.id}`, addressData, { headers: { Authorization: `Bearer ${token}` } });
+            // ✅ Sửa: Dùng axiosClient
+            const res = await axiosClient.put(`/users/${user.id}/addresses/${addressData.id}`, addressData);
             const updatedAddress = res.data;
             let newAddressList = formData.addresses.map((addr) => addr.id === updatedAddress.id ? updatedAddress : addr);
             if (updatedAddress.isDefault) newAddressList = newAddressList.map((addr) => addr.id === updatedAddress.id ? addr : { ...addr, isDefault: false });
@@ -723,7 +699,8 @@ function ProfilePage() {
     const handleDeleteAddress = async (addressId) => {
         if (!window.confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return;
         try {
-            await axios.delete(`http://localhost:8080/api/users/${user.id}/addresses/${addressId}`, { headers: { Authorization: `Bearer ${token}` } });
+            // ✅ Sửa: Dùng axiosClient
+            await axiosClient.delete(`/users/${user.id}/addresses/${addressId}`);
             const newAddressList = formData.addresses.filter((addr) => addr.id !== addressId);
             const updatedUserInStorage = { ...user, addresses: newAddressList };
             localStorage.setItem('user', JSON.stringify(updatedUserInStorage));
@@ -748,13 +725,11 @@ function ProfilePage() {
 
     const handleCreateReturnRequest = async (payload) => {
         try {
-            await axios.post(`http://localhost:8080/api/returns`, payload, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            // ✅ Sửa: Dùng axiosClient
+            await axiosClient.post(`/returns`, payload);
             setMessage({ type: 'success', content: 'Gửi yêu cầu trả hàng thành công! Vui lòng kiểm tra tab "Lịch sử trả hàng".' });
             handleCloseReturnModal();
             setSelectedOrder(null);
-            // Tự động chuyển sang tab lịch sử trả hàng
             setActiveTab('returns');
         } catch (err) {
             console.error(err);
@@ -768,6 +743,7 @@ function ProfilePage() {
             'Processing': 'bg-blue-100 text-blue-800 border-blue-300',
             'Shipped': 'bg-purple-100 text-purple-800 border-purple-300',
             'Delivered': 'bg-green-100 text-green-800 border-green-300',
+            'Completed': 'bg-green-100 text-green-800 border-green-300',
             'Cancelled': 'bg-red-100 text-red-800 border-red-300',
             'ReturnRequested': 'bg-orange-100 text-orange-800 border-orange-300',
         };
@@ -815,7 +791,6 @@ function ProfilePage() {
 
     return (
         <div className="bg-gray-50 py-10 font-[Manrope]">
-            {/* --- Modal Trả hàng --- */}
             <AnimatePresence>
                 {isReturnModalOpen && (
                     <ReturnRequestModal
@@ -833,12 +808,10 @@ function ProfilePage() {
                         <h1 className="text-3xl font-bold text-gray-900">Hồ Sơ Của Tôi</h1>
                     </div>
 
-                    {/* Navigation Tabs - CẬP NHẬT TAB MỚI */}
                     <div className="flex space-x-6 border-b pb-2 mb-6 text-gray-600 font-medium overflow-x-auto">
                         <button onClick={() => setActiveTab('profile')} className={`whitespace-nowrap pb-2 ${activeTab === 'profile' ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]' : ''}`}>Thông tin cá nhân</button>
                         <button onClick={() => setActiveTab('address')} className={`whitespace-nowrap pb-2 ${activeTab === 'address' ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]' : ''}`}>Sổ địa chỉ</button>
                         <button onClick={() => { setActiveTab('orders'); setSelectedOrder(null); }} className={`whitespace-nowrap pb-2 ${activeTab === 'orders' ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]' : ''}`}>Đơn hàng</button>
-                        {/* Tab mới */}
                         <button onClick={() => setActiveTab('returns')} className={`whitespace-nowrap pb-2 ${activeTab === 'returns' ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]' : ''}`}>Lịch sử trả hàng</button>
                         <button onClick={() => setActiveTab('coupons')} className={`whitespace-nowrap pb-2 ${activeTab === 'coupons' ? 'text-[#6F47EB] border-b-2 border-[#6F47EB]' : ''}`}>Mã giảm giá</button>
                     </div>
@@ -847,7 +820,6 @@ function ProfilePage() {
                         <p className={`text-sm p-3 rounded-lg mb-4 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{message.content}</p>
                     )}
 
-                    {/* TAB 1: THÔNG TIN CÁ NHÂN */}
                     {activeTab === 'profile' && (
                         <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl mx-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -869,7 +841,6 @@ function ProfilePage() {
                         </form>
                     )}
 
-                    {/* TAB 2: SỔ ĐỊA CHỈ */}
                     {activeTab === 'address' && (
                         <div>
                             <div className="flex justify-between items-center mb-4"><h2 className="text-xl font-semibold text-gray-800 flex items-center"><FiMapPin className="mr-3 text-gray-500" />Sổ địa chỉ</h2>{!isAddingAddress && !editingAddress && (<button type="button" onClick={() => { setIsAddingAddress(true); setEditingAddress(null); }} className="flex items-center text-sm text-[#6F47EB] font-semibold hover:underline"><FiPlus className="mr-1" />Thêm địa chỉ mới</button>)}</div>
@@ -884,7 +855,6 @@ function ProfilePage() {
                         </div>
                     )}
 
-                    {/* TAB 3: ĐƠN HÀNG */}
                     {activeTab === 'orders' && (
                         <div>
                             {selectedOrder ? (
@@ -991,12 +961,10 @@ function ProfilePage() {
                         </div>
                     )}
 
-                    {/* TAB 4: LỊCH SỬ TRẢ HÀNG (MỚI) */}
                     {activeTab === 'returns' && (
-                        <ReturnRequestsList userId={user.id} token={token} />
+                        <ReturnRequestsList userId={user.id} />
                     )}
 
-                    {/* TAB 5: MÃ GIẢM GIÁ */}
                     {activeTab === 'coupons' && (
                         <div className="mt-8">
                             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center"><FiTag className="mr-3 text-gray-500" />Mã giảm giá của bạn</h2>

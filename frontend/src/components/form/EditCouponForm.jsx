@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { FiX } from "react-icons/fi";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { CouponsContext } from "../../context/CouponsContext";
 
 const EditCouponForm = ({ coupon, onClose }) => {
@@ -22,7 +22,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
     // Validation
     if(name === "code") {
       const isDuplicate = couponsData.some((c) => c.code === value && c.id !== coupon.id);
@@ -38,7 +37,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
         }));
       }
     }
-
     if (name === "discount") {
       setErrors((prev) => ({
         ...prev,
@@ -92,20 +90,13 @@ const EditCouponForm = ({ coupon, onClose }) => {
     try {
       const dataToSend = {
         ...formData,
-        expirationDate: new Date(formData.expirationDate).toISOString(),
+        expirationDate: formData.expirationDate + ":00Z",
         usedCount: formData.usedCount,
       };
 
-      console.log("Dữ liệu gửi đi:", dataToSend);
-
-      // FIX: dùng ID để update, KHÔNG phải code
-      const response = await axios.put(
-        `http://localhost:8080/api/coupons/${coupon.id}`,
-        dataToSend,
-        {
-          withCredentials: true,
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const response = await axiosClient.put(
+          `/coupons/${coupon.id}`,
+          dataToSend
       );
 
       const updatedList = couponsData.map((c) =>
@@ -118,7 +109,8 @@ const EditCouponForm = ({ coupon, onClose }) => {
       onClose();
     } catch (error) {
       console.error(error);
-      alert("❌ Cập nhật thất bại!");
+      const errorMsg = error.response?.data?.message || "Cập nhật thất bại!";
+      alert(`❌ ${errorMsg}`);
     }
   };
 
@@ -171,9 +163,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
               <option value="PRODUCT">PRODUCT</option>
             </select>
           </div>
-
-          {/* Discount */}
-          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <label className="w-36 text-sm font-medium">% Giảm giá:</label>
               <input
@@ -192,21 +181,38 @@ const EditCouponForm = ({ coupon, onClose }) => {
               </span>
             )}
           </div>
+            <div className="flex items-center gap-2">
+              <label className="w-36 text-sm font-medium text-gray-700">Loại:</label>
+              <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  className="flex-1 border px-3 py-2 rounded"
+              >
+                <option value="ORDER">ORDER</option>
+                <option value="SHIPPING">SHIPPING</option>
+                <option value="PRODUCT">PRODUCT</option>
+              </select>
+            </div>
 
-          {/* Description */}
-          <div className="flex items-center gap-2">
-            <label className="w-36 text-sm font-medium">Mô tả:</label>
-            <input
-              type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              className="flex-1 border px-3 py-2 rounded"
-            />
-          </div>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <label className="w-36 text-sm font-medium">% Giảm giá:</label>
+                <input
+                    type="number"
+                    name="discount"
+                    value={formData.discount}
+                    onChange={handleChange}
+                    className={`flex-1 border px-3 py-2 rounded ${
+                        errors.discountError ? "border-red-500" : "border-gray-300"
+                    }`}
+                />
+              </div>
+              {errors.discountError && (
+                  <span className="text-red-500 text-sm">{errors.discountError}</span>
+              )}
+            </div>
 
-          {/* Minimum order */}
-          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <label className="w-36 text-sm font-medium">Đơn tối thiểu:</label>
               <input
@@ -227,9 +233,57 @@ const EditCouponForm = ({ coupon, onClose }) => {
               </span>
             )}
           </div>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <label className="w-36 text-sm font-medium">Đơn tối thiểu:</label>
+                <input
+                    type="number"
+                    name="minimumOrderAmount"
+                    value={formData.minimumOrderAmount}
+                    onChange={handleChange}
+                    className={`flex-1 border px-3 py-2 rounded ${
+                        errors.minimumOrderAmountError ? "border-red-500" : "border-gray-300"
+                    }`}
+                />
+              </div>
+              {errors.minimumOrderAmountError && (
+                  <span className="text-red-500 text-sm">{errors.minimumOrderAmountError}</span>
+              )}
+            </div>
 
-          {/* Expiration */}
-          <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <label className="w-36 text-sm font-medium">Hạn sử dụng:</label>
+                <input
+                    type="datetime-local"
+                    name="expirationDate"
+                    value={formData.expirationDate?.slice(0, 16) || ""}
+                    onChange={handleChange}
+                    className="flex-1 border px-3 py-2 rounded"
+                />
+              </div>
+              {errors.expirationError && (
+                  <span className="text-red-500 text-sm">{errors.expirationError}</span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <label className="w-36 text-sm font-medium">Giới hạn:</label>
+                <input
+                    type="number"
+                    name="usageLimit"
+                    value={formData.usageLimit}
+                    onChange={handleChange}
+                    className={`flex-1 border px-3 py-2 rounded ${
+                        errors.usageLimitError ? "border-red-500" : "border-gray-300"
+                    }`}
+                />
+              </div>
+              {errors.usageLimitError && (
+                  <span className="text-red-500 text-sm">{errors.usageLimitError}</span>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <label className="w-36 text-sm font-medium">Hạn sử dụng:</label>
               <input
@@ -246,6 +300,7 @@ const EditCouponForm = ({ coupon, onClose }) => {
               </span>
             )}
           </div>
+
 
           {/* Usage limit */}
           <div className="flex flex-col gap-1">

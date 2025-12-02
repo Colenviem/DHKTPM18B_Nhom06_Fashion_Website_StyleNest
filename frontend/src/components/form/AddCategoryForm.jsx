@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { CouponsContext } from "../../context/CouponsContext";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -104,11 +104,8 @@ const AddCouponForm = () => {
         usedCount: 0, // luôn = 0
       };
 
-      const response = await axios.post(
-          "http://localhost:8080/api/coupons",
-          dataToSend,
-          { withCredentials: true }
-      );
+      // 2. Sử dụng axiosClient, bỏ domain localhost và withCredentials (đã có trong config chung)
+      const response = await axiosClient.post("/coupons", dataToSend);
 
       setCouponsData([...couponsData, response.data]);
       setShowForm(false);
@@ -134,7 +131,9 @@ const AddCouponForm = () => {
       alert("✅ Thêm coupon thành công!");
     } catch (error) {
       console.error(error);
-      alert("❌ Thêm coupon thất bại!");
+      // Xử lý lỗi linh hoạt hơn chút
+      const msg = error.response?.data?.message || "Thêm coupon thất bại!";
+      alert(`❌ ${msg}`);
     }
   };
 

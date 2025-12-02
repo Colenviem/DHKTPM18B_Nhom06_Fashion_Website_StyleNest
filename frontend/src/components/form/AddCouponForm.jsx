@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { CouponsContext } from "../../context/CouponsContext";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -18,8 +18,8 @@ const AddCouponForm = () => {
     description: "",
     minimumOrderAmount: 0,
     expirationDate: "",
-    usageLimit: 1, // mặc định > 0
-    usedCount: 0, // luôn = 0
+    usageLimit: 1,
+    usedCount: 0,
     active: true,
   });
 
@@ -38,7 +38,6 @@ const AddCouponForm = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // Validate ngay khi nhập
     if (name === "code") {
       const isDuplicate = couponsData.some(
         (coupon) => coupon.code.toLowerCase() === value.toLowerCase()
@@ -118,15 +117,7 @@ const AddCouponForm = () => {
         expirationDate: formData.expirationDate + ":00Z",
         usedCount: 0, // luôn = 0
       };
-
-      const response = await axios.post(
-        "http://localhost:8080/api/coupons",
-        dataToSend,
-        {
-          withCredentials: true,
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axiosClient.post("/coupons", dataToSend);
 
       setCouponsData([...couponsData, response.data]);
       setShowForm(false);
@@ -152,7 +143,8 @@ const AddCouponForm = () => {
       alert("✅ Thêm coupon thành công!");
     } catch (error) {
       console.error(error);
-      alert("❌ Thêm coupon thất bại!");
+      const errorMsg = error.response?.data?.message || "Thêm coupon thất bại!";
+      alert(`❌ ${errorMsg}`);
     }
   };
 
