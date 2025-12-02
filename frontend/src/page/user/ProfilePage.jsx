@@ -774,6 +774,15 @@ function ProfilePage() {
         return statusColors[status] || 'bg-gray-100 text-gray-800 border-gray-300';
     };
 
+    const statusText = {
+        PENDING: 'Chờ xử lý',
+        PROCESSING: 'Đang xử lý',
+        SHIPPED: 'Đang giao',
+        Delivered: 'Đã giao',
+        Cancelled: 'Đã hủy',
+        ReturnRequested: 'Yêu cầu trả hàng'
+    }
+
     const [filterStatus, setFilterStatus] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -922,7 +931,7 @@ function ProfilePage() {
                                                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4 border-b border-gray-100">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2"><FiBox className="w-5 h-5 text-blue-600" /><span className="text-sm font-medium text-gray-600">Mã đơn: {order.id}</span></div>
-                                                        <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>{order.status}</span>
+                                                        <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>{statusText[order.status] || 'Chưa xác định trạng thái'}</span>
                                                     </div>
                                                 </div>
                                                 <div className="p-6 space-y-4">
