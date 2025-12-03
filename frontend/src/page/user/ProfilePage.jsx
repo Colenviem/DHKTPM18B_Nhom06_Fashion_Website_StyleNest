@@ -7,7 +7,7 @@ import {
     FiCalendar, FiPackage, FiRotateCcw, FiUpload, FiX,
     FiClock, FiAlertCircle, FiCheckCircle, FiSearch, FiFilter
 } from 'react-icons/fi';
-
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from 'framer-motion';
 import { uploadImage } from '../../context/CloudinaryContext';
 
@@ -907,8 +907,15 @@ function ProfilePage() {
                                                 <div className="p-6 space-y-4">
                                                     {order.items?.slice(0, 2).map((item, idx) => (
                                                         <div key={idx} className="flex gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                                                            <div className="flex-shrink-0"><img src={item.product?.image} alt={item.product?.name} className="w-20 h-20 object-cover rounded-lg shadow-md" /></div>
-                                                            <div className="flex-1 min-w-0"><h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">{item.product?.name}</h4><div className="flex flex-wrap gap-4 text-sm text-gray-600"><div className="flex items-center gap-1"><span className="font-medium">Đơn giá:</span><span className="text-blue-600 font-semibold">{(Number(item.product?.price) || 0).toLocaleString('vi-VN')}₫</span></div><div className="flex items-center gap-1"><span className="font-medium">SL:</span><span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-semibold">{item.quantity}</span></div></div></div>
+                                                            <Link key={item.id} to={`/product/${item.product.id}`}>
+                                                                <div className="flex-shrink-0">
+                                                                    <img src={item.product?.image} alt={item.product?.name} className="w-20 h-20 object-cover rounded-lg shadow-md"/>
+                                                                </div>
+                                                            </Link>
+                                                            <div className="flex-1 min-w-0"><h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">{item.product?.name}</h4><div className="flex flex-wrap gap-4 text-sm text-gray-600"><div className="flex items-center gap-1"><span className="font-medium">Đơn giá:</span>
+                                                                <span className="text-blue-600 font-semibold">{(Number(item.product?.price) || 0).toLocaleString('vi-VN')}₫</span></div><div className="flex items-center gap-1">
+
+                                                                <span className="font-medium">SL:</span><span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-semibold">{item.quantity}</span></div></div></div>
                                                         </div>
                                                     ))}
                                                     {order.items?.length > 2 && (<p className="text-center text-sm text-gray-500 italic">và {order.items.length - 2} sản phẩm khác...</p>)}
