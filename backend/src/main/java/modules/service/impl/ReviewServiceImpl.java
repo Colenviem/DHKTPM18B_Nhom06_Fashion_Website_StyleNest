@@ -24,8 +24,13 @@ public class ReviewServiceImpl implements modules.service.ReviewService {
         return repository.findById(id).orElse(null);
     }
 
-
+    @Override
     public List<Review> findByProductId(String productId) {
         return repository.findByProduct_Id(productId);
+    }
+
+    @Override
+    public Review addReview(Review review) {
+        return repository.save(review);
     }
 }

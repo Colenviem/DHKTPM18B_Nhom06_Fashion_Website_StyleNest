@@ -30,4 +30,9 @@ public class ReviewController {
         return service.findByProductId(productId);
     }
 
+    @PostMapping
+    public Review create(@RequestBody Review review) {
+        return service.addReview(review);
+    }
+
 }
