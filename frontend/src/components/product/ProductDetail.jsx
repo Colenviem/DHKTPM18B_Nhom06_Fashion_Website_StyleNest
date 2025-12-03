@@ -9,6 +9,8 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { CartContext } from "../../context/CartContext";
 import axios from "axios";
 
+import { uploadImage } from "../../context/CloudinaryContext";
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -32,46 +34,13 @@ const ProductDetail = () => {
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewImages, setReviewImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   // Kiểm tra user đã mua sản phẩm chưa
-  const [orders, setOrders] = useState([]);
+  const user = JSON.parse(localStorage.getItem("user"));
   const [hasPurchased, setHasPurchased] = useState(false);
-
-  useEffect(() => {
-  const fetchOrders = async () => {
-    try {
-      const userData = localStorage.getItem("user");
-      if (!userData) return;
-
-      const user = JSON.parse(userData);
-      const userIdLocal = user.id;
-
-      const token = localStorage.getItem("token");
-
-      const res = await axios.get(
-        `http://localhost:8080/api/orders/user/${userIdLocal}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setOrders(res.data);
-
-      console.log("Đơn hàng của user:", res.data);
-
-      // Kiểm tra user đã từng mua sản phẩm chưa
-      const purchased = res.data.some((order) =>
-        order.items.some((item) => item.product.id === product?.id)
-      );
-
-      setHasPurchased(purchased);
-    } catch (err) {
-      console.error("Lỗi lấy orders:", err);
-    }
-  };
-
-  if (product?.id) {
-    fetchOrders();
-  }
-}, [product]);
+  const [productPurchased, setProductPurchased] = useState(null);
+  const [hasReviewed, setHasReviewed] = useState(false);
 
   const openModal = (message, duration = 1500) => {
     setModalMessage(message);
@@ -119,6 +88,49 @@ const ProductDetail = () => {
       fetchData();
     }
   }, [id]);
+
+  useEffect(() => {
+    reviews.forEach((review) => {
+      if (user && review.user.id === user.id) {
+        setHasReviewed(true);
+      }
+    });
+
+    if (hasReviewed) { // Nếu rồi thì không cần kiểm tra nữa
+      setHasPurchased(false);
+      return;
+    }
+
+    const fetchOrders = async () => {
+      try {
+        if (!user) return;
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get(
+          `http://localhost:8080/api/orders/user/${user.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        // Kiểm tra user đã từng mua sản phẩm chưa
+        const purchased = res.data.some((order) =>
+          order.items.some((item) => item.product.id === product?.id)
+        );
+        setHasPurchased(purchased);
+
+        if (purchased) {
+          const purchasedProduct = res.data
+            .flatMap((order) => order.items)
+            .find((item) => item.product.id === product?.id)?.product;
+          setProductPurchased(purchasedProduct);
+        }
+      } catch (err) {
+        console.error("Lỗi lấy orders:", err);
+      }
+    };
+
+    if (product?.id) {
+      fetchOrders();
+    }
+  }, [product, user]);
 
   const handleAddToCart = () => {
     if (!userId) {
@@ -216,25 +228,57 @@ const ProductDetail = () => {
     navigate("/checkout", { state: { products: [productData] } });
   };
 
+  const handleUploadReviewImages = async (files) => {
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+
+    try {
+      const urls = await Promise.all(
+        [...files].map((file) => uploadImage(file))
+      );
+
+      setReviewImages(urls);
+    } catch (error) {
+      console.error("❌ Lỗi upload:", error);
+      alert("Upload ảnh thất bại!");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Xử lý gửi Review
   const handleSubmitReview = async () => {
+    if (uploading) {
+      openModal("⚠️ Vui lòng chờ ảnh tải xong...");
+      return;
+    }
     if (!reviewText.trim()) {
       openModal("⚠️ Vui lòng nhập nội dung bình luận!");
       return;
     }
 
+    const reviewData = {
+      user: {
+        id: user.id,
+        userName: user.userName,
+      },
+      product: productPurchased,
+      rating: reviewRating,
+      comment: reviewText,
+      images: reviewImages, //URL ảnh đánh giá
+      isApproved: true,
+      likes: 0,
+      createAt: new Date().toISOString(),
+    };
+    console.log("📤 Gửi review:", reviewData);
     try {
-      const reviewData = {
-        rating: reviewRating,
-        comment: reviewText,
-        images: reviewImages, //URL ảnh đánh giá
-        productId: product.id,
-      };
-
-      console.log("📤 Gửi review:", reviewData);
-
-      // Gọi API do bạn tự viết
-      // await createReview(product.id, reviewData);
+      await axios.post(`http://localhost:8080/api/reviews`, reviewData, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       // Reset
       setReviewText("");
@@ -486,7 +530,7 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* FORM VIẾT ĐÁNH GIÁ - chỉ hiện khi user đã mua */}
+        {/* FORM VIẾT ĐÁNH GIÁ - chỉ hiện khi user đã mua, nếu đã review rồi thì không hiển thị nữa */}
         {hasPurchased && (
           <div className="mb-10 p-6 border rounded-xl shadow-sm bg-white mt-10">
             <h3 className="text-2xl font-bold text-[#111827] mb-4">
@@ -526,11 +570,7 @@ const ProductDetail = () => {
                 type="file"
                 multiple
                 className="mt-2"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files);
-                  const urls = files.map((f) => URL.createObjectURL(f));
-                  setReviewImages(urls);
-                }}
+                onChange={(e) => handleUploadReviewImages(e.target.files)}
               />
 
               {/* Preview ảnh */}

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo, useEffect, use } from "react";
+import React, { useContext, useState, useMemo, useEffect } from "react";
 import FilterSidebar from "../../components/filter/FilterSidebar";
 import NewArrivalsSection from "../../components/product/NewArrivalsSection";
 import { ProductsContext } from "../../context/ProductsContext";
