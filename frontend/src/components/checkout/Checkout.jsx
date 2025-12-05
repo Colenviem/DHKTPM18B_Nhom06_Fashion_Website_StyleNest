@@ -1,4 +1,4 @@
-import { FiMapPin, FiCheckCircle, FiChevronRight, FiInfo, FiX, FiPlus } from "react-icons/fi";
+import { FiMapPin, FiCheckCircle, FiChevronRight, FiInfo, FiX, FiPlus, FiRefreshCw } from "react-icons/fi";
 import { CartContext } from "../../context/CartContext.jsx";
 import { useContext, useState, useMemo, useEffect } from "react";
 import axios from "axios";
@@ -47,6 +47,19 @@ const Checkout = () => {
     const [couponMessage, setCouponMessage] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState(null);
 
+    // QR Code payment states
+    const [qrCodeUrl, setQrCodeUrl] = useState("");
+    const [paymentStatus, setPaymentStatus] = useState("pending"); // pending, checking, success, failed
+    const [checkingInterval, setCheckingInterval] = useState(null);
+
+    // Thông tin ngân hàng của bạn
+    const BANK_INFO = {
+        bankId: "970422", // Mã ngân hàng MB Bank
+        accountNo: "0328013079", // Số tài khoản của bạn
+        accountName: "LE HOANG ANH", // Tên chủ tài khoản
+        template: "compact2" // Template QR
+    };
+
     const subtotal = useMemo(() =>
             itemsToCheckout.reduce((total, item) =>
                     total + item.price * (1 - (item.discount || 0)/100) * item.quantity
@@ -55,6 +68,92 @@ const Checkout = () => {
     );
 
     const total = subtotal + shippingFee - discountValue;
+
+    // Tạo QR code khi chọn phương thức Credit
+    useEffect(() => {
+        if (selectedPaymentMethod === "Credit") {
+            generateQRCode();
+        } else {
+            // Dừng kiểm tra khi chuyển phương thức khác
+            if (checkingInterval) {
+                clearInterval(checkingInterval);
+                setCheckingInterval(null);
+            }
+            setPaymentStatus("pending");
+        }
+
+        return () => {
+            if (checkingInterval) {
+                clearInterval(checkingInterval);
+            }
+        };
+    }, [selectedPaymentMethod, total]);
+
+    const generateQRCode = async () => {
+        try {
+            const amount = Math.round(total);
+            const description = `Thanh toan don hang ${createdOrderCode || new Date().getTime()}`;
+
+            // Tạo QR code theo chuẩn VietQR
+            const qrContent = `https://img.vietqr.io/image/${BANK_INFO.bankId}-${BANK_INFO.accountNo}-${BANK_INFO.template}.jpg?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`;
+
+            setQrCodeUrl(qrContent);
+            setPaymentStatus("pending");
+        } catch (error) {
+            console.error("Lỗi tạo QR code:", error);
+        }
+    };
+
+    // Hàm kiểm tra trạng thái thanh toán
+    const checkPaymentStatus = async () => {
+        try {
+            // Gọi API backend để kiểm tra giao dịch
+            const response = await axios.get("http://localhost:8080/api/payment/check-transaction", {
+                params: {
+                    accountNo: BANK_INFO.accountNo,
+                    amount: Math.round(total),
+                    description: `Thanh toan don hang ${createdOrderCode || new Date().getTime()}`
+                }
+            });
+
+            if (response.data.success) {
+                setPaymentStatus("success");
+                if (checkingInterval) {
+                    clearInterval(checkingInterval);
+                    setCheckingInterval(null);
+                }
+                // Tự động đặt hàng sau khi thanh toán thành công
+                setTimeout(() => {
+                    handleCheckout();
+                }, 1000);
+            }
+        } catch (error) {
+            console.error("Lỗi kiểm tra thanh toán:", error);
+        }
+    };
+
+    // Bắt đầu kiểm tra thanh toán
+    const startPaymentChecking = () => {
+        setPaymentStatus("checking");
+
+        // Kiểm tra mỗi 3 giây
+        const interval = setInterval(() => {
+            checkPaymentStatus();
+        }, 3000);
+
+        setCheckingInterval(interval);
+
+        // Tự động dừng sau 5 phút
+        setTimeout(() => {
+            if (interval) {
+                clearInterval(interval);
+                setCheckingInterval(null);
+                if (paymentStatus === "checking") {
+                    setPaymentStatus("failed");
+                }
+            }
+        }, 300000); // 5 phút
+    };
 
     const [newAddressForm, setNewAddressForm] = useState({
         name: "",
@@ -913,7 +1012,7 @@ const Checkout = () => {
                                     onClick={() => setSelectedPaymentMethod(method)}
                                 >
                                     {{
-                                        Credit: "Thẻ Tín dụng",
+                                        Credit: "Quét mã QR",
                                         Googlepay: "Google Pay",
                                         Code: "Thanh toán khi nhận"
                                     }[method]}
@@ -924,15 +1023,107 @@ const Checkout = () => {
 
                     {/* HIỂN THỊ THEO PHƯƠNG THỨC ĐÃ CHỌN */}
                     {selectedPaymentMethod === "Credit" && (
-                        <div className="space-y-3 mt-4 border p-4 rounded-lg text-center">
-                            <p className="font-semibold">Quét mã QR để thanh toán</p>
+                        <div className="space-y-3 mt-4 border p-6 rounded-lg">
+                            <div className="text-center space-y-4">
+                                <p className="font-semibold text-lg">Quét mã QR để thanh toán</p>
 
-                            <div className="flex justify-center">
-                                <img
-                                    src="https://res.cloudinary.com/dibguk5n6/image/upload/v1764594814/547f92f2-ad6b-4542-b998-869a3a938d76_talekm.jpg"
-                                    alt="QR thanh toán"
-                                    className="w-80 h-80 rounded-md"
-                                />
+                                {/* Thông tin ngân hàng */}
+                                <div className="bg-gray-50 p-4 rounded-lg text-left space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Ngân hàng:</span>
+                                        <span className="font-medium">MB Bank</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Số tài khoản:</span>
+                                        <span className="font-medium">{BANK_INFO.accountNo}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Chủ tài khoản:</span>
+                                        <span className="font-medium">{BANK_INFO.accountName}</span>
+                                    </div>
+                                    <div className="flex justify-between border-t pt-2 mt-2">
+                                        <span className="text-gray-600">Số tiền:</span>
+                                        <span className="font-bold text-[#6F47EB] text-lg">
+                                            {Math.round(total).toLocaleString()} đ
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* QR Code */}
+                                <div className="flex justify-center">
+                                    {qrCodeUrl ? (
+                                        <div className="relative">
+                                            <img
+                                                src={qrCodeUrl}
+                                                alt="QR thanh toán"
+                                                className="w-80 h-80 rounded-lg shadow-lg"
+                                            />
+                                            {paymentStatus === "checking" && (
+                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                                                    <div className="text-white text-center">
+                                                        <FiRefreshCw className="w-8 h-8 mx-auto animate-spin mb-2" />
+                                                        <p>Đang kiểm tra thanh toán...</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {paymentStatus === "success" && (
+                                                <div className="absolute inset-0 bg-green-500/90 flex items-center justify-center rounded-lg">
+                                                    <div className="text-white text-center">
+                                                        <FiCheckCircle className="w-12 h-12 mx-auto mb-2" />
+                                                        <p className="font-bold text-lg">Thanh toán thành công!</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="w-80 h-80 bg-gray-100 rounded-lg flex items-center justify-center">
+                                            <p className="text-gray-500">Đang tạo mã QR...</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Nút kiểm tra thanh toán */}
+                                {paymentStatus === "pending" && (
+                                    <button
+                                        onClick={startPaymentChecking}
+                                        className="bg-[#6F47EB] hover:bg-[#5E3FB9] text-white px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 font-medium"
+                                    >
+                                        Tôi đã chuyển khoản
+                                    </button>
+                                )}
+
+                                {paymentStatus === "checking" && (
+                                    <div className="text-blue-600 font-medium">
+                                        <FiRefreshCw className="inline animate-spin mr-2" />
+                                        Đang xác nhận thanh toán...
+                                    </div>
+                                )}
+
+                                {paymentStatus === "failed" && (
+                                    <div className="space-y-2">
+                                        <p className="text-red-600 font-medium">
+                                            Chưa nhận được thanh toán. Vui lòng thử lại!
+                                        </p>
+                                        <button
+                                            onClick={startPaymentChecking}
+                                            className="bg-[#6F47EB] hover:bg-[#5E3FB9] text-white px-6 py-2 rounded-lg transition"
+                                        >
+                                            Kiểm tra lại
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Hướng dẫn */}
+                                <div className="bg-blue-50 p-4 rounded-lg text-left text-sm">
+                                    <p className="font-semibold mb-2 text-blue-800">📱 Hướng dẫn thanh toán:</p>
+                                    <ol className="list-decimal list-inside space-y-1 text-gray-700">
+                                        <li>Mở ứng dụng ngân hàng của bạn</li>
+                                        <li>Quét mã QR ở trên</li>
+                                        <li>Kiểm tra thông tin và số tiền</li>
+                                        <li>Xác nhận chuyển khoản</li>
+                                        <li>Nhấn "Tôi đã chuyển khoản" để xác nhận</li>
+                                    </ol>
+                                </div>
                             </div>
                         </div>
                     )}
