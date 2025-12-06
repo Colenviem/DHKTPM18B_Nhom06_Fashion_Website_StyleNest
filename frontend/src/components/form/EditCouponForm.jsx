@@ -175,12 +175,11 @@ const EditCouponForm = ({ coupon, onClose }) => {
                 }`}
               />
             </div>
-            {errors.discountError && (
-              <span className="text-red-500 text-sm">
-                {errors.discountError}
-              </span>
-            )}
-          </div>
+              {errors.discountError && (
+                <span className="text-red-500 text-sm">
+                  {errors.discountError}
+                </span>
+              )}
             <div className="flex items-center gap-2">
               <label className="w-36 text-sm font-medium text-gray-700">Loại:</label>
               <select
@@ -232,7 +231,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
                 {errors.minimumOrderAmountError}
               </span>
             )}
-          </div>
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <label className="w-36 text-sm font-medium">Đơn tối thiểu:</label>
@@ -299,7 +297,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
                 {errors.expirationError}
               </span>
             )}
-          </div>
 
 
           {/* Usage limit */}
