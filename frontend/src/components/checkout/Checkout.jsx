@@ -53,12 +53,12 @@ const Checkout = () => {
     const [paymentStatus, setPaymentStatus] = useState("pending"); // pending, checking, success, failed
     const [checkingInterval, setCheckingInterval] = useState(null);
 
-    // Thông tin ngân hàng của bạn
+    // --- CẤU HÌNH NGÂN HÀNG (Khớp với Backend) ---
     const BANK_INFO = {
-        bankId: "970422", // Mã ngân hàng MB Bank
-        accountNo: "0328013079", // Số tài khoản của bạn
-        accountName: "LE HOANG ANH", // Tên chủ tài khoản
-        template: "compact2" // Template QR
+        bankId: "970422",       // Mã BIN của MB Bank (Military Bank)
+        accountNo: "0326829327", // Số tài khoản từ cấu hình server
+        accountName: "TRAN CONG TINH", // Tên chủ tài khoản
+        template: "compact2"    // Template QR gọn
     };
 
     const subtotal = useMemo(() =>
@@ -70,7 +70,7 @@ const Checkout = () => {
 
     const total = subtotal + shippingFee - discountValue;
 
-    // Tạo QR code khi chọn phương thức Credit
+    // Tạo QR code khi chọn phương thức Credit (SePay / Chuyển khoản)
     useEffect(() => {
         if (selectedPaymentMethod === "Credit") {
             generateQRCode();
@@ -93,9 +93,12 @@ const Checkout = () => {
     const generateQRCode = async () => {
         try {
             const amount = Math.round(total);
-            const description = `Thanh toan don hang ${createdOrderCode || new Date().getTime()}`;
+            // Tạo mã tham chiếu tạm thời (hoặc lấy ID đơn hàng nếu đã có)
+            const refCode = createdOrderCode || `PAY${new Date().getTime().toString().slice(-6)}`;
+            const description = `Thanh toan ${refCode}`;
 
-            // Tạo QR code theo chuẩn VietQR
+            // Tạo QR code theo chuẩn VietQR (SePay hỗ trợ chuẩn này)
+            // Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.jpg
             const qrContent = `https://img.vietqr.io/image/${BANK_INFO.bankId}-${BANK_INFO.accountNo}-${BANK_INFO.template}.jpg?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`;
 
             setQrCodeUrl(qrContent);
@@ -108,16 +111,21 @@ const Checkout = () => {
     // Hàm kiểm tra trạng thái thanh toán
     const checkPaymentStatus = async () => {
         try {
-            // Gọi API backend để kiểm tra giao dịch
-            const response = await axios.get("http://localhost:8080/api/payment/check-transaction", {
+            // Sử dụng axiosClient để gọi API Backend (đã cấu hình BaseURL)
+            // Giả sử Backend có API kiểm tra giao dịch hoặc Webhook đã update trạng thái Order
+            // Ở đây gọi API check tạm thời hoặc logic polling
+
+            // Lưu ý: Nếu Backend dùng Webhook SePay, Client thường nên chờ Socket hoặc polling trạng thái đơn hàng
+            // Dưới đây là ví dụ polling API kiểm tra transaction
+            const response = await axiosClient.get("/payment/check-transaction", {
                 params: {
                     accountNo: BANK_INFO.accountNo,
                     amount: Math.round(total),
-                    description: `Thanh toan don hang ${createdOrderCode || new Date().getTime()}`
+                    content: `Thanh toan` // Backend sẽ lọc theo nội dung
                 }
             });
 
-            if (response.data.success) {
+            if (response.data.success || response.data.status === "COMPLETED") {
                 setPaymentStatus("success");
                 if (checkingInterval) {
                     clearInterval(checkingInterval);
@@ -137,14 +145,14 @@ const Checkout = () => {
     const startPaymentChecking = () => {
         setPaymentStatus("checking");
 
-        // Kiểm tra mỗi 3 giây
+        // Kiểm tra mỗi 5 giây để tránh spam server
         const interval = setInterval(() => {
             checkPaymentStatus();
-        }, 3000);
+        }, 5000);
 
         setCheckingInterval(interval);
 
-        // Tự động dừng sau 5 phút
+        // Tự động dừng sau 10 phút
         setTimeout(() => {
             if (interval) {
                 clearInterval(interval);
@@ -153,7 +161,7 @@ const Checkout = () => {
                     setPaymentStatus("failed");
                 }
             }
-        }, 300000); // 5 phút
+        }, 600000);
     };
 
     const [newAddressForm, setNewAddressForm] = useState({
@@ -209,7 +217,7 @@ const Checkout = () => {
         }
 
         try {
-            const res = await axios.get("http://localhost:8080/api/orders/validate", {
+            const res = await axiosClient.get("/orders/validate", {
                 params: {
                     code,
                     orderAmount: Number(subtotal)
@@ -305,7 +313,7 @@ const Checkout = () => {
             console.log("📤 Sending order payload:", JSON.stringify(orderPayload, null, 2));
             const response = await axiosClient.post("/orders", orderPayload);
 
-            setCreatedOrderCode(response.data.orderCode || null);
+            setCreatedOrderCode(response.data.orderCode || response.data.id || "ORD-" + new Date().getTime());
             setShowSuccessModal(true);
 
             if (productsFromBuyNow.length === 0) {
@@ -581,6 +589,7 @@ const Checkout = () => {
                         </div>
                     </div>
                 </div>
+                {/* Modal hiển thị danh sách địa chỉ */}
                 {showAddressModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center font-[Manrope]">
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fadeIn" />
@@ -644,9 +653,9 @@ const Checkout = () => {
                     </div>
                 )}
 
+                {/* Modal Thêm địa chỉ mới */}
                 {showNewAddressModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center font-[Manrope]">
-                        {/* ... code cũ modal thêm địa chỉ ... */}
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fadeIn"></div>
                         <div className="relative bg-white border border-gray-300 p-6 rounded-xl shadow-xl w-full max-w-3xl mx-4 animate-scaleIn z-10 max-h-[90vh] overflow-y-auto">
                             <h2 className="text-xl font-bold mb-4">Địa chỉ mới</h2>
@@ -715,6 +724,7 @@ const Checkout = () => {
                     </div>
                 )}
 
+                {/* Danh sách sản phẩm */}
                 <div className="px-6 py-4 space-y-4">
                     <div className="grid grid-cols-12 gap-4 pb-2 border-b text-base font-medium">
                         <div className="col-span-6">Sản phẩm</div>
@@ -735,6 +745,7 @@ const Checkout = () => {
                     ))}
                 </div>
 
+                {/* Lời nhắn & Mã giảm giá */}
                 <div className="px-6 py-4 grid grid-cols-12 gap-4 items-center">
                     <label className="col-span-3 text-gray-600">Lời nhắn:</label>
                     <div className="col-span-9">
@@ -803,6 +814,8 @@ const Checkout = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Vận chuyển & Phí */}
                 <div className="px-6 py-4 grid grid-cols-12 gap-4 text-gray-800">
                     <div className="col-span-3 font-medium">Phương thức vận chuyển:</div>
                     <div className="col-span-7 space-y-4">
@@ -863,7 +876,7 @@ const Checkout = () => {
                                 <div className="bg-gray-50 p-4 rounded-lg text-left space-y-2">
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Ngân hàng:</span>
-                                        <span className="font-medium">MB Bank</span>
+                                        <span className="font-medium">MB Bank (Quân Đội)</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Số tài khoản:</span>
