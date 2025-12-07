@@ -14,13 +14,18 @@ import java.time.Instant;
 public class PaymentTransaction {
     @Id
     private String id;
-    private String orderId;
-    private UserRef user;
-    private String transactionId;
+
+    private String orderId; // Liên kết với Order
+    private String userId;  // (Optional) Lưu user thực hiện
+
+    private String transactionId; // Mã tham chiếu nội bộ hoặc từ SePay
     private double amount;
-    private String currency;
-    private String status;
-    private String method;
+    private String currency; // "VND"
+    private String status;   // PENDING, COMPLETED, EXPIRED
+    private String method;   // "SEPAY"
+    private String qrCodeUrl; // <--- THÊM MỚI: Link ảnh QR Code
+    private String description; // Nội dung chuyển khoản
+
     @CreatedDate
     private Instant createdAt;
 }
