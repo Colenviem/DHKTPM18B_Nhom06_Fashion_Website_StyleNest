@@ -12,6 +12,7 @@ const menuStructure = [
         group: null,
         items: [
             { label: "Bảng điều khiển", icon: <FiHome />, path: "/admin/dashboard" },
+            { label: "Thống kê", icon: <FiHome />, path: "/admin/statistical" },
             { label: "Sản phẩm", icon: <FiBox />, path: "/admin/products" },
             {
                 label: "Hóa đơn",

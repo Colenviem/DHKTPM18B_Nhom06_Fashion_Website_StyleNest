@@ -1,21 +1,24 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UserPage from "./page/user/UserPage";
 import AdminPage from "./page/admin/AdminPage";
 
-function App() {
-    return (
-        <Routes>
-            <Route path="/*" element={<UserPage />} />
+import { StatisticalProvider } from "./context/StatisticalContext"; 
 
-            <Route
-                path="/admin/*"
-                element={
-                    <AdminPage />
-                }
-            />
-        </Routes>
-    );
+function App() {
+  return (
+      <Routes>
+        <Route path="/*" element={<UserPage />} />
+        <Route
+          path="/admin/*"
+          element={
+            <StatisticalProvider>
+              <AdminPage />
+            </StatisticalProvider>
+          }
+        />
+      </Routes>
+  );
 }
 
 export default App;

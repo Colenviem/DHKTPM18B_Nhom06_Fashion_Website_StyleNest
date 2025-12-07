@@ -16,7 +16,7 @@ import ProductForm from "../../components/formProduct/ProductForm";
 import AdminSetting from "../../components/setting/AdminSetting";
 import ReturnRequestsTable  from "../../components/table/ReturnRequestsTable.jsx";
 import { AccountsProvider } from "../../context/AccountsContext";
-
+import  StatisticalPage from"../../page/statistical/StatisticalPage.jsx"
 const AdminPage = () => {
   return (
     <div className="flex min-h-screen font-[Manrope]">
@@ -38,6 +38,7 @@ const AdminPage = () => {
           />
           <Route path="accounts/form/:id" element={<AccountForm />} />
           <Route path="accounts/form" element={<AccountForm />} />
+          <Route path="statistical" element={<StatisticalPage />} />
           <Route path="brands" element={<BrandListsTable />} />
           <Route path="products/form/:id" element={<ProductForm />} />
           <Route path="products/form" element={<ProductForm />} />

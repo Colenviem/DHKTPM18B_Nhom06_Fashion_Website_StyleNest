@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface BrandRepository extends MongoRepository<Brand, String> {
     List<Brand> findByNameContainingIgnoreCase(String name);
+
+
 }

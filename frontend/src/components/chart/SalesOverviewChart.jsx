@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useStatisticalContext } from '../../context/StatisticalContext'; // Import Context đã tạo
+import { useStatisticalContext } from '../../context/StatisticalContext'; 
 
 // Biến thể Framer Motion cho Card
 const cardVariants = {
@@ -44,17 +44,16 @@ const formatCurrencyTick = (value) => {
 
 
 function SalesOverviewChart() {
-    const { data: rawData, loading, error, fetchMonthlyRevenue } = useStatisticalContext();
-    
+const { monthlyData, monthlyLoading, error, fetchMonthlyRevenue } = useStatisticalContext();    
     const [selectedYear, setSelectedYear] = useState(2025);
     const [selectedMonth, setSelectedMonth] = useState(11);
 
     const chartData = useMemo(() => {
-        return rawData.map(item => ({
-            name: item.range,      // '1–5', '6–10', ... (Trục X)
-            revenue: item.revenue  // Giá trị Doanh thu (Trục Y)
+        return (monthlyData || []).map(item => ({
+            name: item.range,
+            revenue: item.revenue
         }));
-    }, [rawData]);
+    }, [monthlyData]);
 
     const handleMonthChange = (e) => {
         const newMonth = parseInt(e.target.value, 10);
@@ -108,14 +107,14 @@ function SalesOverviewChart() {
             </div>
 
             {/* --- Hiển thị trạng thái --- */}
-            {loading && <div className="h-72 flex items-center justify-center"><p className="text-indigo-500">Đang tải dữ liệu doanh thu...</p></div>}
+            {monthlyLoading && <div className="h-72 flex items-center justify-center"><p className="text-indigo-500">Đang tải dữ liệu doanh thu...</p></div>}
             {error && <div className="h-72 flex items-center justify-center"><p className="text-red-500">Lỗi: {error}</p></div>}
-            {(!loading && !error && chartData.length === 0) && (
+            {(!monthlyLoading && !error && chartData.length === 0) && (
                 <div className="h-72 flex items-center justify-center"><p className="text-gray-500">Không có dữ liệu doanh thu cho tháng này.</p></div>
             )}
 
             {/* --- Phần Biểu đồ --- */}
-            {!loading && !error && chartData.length > 0 && (
+            {!monthlyLoading && !error && chartData.length > 0 && (
                 <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart 

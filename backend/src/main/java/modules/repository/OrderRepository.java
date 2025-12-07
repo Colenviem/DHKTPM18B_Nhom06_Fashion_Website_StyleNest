@@ -1,5 +1,6 @@
 package modules.repository;
 
+import modules.dto.request.ProductRevenueDTO;
 import modules.entity.Account;
 import modules.entity.Order;
 import modules.entity.Product;
@@ -39,5 +40,68 @@ public interface OrderRepository extends MongoRepository<Order, String> {
             "{ $sort: { 'createdAt': 1 } }"
     })
     List<Order> findAllByMonthAndYear(int year, int month);
+
+
+    @Aggregation(pipeline = {
+            "{ '$match': { " +
+                    "    '$or': [ " +
+                    "      { 'status': 'Completed' }, " +
+                    "      { 'status': 'Delivered' } " +
+                    "    ], " +
+                    "    'createdAt': { '$gte': ?0, '$lt': ?1 } " +
+                    "} }",
+
+            "{ '$unwind': '$items' }",
+            "{ '$project': { " +
+                    "    'name': '$items.product.name', " +
+                    "    'revenue': { " +
+                    "      '$multiply': [ " +
+                    "        '$items.quantity', " +
+                    "        '$items.unitPrice', " +
+                    "        { '$divide': [ { '$subtract': [100, '$items.product.discount'] }, 100 ] } " +
+                    "      ] " +
+                    "    } " +
+                    "} }",
+
+            "{ '$group': { " +
+                    "    '_id': '$name', " +
+                    "    'revenue': { '$sum': '$revenue' } " +
+                    "} }",
+
+            "{ '$sort': { 'revenue': -1 } }",
+
+            "{ '$setWindowFields': { " +
+                    "    'sortBy': { 'revenue': -1 }, " +
+                    "    'output': { 'rank': { '$rank': {} } } " +
+                    "} }",
+
+            "{ '$facet': { " +
+                    "    'top5': [ " +
+//                    "      { '$match': { 'rank': { '$lte': 5 } } }, " +
+                    "      { '$project': { '_id': 0, 'name': '$_id', 'revenue': 1 } } " +
+                    "    ], " +
+                    "    'others': [ " +
+                    "      { '$match': { 'rank': { '$gt': 5 } } }, " +
+                    "      { '$group': { '_id': null, 'revenue': { '$sum': '$revenue' } } } " +
+                    "    ] " +
+                    "} }",
+
+            "{ '$project': { " +
+                    "    'result': { " +
+                    "      '$concatArrays': [ " +
+                    "        '$top5', " +
+                    "        { '$cond': [ " +
+                    "          { '$gt': [{ '$size': '$others' }, 0] }, " +
+                    "          [{ 'name': 'Các sản phẩm khác', 'revenue': { '$arrayElemAt': ['$others.revenue', 0] } }], " +
+                    "          [] " +
+                    "        ]} " +
+                    "      ] } " +
+                    "} }",
+
+            "{ '$unwind': '$result' }",
+            "{ '$replaceRoot': { 'newRoot': '$result' } }"
+    })
+    List<ProductRevenueDTO> findTop5ProductsRevenueInMonth(Instant start, Instant end);
+
 
 }

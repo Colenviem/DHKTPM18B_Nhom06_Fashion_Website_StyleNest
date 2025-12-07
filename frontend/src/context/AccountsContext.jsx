@@ -70,7 +70,6 @@ export const saveOrUpdateAccount = async (account, user, method) => {
           message: data.message || "Lỗi không xác định từ server",
         });
       }
-    }
 
     return Promise.reject({
       type: "network",
