@@ -20,7 +20,7 @@ sepay:
   qr-url: https://qr.sepay.vn/img
   webhook-url: ${SEPAY_WEBHOOK_URL:https://dhktpm18b-nhom06-fashion-website.onrender.com/api/payments/sepay/webhook}
   transaction-timeout: ${TRANSACTION_TIMEOUT:300}
-  client-urls: ${CLIENT_URL:https://style-nest-frontend-n5wt0aus7.vercel.app,http://localhost:3000}
+  client-urls: ${CLIENT_URL:https://style-nest-frontend-n5wt0aus7.vercel.app,http://localhost:5173}
 
   # [QUAN TRỌNG] Cần bổ sung 2 dòng này để code Java tạo được QR Code
   bank-account: ${SEPAY_BANK_ACCOUNT:0326829327}   # Ví dụ: 0368... (Số tài khoản nhận tiền)
