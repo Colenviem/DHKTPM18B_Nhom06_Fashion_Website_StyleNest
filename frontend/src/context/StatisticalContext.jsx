@@ -1,11 +1,9 @@
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import axiosClient from "../api/axiosClient"; // ✅ Dùng axiosClient
 
-// 1. Khởi tạo Context
 const StatisticalContext = createContext();
 
-// 2. Định nghĩa Provider Component
 export const StatisticalProvider = ({ children }) => {
-    // --- State cho Doanh thu Hàng tháng (API cũ) ---
     const [monthlyData, setMonthlyData] = useState([]);
     const [monthlyLoading, setMonthlyLoading] = useState(false);
     
@@ -14,11 +12,10 @@ export const StatisticalProvider = ({ children }) => {
         thisWeekCount: 0, 
         lastWeekCount: 0, 
         thisWeekAmount: 0,
-        lastWeekAmount: 0 
+        lastWeekAmount: 0
     });
     const [weeklyLoading, setWeeklyLoading] = useState(false);
-    
-    // --- State cho số lượng hóa đơn Pending ---
+
     const [pendingCount, setPendingCount] = useState(0);
     const [pendingLoading, setPendingLoading] = useState(false);
     
@@ -37,9 +34,7 @@ export const StatisticalProvider = ({ children }) => {
     const fetchMonthlyRevenue = useCallback(async (year, month) => {
         setMonthlyLoading(true);
         setError(null);
-        setMonthlyData([]); 
-
-        const url = `http://localhost:8080/api/orders/monthly?year=${year}&month=${month}`;
+        setMonthlyData([]);
 
         try {
             const response = await fetch(url);

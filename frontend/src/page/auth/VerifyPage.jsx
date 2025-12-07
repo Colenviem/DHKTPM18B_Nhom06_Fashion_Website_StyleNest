@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-import { useLocation, useNavigate, Link, useSearchParams } from "react-router-dom";
+import axiosClient from "../../api/axiosClient"; // ✅ Dùng axiosClient
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { SkeletonOtp, SkeletonButton } from "../../components/loadings/Skeleton";
 
@@ -36,8 +36,9 @@ function VerifyPage() {
         setError("");
         setMessage("Đang tự động xác thực...");
         try {
-            const res = await axios.post(
-                `http://localhost:8080/api/accounts/verify?email=${emailToVerify}&code=${codeToVerify}`
+            // ✅ Sửa: Gọi qua axiosClient, dùng template literal cho query param
+            const res = await axiosClient.post(
+                `/accounts/verify?email=${emailToVerify}&code=${codeToVerify}`
             );
 
             if (res.status === 201 && res.data.token) {
@@ -71,8 +72,9 @@ function VerifyPage() {
         setIsLoading(true);
 
         try {
-            const res = await axios.post(
-                `http://localhost:8080/api/accounts/verify?email=${email}&code=${code}`
+            // ✅ Sửa: Gọi qua axiosClient
+            const res = await axiosClient.post(
+                `/accounts/verify?email=${email}&code=${code}`
             );
 
             if (res.status === 201 && res.data.token) {
@@ -98,8 +100,9 @@ function VerifyPage() {
         setError("");
 
         try {
-            await axios.post(
-                `http://localhost:8080/api/accounts/forgot-password`,
+            // ✅ Sửa: Gọi qua axiosClient
+            await axiosClient.post(
+                `/accounts/forgot-password`,
                 { email: email }
             );
             setResendMessage("Đã gửi lại mã thành công!");
@@ -116,7 +119,6 @@ function VerifyPage() {
         return null;
     }
 
-    // Component cho Verify Skeleton
     const VerifySkeleton = () => (
         <div className="space-y-6 pt-2">
             <SkeletonOtp />
@@ -141,7 +143,6 @@ function VerifyPage() {
                         <span className="font-semibold text-[#6F47EB]">{email}</span>
                     </p>
 
-                    {/* Render có điều kiện */}
                     {isLoading ? (
                         <VerifySkeleton />
                     ) : (
@@ -197,7 +198,6 @@ function VerifyPage() {
                         </form>
                     )}
 
-                    {/* Chỉ hiển thị phần này khi không loading */}
                     {!isLoading && (
                         <div className="text-center text-sm pt-4">
                             <span className="text-gray-600">Không nhận được mã? </span>
