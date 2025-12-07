@@ -2,6 +2,7 @@ package modules.config;
 
 import modules.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -26,7 +27,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
     @Autowired
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -49,15 +51,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://style-nest-frontend-n5wt0aus7.vercel.app",
+                "https://style-nest-frontend.vercel.app",
+                frontendUrl
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
         configuration.setExposedHeaders(List.of("Authorization"));
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
@@ -85,7 +94,8 @@ public class SecurityConfig {
                                 "/api/brands/**",
                                 "/api/users/**",
                                 "/api/cloudinary/uploadImage",
-                                "/api/returns/**"
+                                "/api/returns/**",
+                                "/api/login-history/**"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET,
@@ -96,6 +106,7 @@ public class SecurityConfig {
                                 "/api/coupons/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/orders/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders/**").permitAll()
                         .requestMatchers("/api/returns/**").authenticated()
                         .anyRequest().authenticated()
                 )

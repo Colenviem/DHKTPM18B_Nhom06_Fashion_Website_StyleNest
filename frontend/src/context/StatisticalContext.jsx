@@ -1,237 +1,200 @@
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import axiosClient from "../api/axiosClient"; // ✅ Dùng axiosClient
 
-// 1. Khởi tạo Context
 const StatisticalContext = createContext();
 
-// 2. Định nghĩa Provider Component
 export const StatisticalProvider = ({ children }) => {
-    // --- State cho Doanh thu Hàng tháng (API cũ) ---
     const [monthlyData, setMonthlyData] = useState([]);
     const [monthlyLoading, setMonthlyLoading] = useState(false);
     
-    // --- State cho Thống kê Hàng tuần (API mới) ---
+    // --- State cho Thống kê Hàng tuần ---
     const [weeklyStats, setWeeklyStats] = useState({ 
         thisWeekCount: 0, 
-        lastWeekCount: 0,
+        lastWeekCount: 0, 
         thisWeekAmount: 0,
-        lastWeekAmount: 0 
+        lastWeekAmount: 0
     });
     const [weeklyLoading, setWeeklyLoading] = useState(false);
-    
-    // --- State cho số lượng hóa đơn Pending ---
+
     const [pendingCount, setPendingCount] = useState(0);
     const [pendingLoading, setPendingLoading] = useState(false);
     
-    // --- State MỚI: Danh sách tất cả đơn hàng (Được dùng chung cho cả fetch All và fetch Filter) ---
+    // --- State cho danh sách tất cả đơn hàng ---
     const [allOrders, setAllOrders] = useState([]);
     const [allOrdersLoading, setAllOrdersLoading] = useState(false);
-    
+
+    // --- STATE MỚI: Top 5 sản phẩm bán chạy + "Các sản phẩm khác" ---
+    const [topProducts, setTopProducts] = useState([]);
+    const [topProductsLoading, setTopProductsLoading] = useState(false);
+
     // State chung cho lỗi
     const [error, setError] = useState(null);
 
-    // --- Hàm fetch Doanh thu Hàng tháng (Giữ nguyên) ---
+    // === CÁC HÀM FETCH CŨ (giữ nguyên) ===
     const fetchMonthlyRevenue = useCallback(async (year, month) => {
         setMonthlyLoading(true);
         setError(null);
-        setMonthlyData([]); 
-
-        const url = `http://localhost:8080/api/orders/monthly?year=${year}&month=${month}`;
+        setMonthlyData([]);
 
         try {
             const response = await fetch(url);
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`[Monthly API] Lỗi HTTP! Status: ${response.status}. Chi tiết: ${errorBody}`);
-            }
+            if (!response.ok) throw new Error(`Monthly API: ${response.status}`);
             const result = await response.json();
             setMonthlyData(result);
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu doanh thu hàng tháng:", err);
-            setError(err.message || "Không thể kết nối hoặc lấy dữ liệu Monthly API.");
+            console.error("Lỗi fetch monthly:", err);
+            setError(err.message);
         } finally {
             setMonthlyLoading(false);
         }
     }, []);
 
-    // --- Hàm fetch Thống kê Hàng tuần (Giữ nguyên) ---
     const fetchWeeklyStats = useCallback(async () => {
         setWeeklyLoading(true);
         setError(null);
-
-        const url = `http://localhost:8080/api/orders/weekly-count`;
-
         try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`[Weekly API] Lỗi HTTP! Status: ${response.status}. Chi tiết: ${errorBody}`);
-            }
+            const response = await fetch('http://localhost:8080/api/orders/weekly-count');
+            if (!response.ok) throw new Error(`Weekly API: ${response.status}`);
             const result = await response.json();
-            setWeeklyStats(result); 
+            setWeeklyStats(result);
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu thống kê hàng tuần:", err);
-            setError(err.message || "Không thể kết nối hoặc lấy dữ liệu Weekly API.");
+            console.error("Lỗi fetch weekly:", err);
+            setError(err.message);
         } finally {
             setWeeklyLoading(false);
         }
     }, []);
-    
-    // --- Hàm Lấy số lượng hóa đơn Pending (Giữ nguyên) ---
+
     const fetchPendingCount = useCallback(async () => {
         setPendingLoading(true);
         setError(null);
-
-        const url = `http://localhost:8080/api/orders/countPending/PENDING`;
-
         try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`[Pending Count API] Lỗi HTTP! Status: ${response.status}. Chi tiết: ${errorBody}`);
-            }
-            
-            const result = await response.json(); 
-            
-            let countValue = 0;
-            if (typeof result === 'object' && result !== null) {
-                countValue = result.count || result.total || 0; 
-            } else if (typeof result === 'number') {
-                countValue = result; 
-            }
-            
-            setPendingCount(countValue); 
+            const response = await fetch('http://localhost:8080/api/orders/countPending/PENDING');
+            if (!response.ok) throw new Error(`Pending API: ${response.status}`);
+            const result = await response.json();
+            const count = typeof result === 'object' ? result.count || result.total || result : result;
+            setPendingCount(count);
         } catch (err) {
-            console.error("Lỗi khi lấy số lượng Pending:", err);
-            setError(err.message || "Không thể kết nối hoặc lấy dữ liệu Pending Count API.");
+            console.error("Lỗi fetch pending:", err);
+            setError(err.message);
         } finally {
             setPendingLoading(false);
         }
     }, []);
 
-    // --- Hàm MỚI: Lấy tất cả danh sách đơn hàng (Endpoint gốc: /api/orders) ---
-    // Hàm này được giữ lại để tải dữ liệu ban đầu hoặc khi không có bộ lọc
     const fetchAllOrders = useCallback(async () => {
         setAllOrdersLoading(true);
         setError(null);
         setAllOrders([]);
-
-        const url = `http://localhost:8080/api/orders`;
-
         try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`[All Orders API] Lỗi HTTP! Status: ${response.status}. Chi tiết: ${errorBody}`);
-            }
-            
-            const result = await response.json(); 
-            
+            const response = await fetch('http://localhost:8080/api/orders');
+            if (!response.ok) throw new Error(`All Orders API: ${response.status}`);
+            const result = await response.json();
             if (Array.isArray(result)) {
-                // Sắp xếp MỚI NHẤT -> CŨ NHẤT mặc định cho bảng (để dễ dàng lấy đơn hàng gần đây)
-                const sortedOrders = result.sort((a, b) => 
-                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                );
-                setAllOrders(sortedOrders);
-            } else {
-                 console.warn("API /api/orders không trả về mảng dữ liệu.");
-                 setAllOrders([]);
+                const sorted = result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setAllOrders(sorted);
             }
-            
         } catch (err) {
-            console.error("Lỗi khi lấy tất cả đơn hàng:", err);
-            setError(err.message || "Không thể kết nối hoặc lấy dữ liệu All Orders API.");
+            console.error("Lỗi fetch all orders:", err);
+            setError(err.message);
         } finally {
             setAllOrdersLoading(false);
         }
     }, []);
 
-
-    // --- HÀM MỚI THEO YÊU CẦU: Lấy hóa đơn theo Tháng và Năm được chọn (/api/orders/filter) ---
-    /**
-     * Tải danh sách đơn hàng đã lọc theo tháng và năm cụ thể.
-     * @param {number} year 
-     * @param {number} month 
-     */
     const fetchOrdersByMonthAndYear = useCallback(async (year, month) => {
         setAllOrdersLoading(true);
         setError(null);
-        setAllOrders([]); // Xóa dữ liệu cũ
-
-        // Endpoint: /api/orders/filter?year=2025&month=11
-        const url = `http://localhost:8080/api/orders/filter?year=${year}&month=${month}`;
-
+        setAllOrders([]);
         try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`[Filter Orders API] Lỗi HTTP! Status: ${response.status}. Chi tiết: ${errorBody}`);
-            }
-            
-            const result = await response.json(); 
-            
+            const response = await fetch(`http://localhost:8080/api/orders/filter?year=${year}&month=${month}`);
+            if (!response.ok) throw new Error(`Filter API: ${response.status}`);
+            const result = await response.json();
             if (Array.isArray(result)) {
-                // API backend đã sắp xếp TĂNG DẦN (cũ -> mới), chúng ta lưu trực tiếp
                 setAllOrders(result);
-            } else {
-                 console.warn("API /api/orders/filter không trả về mảng dữ liệu.");
-                 setAllOrders([]);
             }
-            
         } catch (err) {
-            console.error(`Lỗi khi lấy đơn hàng tháng ${month}/${year}:`, err);
-            setError(err.message || "Không thể kết nối hoặc lấy dữ liệu Filter Orders API.");
+            console.error("Lỗi fetch filter orders:", err);
+            setError(err.message);
         } finally {
             setAllOrdersLoading(false);
         }
     }, []);
 
+    const fetchTop5Products = useCallback(async (year, month) => {
+        setTopProductsLoading(true);
+        setError(null);
+        setTopProducts([]); // reset trước khi fetch
 
-    // Tải dữ liệu ban đầu khi Provider được mount
+        const url = `http://localhost:8080/api/orders/reports/top-products?year=${year}&month=${month}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Top Products API Error ${response.status}: ${text}`);
+            }
+            const result = await response.json();
+
+            // Đảm bảo luôn là mảng, nếu backend trả rỗng thì vẫn giữ []
+            if (Array.isArray(result)) {
+                setTopProducts(result);
+            } else {
+                console.warn("Top products API không trả về mảng:", result);
+                setTopProducts([]);
+            }
+        } catch (err) {
+            console.error("Lỗi khi lấy top 5 sản phẩm:", err);
+            setError(err.message);
+            setTopProducts([]);
+        } finally {
+            setTopProductsLoading(false);
+        }
+    }, []);
+
+    // Tải dữ liệu khi app khởi động
     useEffect(() => {
-        // Lấy tháng và năm hiện tại để khởi tạo
         const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth() + 1;
+        const year = today.getFullYear();
+        const month = today.getMonth() + 1; // tháng 1-12
 
-        // Khởi tạo data ban đầu: có thể dùng fetchOrdersByMonthAndYear cho tháng hiện tại
-        // Tuy nhiên, vì bảng Deals dùng logic lọc trên frontend, ta vẫn cần fetchAllOrders để có dữ liệu gốc
-        fetchAllOrders(); 
-        
-        fetchMonthlyRevenue(currentYear, currentMonth);
-        fetchWeeklyStats(); 
+        fetchAllOrders();
+        fetchMonthlyRevenue(year, month);
+        fetchWeeklyStats();
         fetchPendingCount();
+        fetchTop5Products(year, month); // Tự động load top 5 của tháng hiện tại
+    }, []);
 
-    }, [fetchMonthlyRevenue, fetchWeeklyStats, fetchPendingCount, fetchAllOrders]);
-
-    // Giá trị được cung cấp cho Context
+    // Giá trị cung cấp ra ngoài
     const contextValue = {
-        // Monthly Data 
-        data: monthlyData, 
-        loading: monthlyLoading,
+        // Monthly
         monthlyData,
         monthlyLoading,
         fetchMonthlyRevenue,
-        
-        // Weekly Data 
+
+        // Weekly
         weeklyStats,
         weeklyLoading,
         fetchWeeklyStats,
-        
-        // Pending Count Data
+
+        // Pending
         pendingCount,
         pendingLoading,
         fetchPendingCount,
-        
-        // All Orders Data (MỚI)
+
+        // All Orders + Filter
         allOrders,
         allOrdersLoading,
         fetchAllOrders,
-        
-        // Hàm Lọc MỚI
-        fetchOrdersByMonthAndYear, // Cung cấp hàm lọc cho component bên ngoài sử dụng
+        fetchOrdersByMonthAndYear,
 
-        // Common Error
-        error, 
+        // === MỚI: Top 5 sản phẩm ===
+        topProducts,
+        topProductsLoading,
+        fetchTop5Products: fetchTop5Products,
+
+        // Error chung
+        error,
     };
 
     return (
@@ -241,11 +204,11 @@ export const StatisticalProvider = ({ children }) => {
     );
 };
 
-// 3. Custom Hook để dễ dàng sử dụng Context (Giữ nguyên)
+// Custom hook
 export const useStatisticalContext = () => {
     const context = useContext(StatisticalContext);
-    if (context === undefined) {
-        throw new Error('useStatisticalContext phải được sử dụng bên trong StatisticalProvider');
+    if (!context) {
+        throw new Error('useStatisticalContext must be used within StatisticalProvider');
     }
     return context;
 };

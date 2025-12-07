@@ -3,6 +3,8 @@ package modules.service.impl;
 import lombok.RequiredArgsConstructor;
 import modules.dto.request.WeeklyStatResultRepuest;
 import modules.entity.*;
+import modules.dto.request.*;
+import modules.repository.CouponRepository;
 import modules.repository.OrderRepository;
 import modules.repository.ProductRepository;
 import modules.repository.UserRepository;
@@ -24,6 +26,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepo;
     private final ProductRepository productRepo;
     private static final String EXCLUDED_STATUS = "PENDING";
+    private final CouponRepository couponRepo;
 
     private final ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
 
@@ -80,9 +83,10 @@ public class OrderServiceImpl implements OrderService {
 
         throw new RuntimeException("Cannot extract user ID from principal: " + principal.getClass().getName());
     }
-    @Override
+
     @Transactional
-    public Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod) {
+    @Override
+    public Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod, String couponCode) {
         try {
             String userId = getCurrentUserId();
 
@@ -93,20 +97,20 @@ public class OrderServiceImpl implements OrderService {
 
             List<OrderItem> items = new ArrayList<>();
             for (Map.Entry<String, Integer> e : products.entrySet()) {
-                OrderItem item = createOrderItem(e.getKey(), e.getValue());
-                items.add(item);
+                items.add(createOrderItem(e.getKey(), e.getValue()));
             }
 
-            double subtotal = calcSubtotal(items);
+            long subtotal = calcSubtotal(items);
 
             ShippingAddress cleanAddress = new ShippingAddress();
             cleanAddress.setName(address.getName());
             cleanAddress.setStreet(address.getStreet());
             cleanAddress.setPhoneNumber(address.getPhoneNumber());
 
-            UserRef userRef = new UserRef();
-            userRef.setId(user.getId());
-            userRef.setUserName(user.getFirstName() + " " + user.getLastName());
+            UserRef userRef = new UserRef(
+                    user.getId(),
+                    user.getFirstName() + " " + user.getLastName()
+            );
 
             Order order = new Order();
             order.setUser(userRef);
@@ -118,31 +122,88 @@ public class OrderServiceImpl implements OrderService {
             order.setSubtotal(subtotal);
             order.setShippingFee(30000);
             order.setDiscountAmount(0);
-            order.setTotalAmount(subtotal + order.getShippingFee() - order.getDiscountAmount());
             order.setCreatedAt(Instant.now());
             order.setUpdatedAt(Instant.now());
 
+            long discountAmount = 0;
+
+            if (couponCode != null && !couponCode.trim().isEmpty()) {
+                discountAmount = applyCoupon(order, couponCode.trim());
+            }
+
+            order.setDiscountAmount(discountAmount);
+            order.setTotalAmount(subtotal + order.getShippingFee() - discountAmount);
+
             reduceStock(products);
-            Order savedOrder = orderRepo.save(order);
-            return savedOrder;
+            return orderRepo.save(order);
 
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Failed to create order: " + e.getMessage(), e);
         }
+    }
+
+    private long applyCoupon(Order order, String code) {
+        Coupon coupon = couponRepo.findByCodeIgnoreCase(code)
+                .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại!"));
+
+        long subtotal = (long) order.getSubtotal();
+
+        if (!coupon.isActive()) throw new RuntimeException("Mã giảm giá bị vô hiệu hóa!");
+        if (coupon.getUsedCount() >= coupon.getUsageLimit())
+            throw new RuntimeException("Mã giảm giá đã hết lượt dùng!");
+        if (subtotal < coupon.getMinimumOrderAmount())
+            throw new RuntimeException("Chưa đạt giá trị tối thiểu " + coupon.getMinimumOrderAmount());
+        if (coupon.getExpirationDate().isBefore(Instant.now()))
+            throw new RuntimeException("Mã giảm giá đã hết hạn!");
+
+        long discountValue;
+        if ("ORDER".equals(coupon.getType())) {
+            if (coupon.getDiscount() < 100) {
+                discountValue = Math.round(subtotal * coupon.getDiscount() / 100.0);
+            } else {
+                discountValue = Math.round(coupon.getDiscount());
+            }
+        } else {
+            discountValue = Math.round(coupon.getDiscount());
+        }
+
+        CouponEmbedded embedded = new CouponEmbedded(
+                coupon.getId(),
+                coupon.getCode(),
+                (int) coupon.getDiscount(),
+                coupon.getDescription(),
+                coupon.getType(),
+                coupon.getMinimumOrderAmount(),
+                coupon.getExpirationDate(),
+                true,
+                coupon.isActive()
+        );
+
+        order.setCouponCode(coupon.getCode());
+        order.setDiscountAmount(discountValue);
+        order.setTotalAmount(order.getSubtotal() + order.getShippingFee() - discountValue);
+
+        coupon.setUsedCount(coupon.getUsedCount() + 1);
+        couponRepo.save(coupon);
+
+        return discountValue;
     }
 
     private OrderItem createOrderItem(String productId, int quantity) {
         Product product = productRepo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
 
-        long unitPrice = Math.round(product.getPrice());
+        long originalPrice = Math.round(product.getPrice());
+        long discountPercent = product.getDiscount();
+
+        long finalPrice = (discountPercent > 0)
+                ? Math.round(originalPrice * (100 - discountPercent) / 100.0)
+                : originalPrice;
 
         if (product.getVariants() == null || product.getVariants().isEmpty()) {
             throw new RuntimeException("Product has no variants: " + productId);
         }
 
-        // Lấy variant đầu tiên (hoặc variant được chọn từ FE)
         ProductVariant selectedVariant = product.getVariants().get(0);
 
         if (selectedVariant.getImages() == null || selectedVariant.getImages().isEmpty()) {
@@ -153,12 +214,12 @@ public class OrderServiceImpl implements OrderService {
         ref.setId(product.getId());
         ref.setName(product.getName());
         ref.setImage(selectedVariant.getImages().get(0));
-        ref.setPrice(unitPrice);
-        ref.setDiscount((int) product.getDiscount());
+        ref.setPrice(finalPrice);
+        ref.setDiscount((int) discountPercent);
 
-        // LƯU VARIANT ID VÀO ORDER ITEM - QUAN TRỌNG!
-        return new OrderItem(ref, selectedVariant.getSku(), quantity, unitPrice);
+        return new OrderItem(ref, selectedVariant.getSku(), quantity, finalPrice);
     }
+
 
     private long calcSubtotal(List<OrderItem> items) {
         return items.stream()
@@ -167,14 +228,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-
-//    @Override
-//    public Order updateStatus(String id, String status) {
-//        Order order = findById(id);
-//        order.setStatus(status);
-//        order.setUpdatedAt(Instant.now());
-//        return orderRepo.save(order);
-//    }
 
 
     @Override
@@ -407,4 +460,14 @@ public class OrderServiceImpl implements OrderService {
         order.setUpdatedAt(Instant.now());
         return orderRepo.save(order);
     }
+
+    @Override
+    public List<ProductRevenueDTO> getTop5ProductsRevenue(int year, int month) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        Instant startOfMonth = yearMonth.atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant startOfNextMonth = yearMonth.plusMonths(1).atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+
+        return orderRepo.findTop5ProductsRevenueInMonth(startOfMonth, startOfNextMonth);
+    }
+
 }

@@ -5,14 +5,13 @@ import EditCouponForm from "../form/EditCouponForm";
 import { FiCheckCircle, FiXCircle, FiSearch, FiEdit, FiTrash2 } from "react-icons/fi";
 import { BsTicketPerforated } from "react-icons/bs";
 import { motion } from "framer-motion";
+import axiosClient from "../../api/axiosClient";
 
-// Format tiền VND
 const formatCurrency = (amount) => {
   if (!amount) return "0";
   return new Intl.NumberFormat("vi-VN").format(amount);
 };
 
-// Format ngày
 const formatDate = (value) => {
   if (!value) return "N/A";
   return new Date(value).toLocaleDateString("vi-VN");
@@ -24,8 +23,6 @@ const CouponListsTable = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [editingCoupon, setEditingCoupon] = useState(null);
-
-  // Filter theo code, description hoặc id
   const filteredCoupons = couponsData.filter((coupon) => {
     const key = searchTerm.toLowerCase();
     return (
@@ -34,19 +31,16 @@ const CouponListsTable = () => {
         coupon.id?.toLowerCase().includes(key)
     );
   });
-
-  // Xóa coupon
-  const handleDelete = async (code) => {
-    if (!window.confirm(`Bạn chắc muốn xóa mã ${code}?`)) return;
-
+  const handleDelete = async (id) => {
+    if (!window.confirm(`Bạn chắc muốn xóa mã giảm giá này?`)) return;
     try {
-      await fetch(`http://localhost:8080/api/coupons/${code}`, {
-        method: "DELETE",
-      });
-      setCouponsData(couponsData.filter((c) => c.code !== code));
+      await axiosClient.delete(`/coupons/${id}`);
+      setCouponsData(couponsData.filter((c) => c.id !== id));
       alert("✅ Xóa thành công!");
     } catch (err) {
-      alert("❌ Xóa thất bại!");
+      console.error(err);
+      const msg = err.response?.data?.message || "Xóa thất bại!";
+      alert(`❌ ${msg}`);
     }
   };
 
@@ -93,7 +87,7 @@ const CouponListsTable = () => {
               {!loading &&
                   !error &&
                   filteredCoupons.map((coupon) => (
-                      <tr key={coupon.code} className="hover:bg-gray-50 transition text-base leading-7">
+                      <tr key={coupon.id || coupon.code} className="hover:bg-gray-50 transition text-base leading-7">
                         <td className="px-6 py-6 font-bold text-indigo-700 flex items-center gap-3">
                           <BsTicketPerforated className="text-indigo-600" />
                           {coupon.code}
@@ -121,7 +115,7 @@ const CouponListsTable = () => {
                           <button
                               title="Xóa"
                               className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-red-100"
-                              onClick={() => handleDelete(coupon.code)}
+                              onClick={() => handleDelete(coupon.id)}
                           >
                             <FiTrash2 className="w-4 h-4" />
                           </button>

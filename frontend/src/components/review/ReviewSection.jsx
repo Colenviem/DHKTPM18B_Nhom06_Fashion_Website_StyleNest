@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {FiStar, FiUser, FiCamera} from "react-icons/fi";
 import RenderStars from "../ui/RenderStars";
+import axiosClient from "../../api/axiosClient";
 
 const ReviewSection = ({productId}) => {
     const [reviews, setReviews] = useState([]);
@@ -13,9 +14,9 @@ const ReviewSection = ({productId}) => {
 
     useEffect(() => {
         if (!productId) return;
-        fetch(`http://localhost:8080/api/reviews/product/${productId}`)
-            .then((res) => res.json())
-            .then((data) => setReviews(data))
+
+        axiosClient.get(`/reviews/product/${productId}`)
+            .then((res) => setReviews(res.data))
             .catch((err) => console.error("Lỗi khi tải review:", err));
     }, [productId]);
 
@@ -39,21 +40,16 @@ const ReviewSection = ({productId}) => {
         };
 
         try {
-            const res = await fetch("http://localhost:8080/api/reviews", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(reviewToSend),
-            });
+            const res = await axiosClient.post("/reviews", reviewToSend);
 
-            if (!res.ok) throw new Error("Gửi review thất bại");
-
-            const created = await res.json();
+            const created = res.data;
             setReviews((prev) => [created, ...prev]);
             setNewReview({name: "", rating: 5, text: ""});
             alert("Cảm ơn bạn đã đánh giá sản phẩm!");
         } catch (err) {
             console.error(err);
-            alert("Không thể gửi đánh giá. Vui lòng thử lại!");
+            const errorMsg = err.response?.data?.message || "Không thể gửi đánh giá. Vui lòng thử lại!";
+            alert(errorMsg);
         }
     };
 
@@ -63,7 +59,6 @@ const ReviewSection = ({productId}) => {
                 Đánh giá sản phẩm ({reviews.length})
             </h2>
 
-            {/* --- DANH SÁCH ĐÁNH GIÁ --- */}
             <div className="space-y-10">
                 {reviews.length === 0 && (
                     <p className="text-gray-500 italic">
@@ -126,7 +121,6 @@ const ReviewSection = ({productId}) => {
                             </div>
                         )}
 
-                        {/* ❤️ Lượt thích */}
                         <div className="text-sm text-gray-500 mt-3">
                             ❤️ {review.likes ?? 0} lượt thích
                         </div>
@@ -134,7 +128,6 @@ const ReviewSection = ({productId}) => {
                 ))}
             </div>
 
-            {/* --- FORM GỬI ĐÁNH GIÁ --- */}
             <form
                 onSubmit={handleSubmit}
                 className="mt-20 bg-white border border-gray-200 rounded-2xl p-10 shadow-2xl"

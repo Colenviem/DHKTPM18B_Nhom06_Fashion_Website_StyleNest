@@ -1,5 +1,6 @@
 package modules.service;
 
+import modules.dto.request.ProductRevenueDTO;
 import modules.dto.request.WeeklyStatResultRepuest;
 import modules.entity.Order;
 import modules.entity.ShippingAddress;
@@ -16,9 +17,9 @@ public interface OrderService {
 
     Order findById(String id);
 
-    Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod);
-
     Order updateStatus(String orderId, String status);
+
+    Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod, String couponCode);
 
     Order addProduct(String orderId, String productId, int quantity);
 
@@ -38,4 +39,7 @@ public interface OrderService {
     Map<String, Object> getWeeklyStats();
 
     List<Order> getOrdersByMonthAndYear(int year, int month);
+
+    List<ProductRevenueDTO> getTop5ProductsRevenue(int year, int month);
+
 }

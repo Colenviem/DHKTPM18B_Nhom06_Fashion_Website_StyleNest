@@ -3,6 +3,8 @@ package modules.controller;
 import lombok.RequiredArgsConstructor;
 import modules.entity.Coupon;
 import modules.service.CouponService;
+import modules.service.impl.CouponServiceImpl;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +25,7 @@ public class CouponController {
 
     @GetMapping("/{code}")
     public ResponseEntity<Coupon> getByCode(@PathVariable String code) {
-        Coupon coupon = service.updateCoupon(code, null); // tạm lấy bằng service repo.findByCode
+        Coupon coupon = service.findByCode(code);
         return coupon != null
             ? ResponseEntity.ok(coupon)
             : ResponseEntity.notFound().build();
@@ -35,19 +37,17 @@ public class CouponController {
     }
 
     @PutMapping("/{code}")
-    public ResponseEntity<Coupon> update(
-        @PathVariable String code,
-        @RequestBody Coupon updatedCoupon
-    ) {
-        Coupon updated = service.updateCoupon(code, updatedCoupon);
+    public ResponseEntity<Coupon> update(@RequestBody Coupon updatedCoupon) {
+        System.out.println("Received update request for coupon: " + updatedCoupon);
+        Coupon updated = service.updateCoupon(updatedCoupon);
         return updated != null
             ? ResponseEntity.ok(updated)
             : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{code}")
-    public ResponseEntity<Void> delete(@PathVariable String code) {
-        boolean deleted = service.deleteCoupon(code);
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        boolean deleted = service.deleteCoupon(id);
         return deleted
             ? ResponseEntity.noContent().build()
             : ResponseEntity.notFound().build();
