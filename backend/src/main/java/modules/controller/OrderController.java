@@ -1,7 +1,7 @@
 package modules.controller;
 
 import lombok.RequiredArgsConstructor;
-import modules.entity.Account;
+import modules.dto.request.ProductRevenueDTO;
 import modules.entity.Coupon;
 import modules.entity.Order;
 import modules.entity.ShippingAddress;
@@ -9,12 +9,9 @@ import modules.repository.CouponRepository;
 import modules.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -201,4 +198,13 @@ public class OrderController {
             return ResponseEntity.badRequest().build(); // Trả về 400 Bad Request
         }
     }
+
+    @GetMapping("/reports/top-products")
+    public ResponseEntity<List<ProductRevenueDTO>> getTop5Products(
+            @RequestParam int year,
+            @RequestParam int month) {
+        List<ProductRevenueDTO> result =orderService.getTop5ProductsRevenue(year, month);
+        return ResponseEntity.ok(result);
+    }
+
 }
