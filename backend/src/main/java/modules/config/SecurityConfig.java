@@ -85,7 +85,8 @@ public class SecurityConfig {
                                 "/api/brands/**",
                                 "/api/users/**",
                                 "/api/cloudinary/uploadImage",
-                                "/api/returns/**"
+                                "/api/returns/**",
+                                "/api/login-history/**"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET,

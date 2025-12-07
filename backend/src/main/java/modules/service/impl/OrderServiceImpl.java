@@ -3,6 +3,7 @@ package modules.service.impl;
 import lombok.RequiredArgsConstructor;
 import modules.dto.request.WeeklyStatResultRepuest;
 import modules.entity.*;
+import modules.dto.request.*;
 import modules.repository.CouponRepository;
 import modules.repository.OrderRepository;
 import modules.repository.ProductRepository;
@@ -459,4 +460,14 @@ public class OrderServiceImpl implements OrderService {
         order.setUpdatedAt(Instant.now());
         return orderRepo.save(order);
     }
+
+    @Override
+    public List<ProductRevenueDTO> getTop5ProductsRevenue(int year, int month) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        Instant startOfMonth = yearMonth.atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant startOfNextMonth = yearMonth.plusMonths(1).atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+
+        return orderRepo.findTop5ProductsRevenueInMonth(startOfMonth, startOfNextMonth);
+    }
+
 }
