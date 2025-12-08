@@ -29,11 +29,11 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     @Value("${app.frontend-url}")
     private String frontendUrl;
+
     @Autowired
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -67,21 +67,18 @@ public class SecurityConfig {
         return source;
     }
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // Quan trọng: Phải tắt CSRF để Webhook hoạt động
                 .authenticationProvider(authProvider)
-
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
                 .authorizeHttpRequests(authz -> authz
+                        // === CÁC ENDPOINT PUBLIC (KHÔNG CẦN LOGIN) ===
                         .requestMatchers(
                                 "/api/accounts/login",
                                 "/api/accounts/verify",
@@ -94,10 +91,12 @@ public class SecurityConfig {
                                 "/api/brands/**",
                                 "/api/users/**",
                                 "/api/cloudinary/uploadImage",
-                                "/api/returns/**",
-                                "/api/login-history/**"
+                                // 👇 [QUAN TRỌNG] THÊM DÒNG NÀY ĐỂ MỞ QUYỀN CHO SEPAY
+                                "/api/payment/**",
+                                "/api/payment/sepay/**"
                         ).permitAll()
 
+                        // Các Endpoint GET Public khác
                         .requestMatchers(HttpMethod.GET,
                                 "/api/products/**",
                                 "/api/categories/**",
@@ -105,12 +104,15 @@ public class SecurityConfig {
                                 "/api/orders/**",
                                 "/api/coupons/**"
                         ).permitAll()
+
+                        // Các Endpoint Đặt hàng (Cần xem xét lại logic này, thường đặt hàng phải login)
                         .requestMatchers(HttpMethod.PUT, "/api/orders/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/orders/**").permitAll()
+
+                        // === CÁC ENDPOINT BẮT BUỘC ĐĂNG NHẬP ===
                         .requestMatchers("/api/returns/**").authenticated()
                         .anyRequest().authenticated()
                 )
-
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable());
