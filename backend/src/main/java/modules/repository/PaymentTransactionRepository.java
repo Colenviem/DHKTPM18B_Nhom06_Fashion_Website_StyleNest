@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface PaymentTransactionRepository extends MongoRepository<PaymentTransaction, String> {
     Optional<PaymentTransaction> findByOrderId(String orderId);
+    Optional<PaymentTransaction> findByDescription(String description);
 }

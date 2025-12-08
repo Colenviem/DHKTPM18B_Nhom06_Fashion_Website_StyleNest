@@ -25,7 +25,7 @@ const ListProductPage = () => {
     const [selectedStockStatus, setSelectedStockStatus] = useState("Có sẵn");
     const [selectedColors, setSelectedColors] = useState([]);
     const [selectedSizes, setSelectedSizes] = useState([]);
-    const [priceRange, setPriceRange] = useState({ min: 100000, max: 5000000 });
+    const [priceRange, setPriceRange] = useState({ min: 0, max: 5000000 });
 
     // 🔍 Lọc sản phẩm theo các bộ lọc (gọi hook ở mọi render, kể cả khi loading)
     const filteredProducts = useMemo(() => {

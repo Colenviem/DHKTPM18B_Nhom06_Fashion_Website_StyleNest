@@ -14,17 +14,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class PaymentTransactionServiceImpl implements PaymentTransactionService {
 
     private final PaymentTransactionRepository paymentRepository;
-    private final OrderRepository orderRepository; // Inject trực tiếp Order Repo
+    private final OrderRepository orderRepository;
 
+    // Lấy cấu hình từ application.yml
     @Value("${sepay.qr-url}")
     private String sepayQrUrl;
+
     @Value("${sepay.bank-account}")
     private String bankAccount;
+
     @Value("${sepay.bank-code}")
     private String bankCode;
 
@@ -43,33 +48,33 @@ public class PaymentTransactionServiceImpl implements PaymentTransactionService 
         return paymentRepository.findById(id).orElse(null);
     }
 
-    // --- 1. Tạo Link thanh toán SePay ---
+    /**
+     * Tạo giao dịch thanh toán SePay và trả về link QR Code
+     * Dùng cho trường hợp Backend tạo mã QR (kịch bản tối ưu)
+     */
+    @Override
     public PaymentTransaction createSepayTransaction(CreateSepayLinkRequest request) {
-        // 1. Validate Order
+        // 1. Kiểm tra đơn hàng
         Order order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + request.getOrderId()));
 
-        if (order.getTotalAmount() != request.getAmount()) {
-            throw new RuntimeException("Amount mismatch! Order requires: " + order.getTotalAmount());
-        }
+        // 2. Tạo mã tham chiếu duy nhất cho giao dịch (PAY + timestamp hoặc ID)
+        // Ví dụ: PAY171543 (trùng khớp với định dạng Regex ở dưới)
+        String uniqueSuffix = String.valueOf(System.currentTimeMillis()).substring(7); // Lấy 6 số cuối time
+        String description = "PAY" + uniqueSuffix;
 
-        // 2. Tạo giao dịch PaymentTransaction (PENDING)
+        // 3. Tạo record giao dịch
         PaymentTransaction trans = new PaymentTransaction();
         trans.setOrderId(order.getId());
-        trans.setAmount(request.getAmount());
+        trans.setAmount(request.getAmount()); // Dùng số tiền từ request hoặc order.getTotalAmount()
         trans.setCurrency("VND");
         trans.setMethod("SEPAY");
         trans.setStatus("PENDING");
+        trans.setDescription(description); // Lưu mã PAY... để đối chiếu Webhook
         trans.setCreatedAt(Instant.now());
 
-        // Lưu trước để có ID dùng cho content chuyển khoản
-        trans = paymentRepository.save(trans);
-
-        // 3. Tạo QR Code URL
-        // Format: qr-url?acc=...&bank=...&amount=...&des=ID_GIAO_DICH
-        String description = "PAY" + trans.getId(); // Nội dung: PAY + ID giao dịch
-        trans.setDescription(description);
-
+        // 4. Tạo QR Code URL
+        // Format: https://qr.sepay.vn/img?acc=...&bank=...&amount=...&des=...
         String qrUrl = String.format("%s?acc=%s&bank=%s&amount=%.0f&des=%s",
                 sepayQrUrl, bankAccount, bankCode, request.getAmount(), description);
 
@@ -78,65 +83,79 @@ public class PaymentTransactionServiceImpl implements PaymentTransactionService 
         return paymentRepository.save(trans);
     }
 
-    // --- 2. Xử lý Webhook từ SePay ---
+    /**
+     * Xử lý Webhook từ SePay khi có biến động số dư
+     */
+    @Override
     @Transactional
     public String handleSepayWebhook(SepayWebhookRequest webhook) {
-        // 1. Parse lấy PaymentTransaction ID từ content chuyển khoản
-        // Giả sử content là: "PAY6570a..." hoặc "Thanh toan PAY6570a..."
-        String transactionId = extractTransactionId(webhook.getContent());
+        // 1. Trích xuất mã giao dịch từ nội dung chuyển khoản
+        // Content mẫu: "Thanh toan PAY040525 Ma giao dich Trace405712..."
+        // Kết quả extract: "PAY040525"
+        String transactionCode = extractTransactionId(webhook.getContent());
 
-        if (transactionId == null) {
-            return "Không tìm thấy mã giao dịch trong nội dung chuyển khoản";
+        if (transactionCode == null) {
+            return "Không tìm thấy mã giao dịch (PAY...) trong nội dung chuyển khoản";
         }
 
-        PaymentTransaction trans = paymentRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found: " + transactionId));
+        // 2. Tìm giao dịch trong Database
+        // Tìm theo trường description (nơi ta đã lưu mã PAY...)
+        // Bạn cần thêm method findByDescription trong PaymentTransactionRepository
+        PaymentTransaction trans = paymentRepository.findByDescription(transactionCode)
+                .orElse(null);
 
-        // 2. Kiểm tra số tiền
-        // Lưu ý: Cho phép sai số nhỏ nếu cần
+        if (trans == null) {
+            // Fallback: Nếu không tìm thấy trong bảng Payment, có thể thử tìm trong bảng Order
+            // nếu quy ước mã chuyển khoản là Mã đơn hàng.
+            return "Giao dịch không tồn tại trong hệ thống: " + transactionCode;
+        }
+
+        // 3. Kiểm tra số tiền (Cho phép sai số nhỏ nếu cần)
         if (webhook.getTransferAmount() < trans.getAmount()) {
-            return "Số tiền chuyển khoản không đủ";
+            return "Số tiền chuyển khoản không đủ. Yêu cầu: " + trans.getAmount() + ", Thực nhận: " + webhook.getTransferAmount();
         }
 
-        // 3. Cập nhật PaymentTransaction -> COMPLETED
-        trans.setStatus("COMPLETED");
-        trans.setTransactionId(String.valueOf(webhook.getId())); // Lưu ID giao dịch ngân hàng
-        paymentRepository.save(trans);
+        // 4. Cập nhật trạng thái nếu chưa hoàn thành
+        if (!"COMPLETED".equals(trans.getStatus())) {
+            // Update PaymentTransaction
+            trans.setStatus("COMPLETED");
+            trans.setTransactionId(String.valueOf(webhook.getId())); // Lưu ID tham chiếu từ SePay
+            trans.setUpdatedAt(Instant.now());
+            paymentRepository.save(trans);
 
-        // 4. Cập nhật Order Status -> PAID/PROCESSING
-        // Vì đây là monolith, ta update luôn Order tại đây
-        Optional<Order> orderOpt = orderRepository.findById(trans.getOrderId());
-        if (orderOpt.isPresent()) {
-            Order order = orderOpt.get();
-            order.setStatus("PAID"); // Hoặc trạng thái nào bạn quy định
-            order.setUpdatedAt(Instant.now());
-            orderRepository.save(order);
+            // Update Order Status -> PAID
+            Optional<Order> orderOpt = orderRepository.findById(trans.getOrderId());
+            if (orderOpt.isPresent()) {
+                Order order = orderOpt.get();
+                // Logic nghiệp vụ: Chỉ update nếu đơn hàng chưa hủy hoặc chưa thanh toán
+                if (!"CANCELLED".equals(order.getStatus())) {
+                    order.setStatus("PAID");
+                    order.setUpdatedAt(Instant.now());
+                    orderRepository.save(order);
+                }
+            }
+            return "Thanh toán thành công cho giao dịch: " + transactionCode;
         }
 
-        return "Webhook xử lý thành công";
+        return "Giao dịch đã được xử lý trước đó: " + transactionCode;
     }
 
-    // Helper: Tách ID từ nội dung chuyển khoản
+    /**
+     * Helper: Dùng Regex để tách mã PAY... ra khỏi chuỗi nội dung hỗn độn
+     */
     private String extractTransactionId(String content) {
-        // Logic: Tìm chuỗi sau chữ "PAY"
-        // Ví dụ content: "MBVCB.12345.PAY6789abc.CT" -> Lấy "6789abc"
-        // Bạn có thể dùng regex hoặc split tùy theo quy ước
         if (content == null) return null;
 
-        // Cách đơn giản: Nếu quy ước description lúc tạo là "PAY" + ID
-        // Ta tìm index của "PAY"
-        int index = content.indexOf("PAY");
-        if (index != -1) {
-            // Lấy chuỗi từ sau chữ PAY (3 ký tự)
-            // Cần cẩn thận nếu ID chứa ký tự đặc biệt hoặc content có text phía sau
-            // Đây là logic đơn giản hóa, bạn nên regex kỹ hơn cho ID MongoDB (24 hex chars)
-            String sub = content.substring(index + 3);
-            // Giả sử ID mongo dài 24 ký tự
-            if(sub.length() >= 24) {
-                return sub.substring(0, 24);
-            }
-            return sub.trim();
+        // Regex: Tìm chuỗi bắt đầu bằng "PAY" theo sau là ít nhất 1 số
+        // (PAY\d+) -> Bắt "PAY040525"
+        // Nếu mã của bạn có cả chữ (VD: PAY8AF2), dùng (PAY[a-zA-Z0-9]+)
+        Pattern pattern = Pattern.compile("(PAY\\d+)");
+        Matcher matcher = pattern.matcher(content);
+
+        if (matcher.find()) {
+            return matcher.group(1); // Trả về group 1 là mã tìm được
         }
+
         return null;
     }
 }
