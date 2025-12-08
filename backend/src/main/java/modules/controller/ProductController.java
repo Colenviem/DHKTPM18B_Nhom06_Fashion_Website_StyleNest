@@ -15,6 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
+@CrossOrigin(origins = "${FRONTEND_URL}")
 public class ProductController {
     private final ProductServiceImpl service;
 

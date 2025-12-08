@@ -20,6 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/accounts")
+@CrossOrigin(origins = "${FRONTEND_URL}")
 public class AccountController {
     private final AccountService accountService;
     private final UserService userService;
