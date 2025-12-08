@@ -37,21 +37,18 @@ public class ReviewServiceImpl implements modules.service.ReviewService {
 
     @Override
     public Review updateReview(Review review) {
-        return null;
+        return repository.findById(review.getId())
+                .map(existing -> {
+                    existing.setRating(review.getRating());
+                    existing.setComment(review.getComment());
+                    existing.setImages(review.getImages());
+                    existing.setApproved(review.isApproved());
+                    return repository.save(existing);
+                }).orElse(null);
     }
 
     @Override
-    public void deleteReview(String id) {
-
-    }
-
-    @Override
-    public void incrementLikes(String reviewId) {
-
-    }
-
-    @Override
-    public void decrementLikes(String reviewId) {
-
+    public Review findByUserIdAndProductId(String userId, String productId) {
+        return repository.findByUser_IdAndProduct_Id(userId, productId);
     }
 }

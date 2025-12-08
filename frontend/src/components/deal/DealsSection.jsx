@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 const DealsSection = ({ products }) => {
   const [current, setCurrent] = useState(0);
   const [timeLeft, setTimeLeft] = useState({});
+
+  const navigate = useNavigate();
 
   const nextSlide = () => setCurrent((prev) => (prev + 1) % products.length);
   const prevSlide = () =>
@@ -108,6 +111,7 @@ const DealsSection = ({ products }) => {
                 return (
                   <motion.div
                     key={product.id}
+                    onClick={() => navigate(`/product/${product.id}`)}
                     initial={{ opacity: 0, x: 200, scale: 0.9 }}
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, x: -200, scale: 0.9 }}
@@ -120,7 +124,7 @@ const DealsSection = ({ products }) => {
                     className="relative w-72 md:w-96 h-[420px] md:h-[480px] rounded-3xl shadow-2xl shadow-black/70 overflow-hidden cursor-pointer group card-float"
                   >
                     <img
-                      src={product.img}
+                      src={product.variants[0]?.images[0] || "/placeholder.png"}
                       alt={product.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.08]"
                     />
@@ -131,12 +135,20 @@ const DealsSection = ({ products }) => {
                       <h3 className="text-2xl font-bold mt-1 mb-1 drop-shadow-lg">
                         {product.title}
                       </h3>
+                      <h3 className="text-2xl font-bold mt-1 mb-1 drop-shadow-lg">
+                        {(product.price * (1 - product.discount / 100)).toLocaleString("vi-VN", {
+                          style: "currency",
+                          currency: "VND",
+                        })}
+                      </h3>
                       <div className="flex justify-between items-center">
                         <p className="text-lg font-semibold text-[#BDA5FF]">
-                          {product.discount}
+                          {product.name}
                         </p>
                         <span className="text-sm font-medium line-through opacity-60 text-gray-400">
-                          $59.99
+                          {product.price?.toLocaleString("vi-VN", {
+                            style: "currency",
+                            currency: "VND",})}
                         </span>
                       </div>
                     </div>

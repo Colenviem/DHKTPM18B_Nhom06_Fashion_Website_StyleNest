@@ -3,10 +3,12 @@ package modules.service.impl;
 import modules.entity.Cart;
 import modules.entity.CartItem;
 import modules.entity.ProductRef;
+import modules.entity.UserRef;
 import modules.repository.CartRepository;
 import modules.service.CartService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,28 +43,26 @@ public class CartServiceImpl implements CartService {
     @Override
     public Cart updateCartByUser(String userId, Cart incomingCart) {
         Cart existing = repository.findByUserId(userId).orElse(null);
-        if (existing == null) return null;
 
-        if (incomingCart.getItems() != null) {
-            existing.getItems().clear();
-
-            incomingCart.getItems().forEach(item -> {
-                if (item.getProduct() != null && item.getProduct().getId() != null) {
-                    ProductRef ref = new ProductRef();
-                    ref.setId(item.getProduct().getId());
-                    ref.setName(item.getProduct().getName());
-                    ref.setImage(item.getProduct().getImage());
-                    ref.setPrice(item.getProduct().getPrice());
-                    ref.setDiscount(item.getProduct().getDiscount());
-
-                    item.setProduct(ref);
-
-                    double priceAtTime = ref.getPrice() * (1 - ref.getDiscount() / 100.0);
-                    item.setPriceAtTime(priceAtTime);
-                }
-                existing.getItems().add(item);
-            });
+        // Nếu chưa có giỏ hàng thì TẠO MỚI LUÔN
+        if (existing == null) {
+            existing = new Cart();
+            UserRef userRef = new UserRef();
+            userRef.setId(userId);
+            existing.setUser(userRef);
+            existing.setItems(new ArrayList<>());
+            existing.setTotalQuantity(0);
+            existing.setTotalPrice(0);
         }
+
+        // Xóa items cũ
+        existing.getItems().clear();
+
+        // Thêm items từ incomingCart
+        Cart existingFinal = existing;
+        incomingCart.getItems().forEach(item -> {
+            existingFinal.getItems().add(item);
+        });
 
         existing.setTotalQuantity(
                 existing.getItems().stream().mapToInt(CartItem::getQuantity).sum()

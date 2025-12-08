@@ -28,10 +28,14 @@ sepay:
 spring:
   application:
     name: spring-ai
+  logging:
+    level:
+      org:
+        springframework:
+          security: DEBUG
   data:
     mongodb:
       uri: ${MONGODB_URI}
-
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
