@@ -16,15 +16,15 @@ import axiosClient from "../../api/axiosClient";
 const getBrandStatus = (isActive) =>
     isActive
         ? {
-            text: "Còn hoạt động",
-            icon: <FiCheckCircle className="w-5 h-5 text-green-500 mx-auto" />,
-            colorClass: "text-green-600 font-bold",
-        }
+              text: "Còn hoạt động",
+              icon: <FiCheckCircle className="w-5 h-5 text-green-500 mx-auto" />,
+              colorClass: "text-green-600 font-bold",
+          }
         : {
-            text: "Ngừng hoạt động",
-            icon: <FiXCircle className="w-5 h-5 text-red-500 mx-auto" />,
-            colorClass: "text-red-600 font-bold",
-        };
+              text: "Ngừng hoạt động",
+              icon: <FiXCircle className="w-5 h-5 text-red-500 mx-auto" />,
+              colorClass: "text-red-600 font-bold",
+          };
 
 const formatDateTime = (isoString) => {
     if (!isoString) return "N/A";
@@ -104,15 +104,14 @@ const BrandListsTable = () => {
     }, [searchKeyword, setBrandsData]);
 
     const openModal = (brand = null) => {
-        setEditingBrand(brand);
+    setEditingBrand(brand);
         setFormData({
             name: brand?.name ?? "",
             description: brand?.description ?? "",
             logoUrl: brand?.logoUrl ?? "",
-            isActive: brand?.isActive ?? false,
-            isFeatured: brand?.isFeatured ?? false,
+            isActive: brand?.active ?? false,    // ✅ đúng field
+            isFeatured: brand?.featured ?? false, // ✅ đúng field
         });
-
         setIsModalOpen(true);
     };
 
@@ -128,9 +127,13 @@ const BrandListsTable = () => {
                 name: formData.name,
                 description: formData.description,
                 logoUrl: formData.logoUrl,
-                isActive: formData.isActive,
-                isFeatured: formData.isFeatured,
+                active: formData.isActive,
+                featured: formData.isFeatured,
             };
+
+            console.log(editingBrand)
+
+            console.log(payload);
 
             if (editingBrand) {
                 await axiosClient.put(`/brands/${editingBrand.id}`, payload);
@@ -152,6 +155,8 @@ const BrandListsTable = () => {
         return <Spinner size={12} content="Đang tải dữ liệu nhãn hàng" />;
     if (!brandsData || !Array.isArray(brandsData))
         return <div className="p-6 pt-24 bg-gray-50 min-h-screen">Không có dữ liệu</div>;
+
+    const placeholderLogo = "https://placehold.co/32x32/E0E0E0/333333?text=B";
 
     return (
         <div className="p-6 pt-24 bg-gray-50 min-h-screen">
@@ -200,15 +205,15 @@ const BrandListsTable = () => {
             <div className="overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-100">
                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                     <thead className="bg-gray-50">
-                    <tr className="text-gray-600 uppercase tracking-wider font-semibold text-xs">
-                        <th className="px-6 py-4 text-center">Thương hiệu (ID)</th>
-                        <th className="px-6 py-4 text-center">Mô tả</th>
-                        <th className="px-6 py-4 text-center">Nổi bật</th>
-                        <th className="px-6 py-4 text-center">Ngày tạo</th>
-                        <th className="px-6 py-4 text-center">Cập nhật cuối</th>
-                        <th className="px-6 py-4 text-center">Trạng thái</th>
-                        <th className="px-6 py-4 text-center">Hành động</th>
-                    </tr>
+                        <tr className="text-gray-600 uppercase tracking-wider font-semibold text-xs">
+                            <th className="px-6 py-4 text-center">Thương hiệu (ID)</th>
+                            <th className="px-6 py-4 text-center">Mô tả</th>
+                            <th className="px-6 py-4 text-center">Nổi bật</th>
+                            <th className="px-6 py-4 text-center">Ngày tạo</th>
+                            <th className="px-6 py-4 text-center">Cập nhật cuối</th>
+                            <th className="px-6 py-4 text-center">Trạng thái</th>
+                            <th className="px-6 py-4 text-center">Hành động</th>
+                        </tr>
                     </thead>
                     <motion.tbody
                         className="bg-white divide-y divide-gray-100"
@@ -217,7 +222,7 @@ const BrandListsTable = () => {
                         animate="visible"
                     >
                         {brandsData.map((brand) => {
-                            const status = getBrandStatus(brand.isActive);
+                            const status = getBrandStatus(brand.active);
                             return (
                                 <motion.tr
                                     key={brand.id}
@@ -227,13 +232,12 @@ const BrandListsTable = () => {
                                     {/* Thương hiệu */}
                                     <td className="px-6 py-4 font-extrabold text-gray-900 whitespace-nowrap flex text-left gap-3">
                                         <img
-                                            src={brand.logoUrl}
-                                            alt={brand.name}
+                                            src={brand.logoUrl || placeholderLogo}
+                                            alt={brand.name || "Logo"}
                                             className="w-8 h-8 rounded-full object-cover border border-gray-200"
                                             onError={(e) => {
                                                 e.target.onerror = null;
-                                                e.target.src =
-                                                    "https://placehold.co/32x32/E0E0E0/333333?text=B";
+                                                e.target.src = placeholderLogo;
                                             }}
                                         />
                                         <div className="font-semibold text-gray-800">
@@ -305,6 +309,7 @@ const BrandListsTable = () => {
                 </table>
             </div>
 
+            {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 animate-fadeIn">
@@ -354,7 +359,7 @@ const BrandListsTable = () => {
                                 />
                                 {formData.logoUrl && (
                                     <img
-                                        src={formData.logoUrl}
+                                        src={formData.logoUrl || placeholderLogo}
                                         alt="Preview Logo"
                                         className="w-24 h-24 object-cover rounded-lg border border-gray-200 mt-2"
                                     />
@@ -372,8 +377,8 @@ const BrandListsTable = () => {
                                         className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
                                     />
                                     <span className="text-gray-700 font-medium">
-                    Đang hoạt động
-                  </span>
+                                        Đang hoạt động
+                                    </span>
                                 </label>
                                 <label className="flex items-center gap-3">
                                     <input
