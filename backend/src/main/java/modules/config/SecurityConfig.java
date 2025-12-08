@@ -109,6 +109,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/orders/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/orders/**").permitAll()
 
+                        // Test
+                        .requestMatchers(HttpMethod.PUT,"/api/reviews/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/reviews/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // === CÁC ENDPOINT BẮT BUỘC ĐĂNG NHẬP ===
                         .requestMatchers("/api/returns/**").authenticated()
                         .anyRequest().authenticated()
