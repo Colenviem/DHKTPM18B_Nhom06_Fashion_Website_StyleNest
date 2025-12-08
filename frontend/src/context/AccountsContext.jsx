@@ -71,10 +71,10 @@ export const saveOrUpdateAccount = async (account, user, method) => {
       });
     }
 
-    return Promise.reject({
-      type: "network",
-      message:
-          "Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.",
-    });
-  }
+  //   return Promise.reject({
+  //     type: "network",
+  //     message:
+  //         "Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.",
+  //   });
+  // }
 };

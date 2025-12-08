@@ -3,10 +3,9 @@ import { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 
-// Import đúng API mới (dùng axiosClient)
-import { addCustomerLogin } from "../../context/LoginHistorys"; // Đường dẫn chính xác
+import { addCustomerLogin } from "../../context/LoginHistorys";
 
 import { SkeletonInput, SkeletonButton } from "../../components/loadings/Skeleton";
 
@@ -32,7 +31,6 @@ function LoginPage() {
     setIsLoading(true);
 
     try {
-      // ✅ Sửa: Gọi qua axiosClient, endpoint ngắn gọn
       const res = await axiosClient.post("/accounts/login", {
         userName: username.trim(),
         password
