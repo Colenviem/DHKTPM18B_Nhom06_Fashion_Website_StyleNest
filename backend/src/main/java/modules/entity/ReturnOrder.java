@@ -14,7 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 @Document(collection = "ReturnOrders")
 public class ReturnOrder {
-
     @Id
     private String id;
     private String orderId;
