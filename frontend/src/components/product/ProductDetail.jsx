@@ -10,6 +10,7 @@ import { CartContext } from "../../context/CartContext";
 import axios from "axios";
 
 import { uploadImage } from "../../context/CloudinaryContext";
+import axiosClient from "../../api/axiosClient";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -30,7 +31,7 @@ const ProductDetail = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Review form states
+  // Trạng thái form đánh giá
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewImages, setReviewImages] = useState([]);
@@ -41,6 +42,11 @@ const ProductDetail = () => {
   const [hasPurchased, setHasPurchased] = useState(false);
   const [productPurchased, setProductPurchased] = useState(null);
   const [hasReviewed, setHasReviewed] = useState(false);
+
+  // Trạng thái chỉnh sửa review
+  const [editingReviewId, setEditingReviewId] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
 
   const openModal = (message, duration = 1500) => {
     setModalMessage(message);
@@ -56,7 +62,6 @@ const ProductDetail = () => {
       setLoading(true);
       setError(null);
       setReviewsError(null);
-
       try {
         const productData = await getProductById(id);
         console.log("Chi tiết sản phẩm:", productData);
@@ -64,8 +69,13 @@ const ProductDetail = () => {
 
         if (productData?.id) {
           const reviewsData = await getReviewsByProductId(productData.id);
-          console.log("Danh sách Reviews:", reviewsData);
-          setReviews(reviewsData);
+          if(user.role === "ADMIN") {
+            setReviews(reviewsData);
+          } else {
+            // Chỉ hiện reviews đã được duyệt nếu không phải admin
+            const approvedReviews = reviewsData.filter((r) => r.isApproved);
+            setReviews(approvedReviews);
+          }
         }
         if (productData?.variants?.length > 0) {
           setSelectedColor(productData.variants[0].color);
@@ -96,7 +106,8 @@ const ProductDetail = () => {
       }
     });
 
-    if (hasReviewed) { // Nếu rồi thì không cần kiểm tra nữa
+    if (hasReviewed) {
+      // Nếu rồi thì không cần kiểm tra nữa
       setHasPurchased(false);
       return;
     }
@@ -104,15 +115,12 @@ const ProductDetail = () => {
     const fetchOrders = async () => {
       try {
         if (!user) return;
-        const token = localStorage.getItem("token");
-
-        const res = await axios.get(
-          `http://localhost:8080/api/orders/user/${user.id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await axiosClient.get(`orders/user/${user.id}`);
         // Kiểm tra user đã từng mua sản phẩm chưa
-        const purchased = res.data.some((order) =>
-          order.items.some((item) => item.product.id === product?.id)
+        const purchased = res.data.some(
+          (order) =>
+            order.items.some((item) => item.product.id === product?.id) &&
+            order.status === "Delivered"
         );
         setHasPurchased(purchased);
 
@@ -141,7 +149,7 @@ const ProductDetail = () => {
 
     if (!product) return;
 
-    if (!selectedVariant || selectedVariant.inStock < quantity) {
+    if (!selectedVariant || selectedVariant.inStock < quantity || quantity < 0) {
       openModal(
         `⚠️ Số lượng tồn kho không đủ! Chỉ còn ${
           selectedVariant?.inStock || 0
@@ -268,18 +276,11 @@ const ProductDetail = () => {
       comment: reviewText,
       images: reviewImages, //URL ảnh đánh giá
       isApproved: true,
-      likes: 0,
-      createAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     };
     console.log("📤 Gửi review:", reviewData);
     try {
-      await axios.post(`http://localhost:8080/api/reviews`, reviewData, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
+      await axiosClient.post(`reviews`, reviewData);
       // Reset
       setReviewText("");
       setReviewRating(5);
@@ -295,6 +296,81 @@ const ProductDetail = () => {
       console.error(err);
     }
   };
+
+  // Mở modal chỉnh sửa review
+  const handleOpenEditReview = (id, review) => {
+    setEditingReviewId(id);
+    setEditingReview(review);
+    setReviewText(review.comment);
+    setReviewRating(review.rating);
+    setReviewImages(review.images || []);
+    setIsEditModalOpen(true);
+  };
+
+  // Xử lý cập nhật review
+  const handleUpdateReview = async () => {
+     if (uploading) {
+      openModal("⚠️ Vui lòng chờ ảnh tải xong...");
+      return;
+    }
+    if (!reviewText.trim()) {
+      openModal("⚠️ Vui lòng nhập nội dung!");
+      return;
+    }
+
+    const updatedReview = {
+      id: editingReviewId,
+      user: {
+        id: user.id,
+        userName: user.userName,
+      },
+      product: productPurchased,
+      rating: reviewRating,
+      comment: reviewText,
+      images: reviewImages, //URL ảnh đánh giá
+      isApproved: true,
+      createdAt: new Date().toISOString(),
+    };
+
+    console.log("📤 Cập nhật review:", updatedReview);
+
+    try {
+      await axiosClient.put(`reviews/${editingReviewId}`, updatedReview);
+
+      openModal("✅ Cập nhật đánh giá thành công!");
+      setIsEditModalOpen(false);
+      setEditingReview(null);
+
+      // Reload review
+      const updated = await getReviewsByProductId(product.id);
+      setReviews(updated);
+    } catch (err) {
+      console.error(err);
+      openModal("❌ Lỗi khi cập nhật đánh giá!");
+    }
+  };
+
+  const handleToggleApprove = async (review) => {
+  try {
+    const updated = {
+      ...review,
+      isApproved: !review.isApproved, // đảo trạng thái
+    };
+
+    console.log("🔄 Cập nhật trạng thái duyệt review:", updated);
+  
+    await axiosClient.put(`reviews/${review.id}`, updated);
+
+    // Reload lại danh sách review
+    const updatedList = await getReviewsByProductId(product.id);
+    setReviews(updatedList);
+
+    openModal("✅ Cập nhật trạng thái duyệt thành công!");
+  } catch (err) {
+    console.error(err);
+    openModal("❌ Lỗi khi duyệt review!");
+  }
+};
 
   if (loading)
     return (
@@ -563,26 +639,58 @@ const ProductDetail = () => {
 
             {/* Upload ảnh */}
             <div className="mt-4">
-              <label className="font-semibold text-[#111827]">
-                Tải ảnh (tuỳ chọn):
+              <label className="font-semibold text-[#111827] block mb-2">
+                📸 Tải ảnh (tuỳ chọn):
               </label>
+
+              {/* Input file ẩn */}
               <input
                 type="file"
+                id="upload-review-images"
                 multiple
-                className="mt-2"
+                className="hidden"
                 onChange={(e) => handleUploadReviewImages(e.target.files)}
               />
+
+              {/* Nút chọn ảnh custom */}
+              <label
+                htmlFor="upload-review-images"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black border border-[#6F47EB] rounded-full cursor-pointer
+               hover:bg-[#72d8fe] transition shadow-md font-semibold"
+              >
+                📁 Chọn ảnh
+              </label>
+
+              {/* Hiển thị số lượng ảnh đã chọn */}
+              {reviewImages.length > 0 && (
+                <p className="mt-2 text-sm text-gray-600">
+                  ✅ Đã chọn {reviewImages.length} ảnh
+                </p>
+              )}
 
               {/* Preview ảnh */}
               {reviewImages.length > 0 && (
                 <div className="flex flex-wrap gap-3 mt-3">
                   {reviewImages.map((img, index) => (
-                    <img
-                      key={index}
-                      src={img}
-                      alt="preview"
-                      className="w-20 h-20 object-cover rounded-md border"
-                    />
+                    <div key={index} className="relative">
+                      <img
+                        src={img}
+                        alt="preview"
+                        className="w-20 h-20 object-cover rounded-md border shadow"
+                      />
+
+                      {/* Icon xoá ảnh (tuỳ chọn nâng cao) */}
+                      <button
+                        onClick={() =>
+                          setReviewImages((prev) =>
+                            prev.filter((_, i) => i !== index)
+                          )
+                        }
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center shadow"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -617,12 +725,14 @@ const ProductDetail = () => {
               {reviews.map((review) => (
                 <div
                   key={review.id}
-                  className="p-4 border rounded-lg shadow-sm bg-gray-50"
+                  className="relative p-4 border rounded-lg shadow-sm bg-gray-50"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <p className="font-semibold text-[#111827]">
-                      👤 {review.user.userName || "Người dùng ẩn danh"}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-[#111827]">
+                        👤 {review.user.userName || "Người dùng ẩn danh"}
+                      </p>
+                    </div>
                     <p className="text-sm text-yellow-500 font-bold">
                       {Array(review.rating).fill("⭐").join("")}
                     </p>
@@ -631,7 +741,7 @@ const ProductDetail = () => {
                     "{review.comment}"
                   </p>
 
-                  {/* NEW CODE: Hiển thị hình ảnh review */}
+                  {/*Hiển thị hình ảnh review */}
                   {review.images && review.images.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2 border-t pt-3 border-gray-200">
                       {review.images.map((imgUrl, imgIndex) => (
@@ -644,14 +754,35 @@ const ProductDetail = () => {
                       ))}
                     </div>
                   )}
-                  {/* END NEW CODE */}
 
                   <div className="flex items-center justify-between text-sm text-[#6B7280] mt-3">
-                    <span>👍 {review.likes} lượt thích</span>
                     <span>
                       {new Date(review.createdAt).toLocaleDateString("vi-VN")}
                     </span>
                   </div>
+                  {/* NÚT SỬA */}
+                  {user && review.user.id === user.id && (
+                    <button
+                      onClick={() => handleOpenEditReview(review.id, review)}
+                      className="absolute bottom-3 right-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      ✏️ Chỉnh sửa
+                    </button>
+                  )}
+                  {/* ✅ NÚT DUYỆT REVIEW - CHỈ ADMIN THẤY */}
+                  {user && user.role === "ADMIN" && (
+                    <button
+                      onClick={() => handleToggleApprove(review)}
+                      className={`absolute bottom-3 left-3 text-sm font-medium px-3 py-1 rounded
+                      ${
+                        review.isApproved
+                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          : "bg-red-100 text-red-700 hover:bg-red-200"
+                      }`}
+                    >
+                      {review.isApproved ? "✅ Đã duyệt" : "⛔ Chưa duyệt"}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -681,6 +812,113 @@ const ProductDetail = () => {
           </div>
         )}
       </div>
+      {isEditModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-[9999]">
+          <div className="bg-white rounded-xl p-6 w-[400px] shadow-xl">
+            <h3 className="text-xl font-bold mb-4 text-center">
+              ✏️ Chỉnh sửa đánh giá
+            </h3>
+
+            {/* Rating */}
+            <div className="flex items-center gap-2 mb-4 justify-center">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setReviewRating(star)}
+                  className={`text-3xl ${
+                    star <= reviewRating ? "text-yellow-400" : "text-gray-300"
+                  }`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+
+            {/* Nội dung */}
+            <textarea
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              className="w-full p-3 border rounded-lg mb-4"
+              rows={4}
+            />
+
+            {/* Upload ảnh */}
+            <div className="mt-4">
+              <label className="font-semibold text-[#111827] block mb-2">
+                📸 Tải ảnh (tuỳ chọn):
+              </label>
+
+              {/* Input file ẩn */}
+              <input
+                type="file"
+                id="upload-review-images"
+                multiple
+                className="hidden"
+                onChange={(e) => handleUploadReviewImages(e.target.files)}
+              />
+
+              {/* Nút chọn ảnh custom */}
+              <label
+                htmlFor="upload-review-images"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black border border-[#6F47EB] rounded-full cursor-pointer
+               hover:bg-[#72d8fe] transition shadow-md font-semibold"
+              >
+                📁 Chọn ảnh
+              </label>
+
+              {/* Hiển thị số lượng ảnh đã chọn */}
+              {reviewImages.length > 0 && (
+                <p className="mt-2 text-sm text-gray-600">
+                  ✅ Đã chọn {reviewImages.length} ảnh
+                </p>
+              )}
+
+              {/* Preview ảnh */}
+              {reviewImages.length > 0 && (
+                <div className="flex flex-wrap gap-3 mt-3">
+                  {reviewImages.map((img, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={img}
+                        alt="preview"
+                        className="w-20 h-20 object-cover rounded-md border shadow"
+                      />
+
+                      {/* Icon xoá ảnh (tuỳ chọn nâng cao) */}
+                      <button
+                        onClick={() =>
+                          setReviewImages((prev) =>
+                            prev.filter((_, i) => i !== index)
+                          )
+                        }
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center shadow"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 mt-5">
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Huỷ
+              </button>
+
+              <button
+                onClick={handleUpdateReview}
+                className="px-4 py-2 bg-[#6F47EB] text-white rounded"
+              >
+                Lưu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

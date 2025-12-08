@@ -205,7 +205,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
                     if (!isDamaged && product.getVariants() != null) {
                         for (ProductVariant variant : product.getVariants()) {
                             if (Objects.equals(variant.getSku(), item.getVariantId())) {
-                                int currentStock = variant.getInStock() != null ? variant.getInStock() : 0;
+                                int currentStock = variant.getInStock() != 0 ? variant.getInStock() : 0;
                                 variant.setInStock(currentStock + item.getQuantity());
                                 isUpdated = true;
                                 break;

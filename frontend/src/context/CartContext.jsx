@@ -129,7 +129,9 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    const addToCart = (product, quantity = 1) => {
+    const addToCart = (product, quantity) => {
+        const qty = quantity ?? product.quantity ?? 1;
+
         if (!userId) {
             alert("⚠️ Bạn phải đăng nhập để thêm vào giỏ hàng!");
             return;
@@ -149,16 +151,17 @@ export const CartProvider = ({ children }) => {
                 item.id === product.id &&
                 item.selectedColor === product.selectedColor &&
                 item.selectedSize === product.selectedSize
-                    ? { ...item, quantity: item.quantity + quantity }
+                    ? { ...item, quantity: item.quantity + qty }
                     : item
             );
         } else {
-            updatedCart = [...cartItems, { ...product, quantity }];
+            updatedCart = [...cartItems, { ...product, quantity: qty }];
         }
 
         setCartItems(updatedCart);
         saveCart(updatedCart);
     };
+
 
     return (
         <CartContext.Provider

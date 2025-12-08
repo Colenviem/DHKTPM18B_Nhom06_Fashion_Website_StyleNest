@@ -56,12 +56,12 @@ public class BrandServiceImpl implements BrandService {
                     existing.setName(brand.getName());
                     existing.setDescription(brand.getDescription());
                     existing.setLogoUrl(brand.getLogoUrl());
-                    existing.setIsActive(brand.getIsActive());
-                    existing.setIsFeatured(brand.getIsFeatured());
+                    existing.setActive(brand.isActive());
+                    existing.setFeatured(brand.isFeatured());
                     existing.setUpdatedAt(Instant.now());
                     return repository.save(existing);
                 })
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("Brand not found with id: " + id));
     }
 
 

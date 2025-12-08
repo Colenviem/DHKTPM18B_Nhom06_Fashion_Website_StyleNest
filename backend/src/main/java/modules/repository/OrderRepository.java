@@ -1,5 +1,6 @@
 package modules.repository;
 
+import modules.dto.request.ProductRevenueDTO;
 import modules.entity.Account;
 import modules.entity.Order;
 import modules.entity.Product;
@@ -39,5 +40,68 @@ public interface OrderRepository extends MongoRepository<Order, String> {
             "{ $sort: { 'createdAt': 1 } }"
     })
     List<Order> findAllByMonthAndYear(int year, int month);
+
+
+    @Aggregation(pipeline = {
+            // 1. Lọc đơn hoàn thành + theo tháng
+            "{ '$match': { " +
+                    "    '$and': [ " +
+                    "      { 'status': { '$in': ['Completed', 'Delivered', 'PAID'] } }, " +
+                    "      { 'createdAt': { '$gte': ?0, '$lt': ?1 } } " +
+                    "    ] " +
+                    "} }",
+
+            // 2. Tách từng sản phẩm
+            "{ '$unwind': '$items' }",
+
+            // 3. Dùng trực tiếp unitPrice (đã là giá sau giảm)
+            "{ '$group': { " +
+                    "    '_id': '$items.product.name', " +
+                    "    'revenue': { " +
+                    "      '$sum': { " +
+                    "        '$multiply': [ '$items.quantity', '$items.unitPrice' ] " +
+                    "      } " +
+                    "    } " +
+                    "} }",
+
+            // 4. Sắp xếp giảm dần
+            "{ '$sort': { 'revenue': -1 } }",
+
+            // 5. Tạo rank
+            "{ '$setWindowFields': { " +
+                    "    'sortBy': { 'revenue': -1 }, " +
+                    "    'output': { 'rank': { '$rank': {} } } " +
+                    "} }",
+
+            // 6. Tách top 5 và others
+            "{ '$facet': { " +
+                    "    'top5': [ " +
+                    "      { '$match': { 'rank': { '$lte': 5 } } }, " +
+                    "      { '$project': { '_id': 0, 'name': '$_id', 'revenue': 1 } } " +
+                    "    ], " +
+                    "    'others': [ " +
+                    "      { '$match': { 'rank': { '$gt': 5 } } }, " +
+                    "      { '$group': { '_id': null, 'revenue': { '$sum': '$revenue' } } } " +
+                    "    ] " +
+                    "} }",
+
+            // 7. Ghép lại: top5 + "Các sản phẩm khác"
+            "{ '$project': { " +
+                    "    'result': { " +
+                    "      '$concatArrays': [ " +
+                    "        '$top5', " +
+                    "        { '$cond': [ " +
+                    "          { '$gt': [{ '$size': '$others' }, 0] }, " +
+                    "          [{ 'name': 'Các sản phẩm khác', 'revenue': { '$arrayElemAt': ['$others.revenue', 0] } }], " +
+                    "          [] " +
+                    "        ]} " +
+                    "      ] } " +
+                    "} }",
+
+            "{ '$unwind': '$result' }",
+            "{ '$replaceRoot': { 'newRoot': '$result' } }"
+    })
+    List<ProductRevenueDTO> findTop5ProductsRevenueInMonth(Instant start, Instant end);
+
 
 }

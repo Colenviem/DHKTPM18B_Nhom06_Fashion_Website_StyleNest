@@ -1,10 +1,10 @@
 package modules.service;
 
+import modules.dto.request.ProductRevenueDTO;
 import modules.dto.request.WeeklyStatResultRepuest;
 import modules.entity.Order;
 import modules.entity.ShippingAddress;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -39,4 +39,7 @@ public interface OrderService {
     Map<String, Object> getWeeklyStats();
 
     List<Order> getOrdersByMonthAndYear(int year, int month);
+
+    List<ProductRevenueDTO> getTop5ProductsRevenue(int year, int month);
+
 }

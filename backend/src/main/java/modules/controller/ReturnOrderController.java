@@ -12,13 +12,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/returns")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "${FRONTEND_URL}")
 @RequiredArgsConstructor
 public class ReturnOrderController {
 
     private final ReturnOrderService returnOrderService;
 
-    // ... (Các API create, get giữ nguyên) ...
     @PostMapping
     public ResponseEntity<?> createReturnRequest(@RequestBody ReturnRequestDTO request) {
         try {
@@ -45,17 +44,16 @@ public class ReturnOrderController {
         return ResponseEntity.ok(returnOrderService.findByUserId(userId));
     }
 
-    // --- API SỬA ĐỔI ---
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateReturnStatus(
             @PathVariable String id,
-            @RequestBody ReturnUpdateDTO body // Nhận DTO thay vì Map
+            @RequestBody ReturnUpdateDTO body
     ) {
         try {
             ReturnOrder updatedReturn = returnOrderService.updateStatus(id, body);
             return ResponseEntity.ok(updatedReturn);
         } catch (Exception e) {
-            e.printStackTrace(); // Log lỗi server để debug
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }

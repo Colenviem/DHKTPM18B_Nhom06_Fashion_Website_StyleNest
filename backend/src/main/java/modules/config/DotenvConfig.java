@@ -5,19 +5,18 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class DotenvConfig {
-//    static {
-//        Dotenv dotenv = Dotenv.load();
-//        System.setProperty("GEMINI_KEY", dotenv.get("GEMINI_KEY"))cd ..;
-//    }
+
     static {
         Dotenv dotenv = Dotenv.configure()
-                .directory("./")
-                .filename(".env")
-                .ignoreIfMissing()
+                .directory("./")         // thư mục gốc
+                .filename(".env")        // tên file
+                .ignoreIfMissing()       // không lỗi nếu không có file
                 .load();
 
-        if (dotenv.get("GEMINI_KEY") != null) {
-            System.setProperty("GEMINI_KEY", dotenv.get("GEMINI_KEY"));
-        }
-}
+        dotenv.entries().forEach(entry -> {
+            if (entry.getValue() != null) {
+                System.setProperty(entry.getKey(), entry.getValue());
+            }
+        });
+    }
 }

@@ -1,5 +1,6 @@
 package modules.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -17,11 +18,11 @@ public class Review {
     private String id;
     private UserRef user;
     private ProductRef product;
-    private Integer rating;
+    private int rating;
     private String comment;
     private List<String> images;
-    private Boolean isApproved;
-    private Integer likes;
+    @JsonProperty("isApproved")
+    private boolean isApproved;
     @CreatedDate
     private Instant createdAt;
 }
