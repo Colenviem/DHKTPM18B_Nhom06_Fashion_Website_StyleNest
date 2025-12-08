@@ -1,13 +1,14 @@
 // src/pages/LoginPage.jsx
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { SkeletonInput, SkeletonButton } from "../../components/loadings/Skeleton";
+import axios from "axios";
 
-// 👉 Import hàm từ LoginHistorys.jsx
-import { addCustomerLogin } from "../../context/LoginHistorys";
+// Import đúng API mới (dùng axiosClient)
+import { addCustomerLogin } from "../../context/LoginHistorys"; // Đường dẫn chính xác
+
+import { SkeletonInput, SkeletonButton } from "../../components/loadings/Skeleton";
 
 function LoginPage() {
   const [username, setUsername] = useState("");
@@ -17,6 +18,7 @@ function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Xóa thông báo lỗi sau 4 giây
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(""), 4000);
@@ -32,7 +34,10 @@ function LoginPage() {
     try {
       const res = await axios.post(
         "http://localhost:8080/api/accounts/login",
-        { userName: username.trim(), password },
+        { 
+          userName: username.trim(), 
+          password 
+        },
         { withCredentials: true }
       );
 
@@ -42,27 +47,27 @@ function LoginPage() {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        // 🔥 Ghi lịch sử đăng nhập nếu là CUSTOMER
         if (user.role === "CUSTOMER") {
-          try {
-            await addCustomerLogin(user.userName);
-          } catch (e) {
-            console.error("Không thể ghi lịch sử login:", e);
+          const loginResult = await addCustomerLogin(user.userName);
+          if (!loginResult.success) {
+            console.warn("Không ghi được lịch sử đăng nhập:", loginResult.message);
           }
         }
 
-        // Trigger refresh auth state
         window.dispatchEvent(new Event("auth-change"));
 
-        // Điều hướng
-        if (user.role === "ADMIN") navigate("/admin/dashboard");
-        else navigate("/");
+        if (user.role === "ADMIN" || user.role === "STAFF") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
       }
     } catch (err) {
+      console.error("Login failed:", err);
       setError(
         err.response?.status === 401
-          ? "Sai tên đăng nhập, mật khẩu hoặc tài khoản chưa kích hoạt."
-          : "Đã xảy ra lỗi! Vui lòng thử lại."
+          ? "Sai tên đăng nhập hoặc mật khẩu. Vui lòng thử lại!"
+          : "Không thể kết nối đến server. Vui lòng thử lại sau."
       );
     } finally {
       setIsLoading(false);
@@ -76,53 +81,56 @@ function LoginPage() {
         <SkeletonInput />
       </div>
       <SkeletonButton />
-      <div className="flex justify-between">
-        <div className="h-4 w-32 bg-gray-200 rounded"></div>
+      <div className="flex justify-between text-sm">
+        <div className="h-4 w-40 bg-gray-200 rounded"></div>
         <div className="h-4 w-32 bg-gray-200 rounded"></div>
       </div>
     </div>
   );
 
   return (
-    <div className="w-full bg-gray-50 py-10 font-[Manrope]">
+    <div className="w-full bg-gray-50 py-10 font-[Manrope] min-h-screen">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
         className="bg-white shadow-2xl rounded-2xl overflow-hidden flex w-full max-w-7xl mx-auto"
       >
-
-        {/* Banner */}
+        {/* Banner trái */}
         <div className="hidden md:block w-1/2">
           <img
             src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg"
-            alt="Login"
+            alt="Welcome back"
             className="w-full h-full object-cover"
           />
         </div>
 
-        {/* Form */}
+        {/* Form đăng nhập */}
         <div className="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-center">
-          <h1 className="text-4xl font-bold text-gray-900">Chào mừng trở lại</h1>
-          <p className="text-gray-600 mt-1 mb-8">
-            Đăng nhập vào <span className="font-semibold text-[#6F47EB]">StyleNest</span>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Chào mừng trở lại
+          </h1>
+          <p className="text-gray-600 mb-8">
+            Đăng nhập vào <span className="font-bold text-[#6F47EB]">StyleNest</span>
           </p>
 
-          <button className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2.5 rounded-xl hover:bg-gray-100 transition">
-            <FcGoogle className="w-5 h-5" /> Tiếp tục với Google
+          {/* Google Login (tạm chưa làm) */}
+          <button className="w-full flex items-center justify-center gap-3 border border-gray-300 py-3 rounded-xl hover:bg-gray-50 transition mb-6">
+            <FcGoogle className="text-2xl" />
+            <span className="font-medium">Tiếp tục với Google</span>
           </button>
 
-          <div className="flex items-center gap-2 my-8">
+          <div className="flex items-center gap-4 my-6">
             <div className="flex-1 border-t border-gray-300"></div>
-            <span className="text-gray-500 text-sm">Hoặc đăng nhập bằng</span>
+            <span className="text-gray-500 text-sm">Hoặc</span>
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
 
+          {/* Form */}
           {isLoading ? (
             <LoginSkeleton />
           ) : (
             <form onSubmit={handleLogin} className="space-y-6">
-
               {/* Username */}
               <div className="relative">
                 <input
@@ -130,12 +138,12 @@ function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="peer w-full border-b-2 border-gray-300 focus:border-[#6F47EB] focus:outline-none py-3"
+                  className="peer w-full border-b-2 border-gray-300 pt-8 pb-3 focus:border-[#6F47EB] focus:outline-none transition"
                   placeholder=" "
                 />
-                <label className="absolute left-0 -top-4 text-sm text-gray-500 transition-all duration-300
-                  peer-placeholder-shown:top-3 peer-placeholder-shown:text-base
-                  peer-focus:-top-4 peer-focus:text-sm peer-focus:text-[#6F47EB]">
+                <label className="absolute left-0 top-3 text-gray-500 text-sm transition-all 
+                  peer-placeholder-shown:top-8 peer-placeholder-shown:text-base
+                  peer-focus:top-3 peer-focus:text-sm peer-focus:text-[#6F47EB]">
                   Tên đăng nhập
                 </label>
               </div>
@@ -147,46 +155,50 @@ function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="peer w-full border-b-2 border-gray-300 focus:border-[#6F47EB]
-                             focus:outline-none py-3 pr-10"
+                  className="peer w-full border-b-2 border-gray-300 pt-8 pb-3 pr-10 focus:border-[#6F47EB] focus:outline-none transition"
                   placeholder=" "
                 />
-
-                {/* Eye toggle */}
                 <span
-                  className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer select-none"
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-0 top-8 cursor-pointer select-none text-xl"
                 >
-                  {showPassword ? "👁️" : "🙈"}
+                  {showPassword ? "Visible" : "Hidden"}
                 </span>
-
-                <label className="absolute left-0 -top-4 text-sm text-gray-500 transition-all duration-300
-                  peer-placeholder-shown:top-3 peer-placeholder-shown:text-base
-                  peer-focus:-top-4 peer-focus:text-sm peer-focus:text-[#6F47EB]">
+                <label className="absolute left-0 top-3 text-gray-500 text-sm transition-all 
+                  peer-placeholder-shown:top-8 peer-placeholder-shown:text-base
+                  peer-focus:top-3 peer-focus:text-sm peer-focus:text-[#6F47EB]">
                   Mật khẩu
                 </label>
               </div>
 
+              {/* Thông báo lỗi */}
               {error && (
-                <motion.p
+                <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-red-600 text-sm text-center bg-red-50 p-2 rounded-md border border-red-200"
+                  className="bg-red-50 text-red-600 p-4 rounded-lg text-center font-medium border border-red-200"
                 >
                   {error}
-                </motion.p>
+                </motion.div>
               )}
 
+              {/* Nút đăng nhập */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#6F47EB] text-white py-3 rounded-xl font-semibold
-                hover:bg-[#5a36cc] transition-all duration-300 shadow-md disabled:bg-gray-400"
+                className="w-full bg-[#6F47EB] hover:bg-[#5a36cc] text-white font-bold py-4 rounded-xl transition shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isLoading ? "Đang xử lý..." : "Đăng nhập"}
+                {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
               </button>
             </form>
           )}
+
+          <div className="mt-8 text-center text-sm text-gray-600">
+            Chưa có tài khoản?{" "}
+            <Link to="/register" className="text-[#6F47EB] font-semibold hover:underline">
+              Đăng ký ngay
+            </Link>
+          </div>
         </div>
       </motion.div>
     </div>
