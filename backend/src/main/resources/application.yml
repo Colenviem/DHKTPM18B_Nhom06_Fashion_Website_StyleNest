@@ -18,7 +18,7 @@ sepay:
   client-key: ${SEPAY_CLIENT_KEY:VEVQTLYOZLWJXJ0NGHUMPI84UBLDZS6TEPKUWCDOKSJFGEMKDV7X9WCNSEQP2IO6}
   env: ${SEPAY_ENV:production}
   qr-url: https://qr.sepay.vn/img
-  webhook-url: ${SEPAY_WEBHOOK_URL:https://dhktpm18b-nhom06-fashion-website.onrender.com/api/payments/sepay/webhook}
+  webhook-url: ${SEPAY_WEBHOOK_URL:https://dhktpm18b-nhom06-fashion-website.onrender.com/api/payment/sepay/webhook}
   transaction-timeout: ${TRANSACTION_TIMEOUT:300}
   client-urls: ${CLIENT_URL:https://style-nest-frontend-n5wt0aus7.vercel.app,http://localhost:5173}
 
