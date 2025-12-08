@@ -91,9 +91,10 @@ public class SecurityConfig {
                                 "/api/brands/**",
                                 "/api/users/**",
                                 "/api/cloudinary/uploadImage",
-                                // 👇 [QUAN TRỌNG] THÊM DÒNG NÀY ĐỂ MỞ QUYỀN CHO SEPAY
                                 "/api/payment/**",
-                                "/api/payment/sepay/**"
+                                "/api/payment/sepay/**",
+                                "/api/products/**"
+
                         ).permitAll()
 
                         // Các Endpoint GET Public khác

@@ -111,3 +111,42 @@ export const getReviewsByProductId = async (productId) => {
     throw new Error("Không thể kết nối tới server hoặc tải dữ liệu đánh giá.");
   }
 };
+
+export const getAllBrands = async () => {
+  try {
+    const response = await axiosClient.get("/brands");
+    return response.data; // Trả về mảng các brand
+  } catch (error) {
+    console.error("Lỗi khi fetch danh sách thương hiệu:", error);
+    throw new Error("Không thể tải danh sách thương hiệu từ server.");
+  }
+};
+
+export const addBrand = async (brandData) => {
+  try {
+    const response = await axiosClient.post("/brands", brandData);
+    return {
+      success: true,
+      message: response.data.message || "Thêm thương hiệu thành công!",
+      brand: response.data // hoặc response.data.data tùy backend trả về
+    };
+  } catch (error) {
+    console.error("Lỗi khi thêm thương hiệu:", error);
+
+    if (error.response?.data) {
+      const errData = error.response.data;
+      return Promise.reject({
+        success: false,
+        type: "validation",
+        message: errData.message || "Dữ liệu không hợp lệ",
+        errors: errData.errors || null,
+      });
+    }
+
+    return Promise.reject({
+      success: false,
+      type: "network",
+      message: "Không thể kết nối đến server. Vui lòng thử lại sau.",
+    });
+  }
+};

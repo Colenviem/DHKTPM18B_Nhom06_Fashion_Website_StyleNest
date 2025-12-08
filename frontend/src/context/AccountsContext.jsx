@@ -65,11 +65,11 @@ export const saveOrUpdateAccount = async (account, user, method) => {
       }
     }
 
-      return Promise.reject({
-        type: "server",
-        message: data.message || "Lỗi không xác định từ server",
-      });
-    }
+    //   return Promise.reject({
+    //     type: "server",
+    //     message: data.message || "Lỗi không xác định từ server",
+    //   });
+    // }
 
     return Promise.reject({
       type: "network",
@@ -77,3 +77,4 @@ export const saveOrUpdateAccount = async (account, user, method) => {
           "Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.",
     });
   }
+}

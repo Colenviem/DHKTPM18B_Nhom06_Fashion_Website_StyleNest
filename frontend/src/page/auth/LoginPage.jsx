@@ -27,7 +27,6 @@ function LoginPage() {
     setIsLoading(true);
 
     try {
-      // ✅ Sửa: Gọi qua axiosClient, endpoint ngắn gọn
       const res = await axiosClient.post("/accounts/login", {
         userName: username.trim(),
         password

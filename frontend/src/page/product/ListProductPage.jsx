@@ -20,7 +20,6 @@ const ListProductPage = () => {
         }
     }, [productsData, searchResults, searchQuery]);
     
-    // State cho các bộ lọc
     const [selectedBrands, setSelectedBrands] = useState([]);
     const [selectedStockStatus, setSelectedStockStatus] = useState("Có sẵn");
     const [selectedColors, setSelectedColors] = useState([]);
