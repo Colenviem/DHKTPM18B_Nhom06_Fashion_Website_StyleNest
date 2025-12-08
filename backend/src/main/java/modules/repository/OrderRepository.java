@@ -43,41 +43,40 @@ public interface OrderRepository extends MongoRepository<Order, String> {
 
 
     @Aggregation(pipeline = {
+            // 1. Lọc đơn hoàn thành + theo tháng
             "{ '$match': { " +
-                    "    '$or': [ " +
-                    "      { 'status': 'Completed' }, " +
-                    "      { 'status': 'Delivered' } " +
-                    "    ], " +
-                    "    'createdAt': { '$gte': ?0, '$lt': ?1 } " +
+                    "    '$and': [ " +
+                    "      { 'status': { '$in': ['Completed', 'Delivered', 'PAID'] } }, " +
+                    "      { 'createdAt': { '$gte': ?0, '$lt': ?1 } } " +
+                    "    ] " +
                     "} }",
 
+            // 2. Tách từng sản phẩm
             "{ '$unwind': '$items' }",
-            "{ '$project': { " +
-                    "    'name': '$items.product.name', " +
+
+            // 3. Dùng trực tiếp unitPrice (đã là giá sau giảm)
+            "{ '$group': { " +
+                    "    '_id': '$items.product.name', " +
                     "    'revenue': { " +
-                    "      '$multiply': [ " +
-                    "        '$items.quantity', " +
-                    "        '$items.unitPrice', " +
-                    "        { '$divide': [ { '$subtract': [100, '$items.product.discount'] }, 100 ] } " +
-                    "      ] " +
+                    "      '$sum': { " +
+                    "        '$multiply': [ '$items.quantity', '$items.unitPrice' ] " +
+                    "      } " +
                     "    } " +
                     "} }",
 
-            "{ '$group': { " +
-                    "    '_id': '$name', " +
-                    "    'revenue': { '$sum': '$revenue' } " +
-                    "} }",
-
+            // 4. Sắp xếp giảm dần
             "{ '$sort': { 'revenue': -1 } }",
 
+            // 5. Tạo rank
             "{ '$setWindowFields': { " +
                     "    'sortBy': { 'revenue': -1 }, " +
                     "    'output': { 'rank': { '$rank': {} } } " +
                     "} }",
 
+            // 6. Tách top 5 và others
             "{ '$facet': { " +
                     "    'top5': [ " +
-//                    "      { '$match': { 'rank': { '$lte': 5 } } }, " +
+                    "      { '$match': { 'rank': { '$lte': 5 } } }, " +
                     "      { '$project': { '_id': 0, 'name': '$_id', 'revenue': 1 } } " +
                     "    ], " +
                     "    'others': [ " +
@@ -86,6 +85,7 @@ public interface OrderRepository extends MongoRepository<Order, String> {
                     "    ] " +
                     "} }",
 
+            // 7. Ghép lại: top5 + "Các sản phẩm khác"
             "{ '$project': { " +
                     "    'result': { " +
                     "      '$concatArrays': [ " +
