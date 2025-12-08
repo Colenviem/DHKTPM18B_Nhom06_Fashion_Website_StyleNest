@@ -93,16 +93,31 @@ const Checkout = () => {
     const generateQRCode = async () => {
         try {
             const amount = Math.round(total);
-            // Tạo mã tham chiếu tạm thời (hoặc lấy ID đơn hàng nếu đã có)
-            const refCode = createdOrderCode || `PAY${new Date().getTime().toString().slice(-6)}`;
-            const description = `Thanh toan ${refCode}`;
 
-            // Tạo QR code theo chuẩn VietQR (SePay hỗ trợ chuẩn này)
-            // Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.jpg
+            // QUAN TRỌNG: Tạo mã bắt đầu bằng PAY + số (để Backend bắt được)
+            // Ví dụ: PAY171509
+            const uniqueCode = `PAY${new Date().getTime().toString().slice(-6)}`;
+
+            // Lưu mã này lại để tí nữa gọi API check status
+            setCreatedOrderCode(uniqueCode);
+
+            // Nội dung chuyển khoản: "Thanh toan PAY..."
+            const description = `Thanh toan ${uniqueCode}`;
+
+            // Link VietQR
             const qrContent = `https://img.vietqr.io/image/${BANK_INFO.bankId}-${BANK_INFO.accountNo}-${BANK_INFO.template}.jpg?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`;
 
             setQrCodeUrl(qrContent);
             setPaymentStatus("pending");
+
+            // Gọi API backend để lưu cái mã "PAY..." này vào DB (Status: PENDING)
+            // Nếu không lưu, Webhook bắn về sẽ không tìm thấy giao dịch
+            await axiosClient.post("/payment/sepay/create", {
+                orderId: "TEMP_ID", // Hoặc ID đơn hàng thật nếu có
+                amount: amount,
+                description: uniqueCode // Gửi mã PAY xuống để lưu
+            });
+
         } catch (error) {
             console.error("Lỗi tạo QR code:", error);
         }
