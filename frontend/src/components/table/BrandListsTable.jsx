@@ -109,8 +109,8 @@ const BrandListsTable = () => {
             name: brand?.name ?? "",
             description: brand?.description ?? "",
             logoUrl: brand?.logoUrl ?? "",
-            isActive: brand?.active ?? false,    // ✅ đúng field
-            isFeatured: brand?.featured ?? false, // ✅ đúng field
+            isActive: brand?.active ?? false,    
+            isFeatured: brand?.featured ?? false, 
         });
         setIsModalOpen(true);
     };

@@ -62,6 +62,9 @@ const ProductDetail = () => {
       setLoading(true);
       setError(null);
       setReviewsError(null);
+
+      console.log(user);
+
       try {
         const productData = await getProductById(id);
         console.log("Chi tiết sản phẩm:", productData);
