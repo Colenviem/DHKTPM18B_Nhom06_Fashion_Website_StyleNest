@@ -149,7 +149,7 @@ const ProductDetail = () => {
 
     if (!product) return;
 
-    if (!selectedVariant || selectedVariant.inStock < quantity) {
+    if (!selectedVariant || selectedVariant.inStock < quantity || quantity < 0) {
       openModal(
         `⚠️ Số lượng tồn kho không đủ! Chỉ còn ${
           selectedVariant?.inStock || 0

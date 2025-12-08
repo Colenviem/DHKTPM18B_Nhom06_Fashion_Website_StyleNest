@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
-import axiosClient from "../api/axiosClient"; // ✅ Dùng axiosClient
+import axiosClient from "../api/axiosClient"; 
 
 const StatisticalContext = createContext();
 
@@ -109,6 +109,30 @@ export const StatisticalProvider = ({ children }) => {
         }
     }, []);
 
+    // Trong StatisticalProvider
+    const [topProducts, setTopProducts] = useState([]);
+    const [topProductsLoading, setTopProductsLoading] = useState(false);
+
+    const fetchTop5Products = useCallback(async (year, month) => {
+        setTopProductsLoading(true);
+        setTopProducts([]); // reset
+
+        try {
+            // Giả sử backend có API: GET /orders/top-products?year=2025&month=6
+            const response = await axiosClient.get(`/orders/reports/top-products?year=${year}&month=${month}`);
+            
+            // Đảm bảo luôn trả về mảng
+            const data = Array.isArray(response.data) ? response.data : [];
+            setTopProducts(data);
+        } catch (err) {
+            console.error("Lỗi khi lấy top sản phẩm:", err);
+            setTopProducts([]); // không để tránh lỗi undefined
+            // Có thể setError nếu cần
+        } finally {
+            setTopProductsLoading(false);
+        }
+    }, []);
+
 
     const fetchOrdersByMonthAndYear = useCallback(async (year, month) => {
         setAllOrdersLoading(true);
@@ -158,6 +182,10 @@ export const StatisticalProvider = ({ children }) => {
         weeklyStats,
         weeklyLoading,
         fetchWeeklyStats,
+
+        topProducts,
+        topProductsLoading,
+        fetchTop5Products,
 
         pendingCount,
         pendingLoading,

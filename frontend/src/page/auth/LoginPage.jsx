@@ -1,8 +1,12 @@
+// src/pages/LoginPage.jsx
 import { useState, useEffect } from "react";
-import axiosClient from "../../api/axiosClient"; // ✅ Dùng axiosClient
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import axiosClient from "../../api/axiosClient";
+
+import { addCustomerLogin } from "../../context/LoginHistorys";
+
 import { SkeletonInput, SkeletonButton } from "../../components/loadings/Skeleton";
 
 function LoginPage() {
@@ -13,6 +17,7 @@ function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Xóa thông báo lỗi sau 4 giây
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(""), 4000);
@@ -26,25 +31,34 @@ function LoginPage() {
     setIsLoading(true);
 
     try {
-      // ✅ Sửa: Gọi qua axiosClient, endpoint ngắn gọn
       const res = await axiosClient.post("/accounts/login", {
         userName: username.trim(),
         password
       });
 
-      // Nếu axiosClient trả về response gốc (có .data)
       if (res.status === 200 && res.data.token) {
         const { token, user } = res.data;
 
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
 
+        if (user.role === "CUSTOMER") {
+          const loginResult = await addCustomerLogin(user.userName);
+          if (!loginResult.success) {
+            console.warn("Không ghi được lịch sử đăng nhập:", loginResult.message);
+          }
+        }
+
         window.dispatchEvent(new Event("auth-change"));
 
-        if (user.role === "ADMIN") navigate("/admin/dashboard");
-        else navigate("/");
+        if (user.role === "ADMIN" || user.role === "STAFF") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
       }
     } catch (err) {
+      console.error("Login failed:", err);
       setError(
           err.response?.status === 401
               ? "Sai tên đăng nhập, mật khẩu hoặc tài khoản chưa kích hoạt."

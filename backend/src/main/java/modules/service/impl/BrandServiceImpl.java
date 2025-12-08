@@ -61,7 +61,7 @@ public class BrandServiceImpl implements BrandService {
                     existing.setUpdatedAt(Instant.now());
                     return repository.save(existing);
                 })
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("Brand not found with id: " + id));
     }
 
 

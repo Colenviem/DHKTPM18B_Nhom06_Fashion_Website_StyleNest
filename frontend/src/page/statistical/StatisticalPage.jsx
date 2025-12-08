@@ -31,7 +31,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-// Hàm hiển thị label phần trăm trên biểu đồ (giữ nguyên)
+// Hàm hiển thị label phần trăm trên biểu đồ 
 const renderCustomizedLabel = ({ percent }) => {
   return percent > 0.05 ? `${(percent * 100).toFixed(1)}%` : '';
 };
@@ -42,7 +42,6 @@ export default function StatisticalPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
-  // LƯU Ý: Đổi tên handleView thành handleFetchData để gọi API
   const handleFetchData = () => {
     fetchTop5Products(selectedYear, selectedMonth);
   };
@@ -51,11 +50,11 @@ export default function StatisticalPage() {
     handleFetchData();
   }, [selectedYear, selectedMonth, fetchTop5Products]);
 
-  // Tính tổng doanh thu (giữ nguyên)
-  const totalRevenue = useMemo(
-    () => topProducts.reduce((sum, item) => sum + item.revenue, 0),
-    [topProducts]
-  );
+  // Tính tổng doanh thu 
+  const totalRevenue = useMemo(() => {
+  if (!Array.isArray(topProducts)) return 0;
+  return topProducts.reduce((sum, item) => sum + (item.revenue || 0), 0);
+}, [topProducts]);
 
   // Dữ liệu chi tiết cho bảng và xuất Excel
   const detailData = useMemo(() => {
