@@ -1,5 +1,6 @@
+// src/pages/LoginPage.jsx
 import { useState, useEffect } from "react";
-import axiosClient from "../../api/axiosClient"; // ✅ Dùng axiosClient
+import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -32,7 +33,6 @@ function LoginPage() {
         password
       });
 
-      // Nếu axiosClient trả về response gốc (có .data)
       if (res.status === 200 && res.data.token) {
         const { token, user } = res.data;
 
