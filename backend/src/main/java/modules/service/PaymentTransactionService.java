@@ -14,4 +14,5 @@ public interface PaymentTransactionService {
     // Thêm các method mới vào Interface
     PaymentTransaction createSepayTransaction(CreateSepayLinkRequest request);
     String handleSepayWebhook(SepayWebhookRequest webhook);
+    PaymentTransaction findByContent(String content);
 }

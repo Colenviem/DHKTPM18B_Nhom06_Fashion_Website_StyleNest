@@ -158,4 +158,9 @@ public class PaymentTransactionServiceImpl implements PaymentTransactionService 
 
         return null;
     }
+    @Override
+    public PaymentTransaction findByContent(String content) {
+        // Tìm trong DB xem có giao dịch nào khớp mã PAY... không
+        return paymentRepository.findByDescription(content).orElse(null);
+    }
 }

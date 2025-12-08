@@ -53,4 +53,22 @@ public class PaymentTransactionController {
             return ResponseEntity.badRequest().body(Map.of("success", "false", "message", e.getMessage()));
         }
     }
+    @GetMapping("/check-transaction")
+    public ResponseEntity<Map<String, Object>> checkTransaction(@RequestParam String content) {
+        PaymentTransaction trans = service.findByContent(content);
+
+        if (trans != null) {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "status", trans.getStatus(), // Trả về COMPLETED hoặc PENDING
+                    "message", "Tìm thấy giao dịch"
+            ));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "success", false,
+                "status", "NOT_FOUND",
+                "message", "Chưa tìm thấy giao dịch"
+        ));
+    }
 }
