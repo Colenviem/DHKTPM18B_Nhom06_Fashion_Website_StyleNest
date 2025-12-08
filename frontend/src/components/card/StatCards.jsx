@@ -30,9 +30,6 @@ const itemVariants = {
 
 function StatCards() {
 
-    // ================================
-    // 1️⃣ STATE LOGIN HISTORY
-    // ================================
     const [todayLogins, setTodayLogins] = useState(0);
     const [yesterdayLogins, setYesterdayLogins] = useState(0);
     const [loadingLogin, setLoadingLogin] = useState(true);
@@ -64,9 +61,6 @@ function StatCards() {
     const loginChangeIcon = loginIncrease ? "▲" : "▼";
 
 
-    // ================================
-    // 2️⃣ LẤY DỮ LIỆU TUẦN (orders, sales, pending)
-    // ================================
     const { 
         weeklyStats, 
         weeklyLoading, 

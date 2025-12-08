@@ -77,4 +77,3 @@ export const saveOrUpdateAccount = async (account, user, method) => {
           "Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.",
     });
   }
-};
