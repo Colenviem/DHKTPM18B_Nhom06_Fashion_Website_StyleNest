@@ -12,7 +12,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payment")
-@CrossOrigin(origins = "http://localhost:5173") // Cho phép Frontend gọi
+@CrossOrigin(origins = "http://localhost:5173")
 public class PaymentTransactionController {
     private final PaymentTransactionServiceImpl service;
 
@@ -40,7 +40,6 @@ public class PaymentTransactionController {
     @PostMapping("/sepay/webhook")
     public ResponseEntity<Map<String, String>> handleWebhook(@RequestBody SepayWebhookRequest webhook) {
         try {
-            // Kiểm tra chỉ xử lý giao dịch nhận tiền ("in")
             if (!"in".equalsIgnoreCase(webhook.getTransferType())) {
                 return ResponseEntity.ok(Map.of("message", "Ignored transfer type: " + webhook.getTransferType()));
             }
@@ -60,7 +59,7 @@ public class PaymentTransactionController {
         if (trans != null) {
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "status", trans.getStatus(), // Trả về COMPLETED hoặc PENDING
+                    "status", trans.getStatus(),
                     "message", "Tìm thấy giao dịch"
             ));
         }

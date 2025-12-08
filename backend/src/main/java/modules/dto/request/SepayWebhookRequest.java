@@ -5,23 +5,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true) // Cực kỳ quan trọng: Bỏ qua các trường lạ nếu SePay cập nhật API trong tương lai
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SepayWebhookRequest {
     private String gateway;
     private String transactionDate;
     private String accountNumber;
 
-    // Các trường bổ sung cho khớp với JSON thực tế
     private String subAccount;
     private String code;
 
-    private String content;       // Nội dung CK (chứa mã giao dịch PAY...)
-    private String transferType;  // "in" (nhận tiền)
+    private String content;
+    private String transferType;
     private double transferAmount;
     private String description;
 
-    private String referenceCode; // QUAN TRỌNG: Mã tham chiếu ngân hàng (FT2534...)
-    private long accumulated;     // Số dư lũy kế (nếu có)
+    private String referenceCode;
+    private long accumulated;
 
-    private long id;              // ID giao dịch phía SePay
+    private long id;
 }
