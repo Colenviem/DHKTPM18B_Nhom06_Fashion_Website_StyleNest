@@ -1,5 +1,6 @@
 package modules.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import modules.entity.Review;
 import modules.repository.ReviewRepository;
 import org.springframework.stereotype.Service;
@@ -32,5 +33,25 @@ public class ReviewServiceImpl implements modules.service.ReviewService {
     @Override
     public Review addReview(Review review) {
         return repository.save(review);
+    }
+
+    @Override
+    public Review updateReview(Review review) {
+        return null;
+    }
+
+    @Override
+    public void deleteReview(String id) {
+
+    }
+
+    @Override
+    public void incrementLikes(String reviewId) {
+
+    }
+
+    @Override
+    public void decrementLikes(String reviewId) {
+
     }
 }

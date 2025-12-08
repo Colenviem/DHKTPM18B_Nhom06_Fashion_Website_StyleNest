@@ -2,6 +2,7 @@ package modules.controller;
 
 import modules.dto.chat.ChatRequest;
 import modules.service.ChatService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

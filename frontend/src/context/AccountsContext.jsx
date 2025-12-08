@@ -63,6 +63,7 @@ export const saveOrUpdateAccount = async (account, user, method) => {
           errors: data.errors,
         });
       }
+    }
 
       return Promise.reject({
         type: "server",

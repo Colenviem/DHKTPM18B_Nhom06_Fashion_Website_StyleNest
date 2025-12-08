@@ -16,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CouponController {
 
+    @Qualifier("couponService")
     private final CouponService service;
 
     @GetMapping

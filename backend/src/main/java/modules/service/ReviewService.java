@@ -15,4 +15,12 @@ public interface ReviewService {
     List<Review> findByProductId(String productId);
 
     Review addReview(Review review);
+
+    Review updateReview(Review review);
+
+    void deleteReview(String id);
+
+    void incrementLikes(String reviewId);
+
+    void decrementLikes(String reviewId);
 }

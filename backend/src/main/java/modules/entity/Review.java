@@ -17,11 +17,11 @@ public class Review {
     private String id;
     private UserRef user;
     private ProductRef product;
-    private Integer rating;
+    private int rating;
     private String comment;
     private List<String> images;
-    private Boolean isApproved;
-    private Integer likes;
+    private boolean isApproved;
+    private int like;
     @CreatedDate
     private Instant createdAt;
 }
