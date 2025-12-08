@@ -8,6 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reviews")
+@CrossOrigin(origins = "${FRONTEND_URL}")
 public class ReviewController {
     private final ReviewServiceImpl service;
 

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/reviews")
+@CrossOrigin(origins = "${FRONTEND_URL}")
 @RequiredArgsConstructor
 public class ReviewLikeController {
 
