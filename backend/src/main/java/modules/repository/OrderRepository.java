@@ -46,7 +46,8 @@ public interface OrderRepository extends MongoRepository<Order, String> {
             "{ '$match': { " +
                     "    '$or': [ " +
                     "      { 'status': 'Completed' }, " +
-                    "      { 'status': 'Delivered' } " +
+                    "      { 'status': 'Delivered' }, " +
+                    "      { 'status': 'Paid' } " +
                     "    ], " +
                     "    'createdAt': { '$gte': ?0, '$lt': ?1 } " +
                     "} }",
