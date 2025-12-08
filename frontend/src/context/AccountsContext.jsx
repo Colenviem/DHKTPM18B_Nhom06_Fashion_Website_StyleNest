@@ -5,21 +5,21 @@ import axiosClient from "../api/axiosClient";
 export const AccountsContext = createContext();
 
 export const AccountsProvider = ({ children }) => {
-  const [accountsData, setAccountsData] = useState([]);
-  const [loading, setLoading] = useState(true);
+    const [accountsData, setAccountsData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    axiosClient
-        .get("/accounts")
-        .then((response) => {
-          setAccountsData(response.data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Lỗi khi fetch dữ liệu:", error);
-          setLoading(false);
-        });
-  }, []);
+    useEffect(() => {
+        axiosClient
+            .get("/accounts")
+            .then((response) => {
+                setAccountsData(response.data);
+                setLoading(false);
+            })
+            .catch((error) => {
+                console.error("Lỗi khi fetch dữ liệu:", error);
+                setLoading(false);
+            });
+    }, []);
 
   return (
       <AccountsContext.Provider
@@ -31,21 +31,21 @@ export const AccountsProvider = ({ children }) => {
 };
 
 export const saveOrUpdateAccount = async (account, user, method) => {
-  console.log("saveOrUpdateAccount called with:", { account, user, method });
+    console.log("saveOrUpdateAccount called with:", { account, user, method });
 
   try {
     const url = method === "add"
         ? "/accounts/admin"
         : `/accounts/admin/${account.id}`;
 
-    const response = await axiosClient({
-      method: method === "add" ? "POST" : "PUT",
-      url: url,
-      data: { account, user },
-    });
+        const response = await axiosClient({
+            method: method === "add" ? "POST" : "PUT",
+            url: url,
+            data: { account, user },
+        });
 
-    const data = response.data;
-    console.log("Response data:", data);
+        const data = response.data;
+        console.log("Response data:", data);
 
     return {
       type: "success",
@@ -72,9 +72,16 @@ export const saveOrUpdateAccount = async (account, user, method) => {
       }
     }
 
-    return Promise.reject({
-      type: "network",
-      message: "Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.",
-    });
-  }
+      return Promise.reject({
+        type: "server",
+        message: data.message || "Lỗi không xác định từ server",
+      });
+    }
+
+  //   return Promise.reject({
+  //     type: "network",
+  //     message:
+  //         "Không thể kết nối tới server hoặc thực hiện lưu/cập nhật dữ liệu.",
+  //   });
+  // }
 };

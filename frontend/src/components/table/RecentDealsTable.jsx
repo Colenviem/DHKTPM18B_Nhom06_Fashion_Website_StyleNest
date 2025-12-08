@@ -13,6 +13,8 @@ const getStatusClasses = (status) => {
         case "CANCELED":
         case "CANCELLED":
             return "bg-red-100 text-red-700";
+        case "PAID":
+            return "bg-green-100 text-green-700";
         default:
             return "bg-gray-100 text-gray-700";
     }
@@ -74,7 +76,7 @@ function RecentDealsTable() {
                     return d.getMonth() + 1 === selectedMonth && d.getFullYear() === selectedYear;
                 });
                 filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                setOrders(filtered.slice(0, 10));
+                setOrders(filtered.slice(0, 20));
                 setError(null);
             } catch (err) {
                 console.error("Lỗi khi tải đơn hàng:", err);
@@ -218,7 +220,6 @@ function RecentDealsTable() {
                             </td>
                             <td className="py-3 px-4 text-gray-600 whitespace-nowrap">{row.date}</td>
 
-                            {/* 3. FIX BUG: Đảo lại đúng vị trí Tiền và Số lượng */}
                             <td className="py-3 px-4 font-bold text-gray-800">{row.amount}</td>
                             <td className="py-3 px-4 text-gray-600 text-center">{row.piece}</td>
 
