@@ -1,6 +1,7 @@
 package modules.service.impl;
 
 import modules.entity.Product;
+import modules.entity.ProductVariant;
 import modules.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
@@ -65,5 +66,25 @@ public class ProductServiceImpl implements modules.service.ProductService {
             return repository.findAll();
         }
         return repository.searchProducts(keyword.trim());
+    }
+
+    public Product incrementSoldAndDecrementStock(String productId, String sku, int quantity) {
+        Product product = repository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        // Tăng sold của product
+        product.setSold(product.getSold() + quantity);
+
+        // Giảm inStock của variant tương ứng
+        for (ProductVariant variant : product.getVariants()) {
+            if (variant.getSku().equals(sku)) {
+                int newStock = variant.getInStock() - quantity;
+                if (newStock < 0) throw new RuntimeException("Stock không đủ!");
+                variant.setInStock(newStock);
+                break;
+            }
+        }
+
+        return repository.save(product);
     }
 }

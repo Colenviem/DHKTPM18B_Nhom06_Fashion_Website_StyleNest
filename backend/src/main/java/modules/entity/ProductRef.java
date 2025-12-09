@@ -13,4 +13,7 @@ public class ProductRef {
     private String image;
     private long price;
     private int discount;
+    private String sku;
+    private String color;
+    private String size;
 }
