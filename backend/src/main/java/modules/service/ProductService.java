@@ -19,4 +19,6 @@ public interface ProductService {
     List<Product> findProductsBySize(String size);
 
     List<Product> searchProducts(String keyword);
+
+    Product reCalculateAverageRating(String productId);
 }

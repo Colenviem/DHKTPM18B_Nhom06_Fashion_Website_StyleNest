@@ -2,44 +2,46 @@ package modules.service.impl;
 
 import modules.entity.Product;
 import modules.entity.ProductVariant;
+import modules.entity.Review;
 import modules.repository.ProductRepository;
+import modules.repository.ReviewRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class ProductServiceImpl implements modules.service.ProductService {
-    private final ProductRepository repository;
+    private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
 
-    public ProductServiceImpl(ProductRepository repository, ProductRepository productRepository) {
-        this.repository = repository;
+    public ProductServiceImpl(ReviewRepository reviewRepository, ProductRepository productRepository) {
+        this.reviewRepository = reviewRepository;
         this.productRepository = productRepository;
     }
 
     @Override
     public List<Product> findAll() {
-        return repository.findAll();
+        return productRepository.findAll();
     }
 
     @Override
     public Product findById(String id) {
-        return repository.findById(id).orElse(null);
+        return productRepository.findById(id).orElse(null);
     }
 
     @Override
     public List<Product> getProductsByCategoryId(String categoryId) {
-        return repository.findByCategory_Id(categoryId);
+        return productRepository.findByCategory_Id(categoryId);
     }
     @Override
     public Product updateProduct(Product product){
-        return repository.save(product);
+        return productRepository.save(product);
     }
 
 
     @Override
     public List<Product> findOutOfStockProducts() {
-        List<Product> listProducts = repository.findAll();
+        List<Product> listProducts = productRepository.findAll();
         return listProducts.stream()
                 .filter(p -> {
                     // het hang
@@ -63,13 +65,13 @@ public class ProductServiceImpl implements modules.service.ProductService {
 
     public List<Product> searchProducts(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
-            return repository.findAll();
+            return productRepository.findAll();
         }
-        return repository.searchProducts(keyword.trim());
+        return productRepository.searchProducts(keyword.trim());
     }
 
     public Product incrementSoldAndDecrementStock(String productId, String sku, int quantity) {
-        Product product = repository.findById(productId)
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         // Tăng sold của product
@@ -85,6 +87,26 @@ public class ProductServiceImpl implements modules.service.ProductService {
             }
         }
 
-        return repository.save(product);
+        return productRepository.save(product);
+    }
+
+    @Override
+    public Product reCalculateAverageRating(String productId) {
+        List<Review> reviews = reviewRepository.findByProduct_Id(productId);
+        if(reviews.isEmpty()) {
+            Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+            product.getRating().setAverage(0);
+            product.getRating().setCount(0);
+            return productRepository.save(product);
+        }
+        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+        product.getRating().setCount(reviews.size());
+        product.getRating().setAverage(
+                reviews.stream()
+                        .mapToDouble(Review::getRating)
+                        .average()
+                        .orElse(0.0)
+        );
+        return productRepository.save(product);
     }
 }
