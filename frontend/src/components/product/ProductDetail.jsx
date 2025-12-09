@@ -36,14 +36,12 @@ const ProductDetail = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewImages, setReviewImages] = useState([]);
   const [uploading, setUploading] = useState(false);
-
-  // Kiểm tra user đã mua sản phẩm chưa
+  
   const user = JSON.parse(localStorage.getItem("user"));
   const [hasPurchased, setHasPurchased] = useState(false);
   const [productPurchased, setProductPurchased] = useState(null);
   const [hasReviewed, setHasReviewed] = useState(false);
 
-  // Trạng thái chỉnh sửa review
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
