@@ -201,12 +201,12 @@ public class OrderController {
             List<Order> orders = orderService.getOrdersByMonthAndYear(year, month);
 
             if (orders.isEmpty()) {
-                return ResponseEntity.noContent().build(); // Trả về 204 nếu không có dữ liệu
+                return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(orders); // Trả về danh sách Order
+            return ResponseEntity.ok(orders);
 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build(); // Trả về 400 Bad Request
+            return ResponseEntity.badRequest().build();
         }
     }
 
