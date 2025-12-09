@@ -13,8 +13,8 @@ const CartItem = ({ item = {}, index, onChange }) => {
         ? item.thumbnails
         : ["https://via.placeholder.com/300x400?text=No+Image"];
 
-    const colors = Array.isArray(item.colors) ? item.colors : ["Trắng", "Đen"];
-    const sizes = Array.isArray(item.sizes) ? item.sizes : ["M", "L"];
+    const colors = Array.isArray(item.colors) ? item.colors : [];
+    const sizes = Array.isArray(item.sizes) ? item.sizes : [];
 
     const selectedColor = item.selectedColor || colors[0];
     const selectedSize = item.selectedSize || sizes[0];
@@ -41,20 +41,36 @@ const CartItem = ({ item = {}, index, onChange }) => {
         return COLOR_MAP[color.toLowerCase()] || color;
     };
 
-    const handleColorChange = (color) => {
-        onChange && onChange({ ...item, selectedColor: color });
+    const handleIncrease = () => {
+        if (quantity < item.maxInStock) {
+            const newQty = quantity + 1;
+            setQuantity(newQty);
+            onChange && onChange({ ...item, quantity: newQty });
+        } else {
+            alert(`⚠️ Chỉ còn ${item.maxInStock} sản phẩm trong kho!`);
+        }
     };
 
-    const handleSizeChange = (size) => {
-        onChange && onChange({ ...item, selectedSize: size });
+    const handleDecrease = () => {
+        const newQty = Math.max(1, quantity - 1);
+        setQuantity(newQty);
+        onChange && onChange({ ...item, quantity: newQty });
     };
 
-    const handleIncrease = () => setQuantity(prev => prev + 1);
-    const handleDecrease = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+    const handleInputChange = (e) => {
+        let value = Number(e.target.value);
+        if (isNaN(value) || value < 1) value = 1;
+        if (value > item.maxInStock) {
+            value = item.maxInStock;
+            alert(`⚠️ Chỉ còn ${item.maxInStock} sản phẩm trong kho!`);
+        }
+        setQuantity(value);
+        onChange && onChange({ ...item, quantity: value });
+    };
 
     useEffect(() => {
         onChange && onChange({ ...item, quantity });
-    }, [quantity]);
+    }, []);
 
     return (
         <motion.div
@@ -73,7 +89,9 @@ const CartItem = ({ item = {}, index, onChange }) => {
                 />
                 <button
                     className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-sm hover:bg-red-500 hover:text-white text-gray-600 transition"
-                    onClick={() => onChange && onChange({ ...item, quantity: 0, delete: true })}
+                    onClick={() =>
+                        onChange && onChange({ ...item, quantity: 0, delete: true })
+                    }
                 >
                     <FiTrash2 />
                 </button>
@@ -83,28 +101,13 @@ const CartItem = ({ item = {}, index, onChange }) => {
                 <h3 className="text-xl font-semibold">{name}</h3>
 
                 <div className="flex gap-3 text-sm text-gray-700">
-                    <select
-                        value={selectedColor}
-                        onChange={(e) => handleColorChange(e.target.value)}
-                        className="border border-gray-300 rounded-md py-1 px-3"
-                    >
-                        {colors.map(color => (
-                            <option key={color} value={color}>
-                                {toVietnameseColor(color)}
-                            </option>
-                        ))}
+                    <span className="border border-gray-300 rounded-md py-1 px-3 block">
+                        Màu: {toVietnameseColor(selectedColor)}
+                    </span>
 
-                    </select>
-
-                    <select
-                        value={selectedSize}
-                        onChange={(e) => handleSizeChange(e.target.value)}
-                        className="border border-gray-300 rounded-md py-1 px-3"
-                    >
-                        {sizes.map(s => (
-                            <option key={s} value={s}>{s}</option>
-                        ))}
-                    </select>
+                    <span className="border border-gray-300 rounded-md py-1 px-3 block">
+                        Size: {selectedSize}
+                    </span>
                 </div>
 
                 <div className="flex justify-between items-center">
@@ -119,8 +122,9 @@ const CartItem = ({ item = {}, index, onChange }) => {
                         <input
                             type="number"
                             min={1}
+                            max={item.maxInStock}
                             value={quantity}
-                            onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                            onChange={handleInputChange}
                             className="w-16 text-center border-none outline-none font-semibold no-spin"
                         />
 
@@ -136,9 +140,11 @@ const CartItem = ({ item = {}, index, onChange }) => {
                         <p className="text-lg font-bold text-black">
                             {(price * (1 - discount / 100) * quantity).toLocaleString("vi-VN")} đ
                         </p>
-                        <p className="text-sm line-through text-gray-400">
-                            {price.toLocaleString("vi-VN")} đ
-                        </p>
+                        {discount > 0 && (
+                            <p className="text-sm line-through text-gray-400">
+                                {price.toLocaleString("vi-VN")} đ
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

@@ -18,9 +18,5 @@ public interface ReviewService {
 
     Review updateReview(Review review);
 
-    void deleteReview(String id);
-
-    void incrementLikes(String reviewId);
-
-    void decrementLikes(String reviewId);
+    Review findByUserIdAndProductId(String userId, String productId);
 }

@@ -6,7 +6,9 @@ import org.springframework.web.servlet.function.EntityResponse;
 
 import java.util.List;
 
-public interface ReviewRepository extends MongoRepository<Review, String>, ReviewCustomRepository {
+public interface ReviewRepository extends MongoRepository<Review, String> {
 
     List<Review> findByProduct_Id(String productId);
+
+    Review findByUser_IdAndProduct_Id(String userId, String productId);
 }
