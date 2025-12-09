@@ -63,7 +63,6 @@ const ReturnRequestsTable = () => {
         }));
 
         try {
-
             await axiosClient.put(`/returns/${selectedRequest.id}/status`,
                 {
                     status: 'PROCESSED',
@@ -75,9 +74,16 @@ const ReturnRequestsTable = () => {
             alert("Đã lưu quyết định xử lý!");
             setIsModalOpen(false);
 
-            setTimeout(() => {
-                window.location.reload();
-            }, 300);
+            // --- ĐÃ SỬA: Cập nhật state trực tiếp thay vì Reload trang ---
+            const newStatus = isAllRejected ? 'REJECTED' : 'APPROVED';
+
+            setRequests(prevRequests => prevRequests.map(req =>
+                req.id === selectedRequest.id
+                    ? { ...req, status: newStatus, adminNote: adminNote }
+                    : req
+            ));
+            // -----------------------------------------------------------
+
         } catch (error) {
             const msg = error.response?.data?.error || error.message;
             alert("Lỗi: " + msg);
@@ -95,7 +101,16 @@ const ReturnRequestsTable = () => {
                 }
             );
             alert("Đã cập nhật trạng thái Hoàn tiền!");
-            window.location.reload();
+
+            // --- ĐÃ SỬA: Cập nhật state trực tiếp thay vì Reload trang ---
+            setIsModalOpen(false); // Đóng modal
+            setRequests(prevRequests => prevRequests.map(req =>
+                req.id === selectedRequest.id
+                    ? { ...req, status: 'REFUNDED' }
+                    : req
+            ));
+            // -----------------------------------------------------------
+
         } catch (error) {
             const msg = error.response?.data?.error || error.message;
             alert("Lỗi: " + msg);
