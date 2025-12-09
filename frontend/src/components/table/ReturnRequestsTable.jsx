@@ -74,7 +74,10 @@ const ReturnRequestsTable = () => {
 
             alert("Đã lưu quyết định xử lý!");
             setIsModalOpen(false);
-            window.location.reload();
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
         } catch (error) {
             const msg = error.response?.data?.error || error.message;
             alert("Lỗi: " + msg);
