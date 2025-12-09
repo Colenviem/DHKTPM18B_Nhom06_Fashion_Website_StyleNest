@@ -12,7 +12,7 @@ const menuStructure = [
         group: null,
         items: [
             { label: "Bảng điều khiển", icon: <FiHome />, path: "/admin/dashboard" },
-            { label: "Thống kê", icon: <FiHome />, path: "/admin/statistical" },
+            { label: "Thống kê", icon: <FiBarChart2 />, path: "/admin/statistical" },
             { label: "Sản phẩm", icon: <FiBox />, path: "/admin/products" },
             {
                 label: "Hóa đơn",
@@ -116,9 +116,12 @@ const SidebarItem = ({ item }) => {
 const DashboardSidebar = () => {
     const navigate = useNavigate();
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/login");
+        const confirmLogout = window.confirm("Bạn có chắc chắn muốn đăng xuất không?");
+         if (confirmLogout) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            navigate("/login");
+        }
     };
 
     return (
