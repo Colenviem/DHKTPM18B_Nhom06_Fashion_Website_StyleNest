@@ -1,6 +1,9 @@
 package modules.controller;
 
+import modules.entity.Product;
+import modules.entity.Rating;
 import modules.entity.Review;
+import modules.service.impl.ProductServiceImpl;
 import modules.service.impl.ReviewServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,9 +17,11 @@ import java.util.Map;
 @CrossOrigin(origins = "${FRONTEND_URL}")
 public class ReviewController {
     private final ReviewServiceImpl service;
+    private final ProductServiceImpl productService;
 
-    public ReviewController(ReviewServiceImpl service) {
+    public ReviewController(ReviewServiceImpl service, ProductServiceImpl productService) {
         this.service = service;
+        this.productService = productService;
     }
 
     @GetMapping
@@ -43,6 +48,7 @@ public class ReviewController {
         }
         try {
             Review created = service.addReview(review);
+            productService.reCalculateAverageRating(review.getProduct().getId());
             return ResponseEntity.ok(created);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(
@@ -68,6 +74,7 @@ public class ReviewController {
         }
         System.out.println("Updating review: " + review);
         Review updated = service.updateReview(review);
+        productService.reCalculateAverageRating(review.getProduct().getId());
         return ResponseEntity.ok(updated);
     }
 }

@@ -226,21 +226,20 @@ const ProductDetail = () => {
     }
 
     const productData = {
-      id: product.id,
-      name: product.name,
-      thumbnails: [
-        product.image ||
-          product.variants?.[0]?.images?.[0] ||
-          "/placeholder.png",
-      ],
-      price: Math.round(product.price * (1 - (product.discount || 0) / 100)),
-      discount: product.discount || 0,
-      quantity,
-      colors: product.variants?.map((v) => v.color) || ["Trắng", "Đen"],
-      selectedColor: selectedColor,
-      size: product.variants?.map((v) => v.size) || ["M", "L"],
-      selectedSize: selectedSize,
-    };
+          key: `${product.id}-${selectedColor}-${selectedSize}`,
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          discount: product.discount,
+          thumbnails:
+              selectedVariant?.images?.length > 0
+                  ? selectedVariant.images
+                  : [product.image],
+          sku: selectedVariant.sku,
+          color: selectedColor,
+          size: selectedSize,
+          quantity,
+      };
 
     navigate("/checkout", { state: { products: [productData] } });
   };

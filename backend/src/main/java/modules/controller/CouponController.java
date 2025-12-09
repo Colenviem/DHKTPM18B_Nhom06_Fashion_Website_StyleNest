@@ -37,7 +37,7 @@ public class CouponController {
         return ResponseEntity.ok(service.addCoupon(coupon));
     }
 
-    @PutMapping("/{code}")
+    @PutMapping("/{id}")
     public ResponseEntity<Coupon> update(@RequestBody Coupon updatedCoupon) {
         System.out.println("Received update request for coupon: " + updatedCoupon);
         Coupon updated = service.updateCoupon(updatedCoupon);
@@ -46,7 +46,7 @@ public class CouponController {
             : ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/{code}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         boolean deleted = service.deleteCoupon(id);
         return deleted
