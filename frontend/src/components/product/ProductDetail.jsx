@@ -174,6 +174,7 @@ const ProductDetail = () => {
         }
 
         const productData = {
+            key: `${product.id}-${selectedColor}-${selectedSize}`,
             id: product.id,
             name: product.name,
             price: product.price,

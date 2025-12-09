@@ -27,6 +27,7 @@ public class Order {
     private double discountAmount;
     private double totalAmount;
     private String paymentMethod;
+    private String note;
     @CreatedDate
     private Instant createdAt;
     @LastModifiedDate

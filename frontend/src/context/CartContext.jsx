@@ -27,42 +27,31 @@ export const CartProvider = ({ children }) => {
                 const items = await Promise.all(
                     (cartRes.data?.items || []).map(async (item) => {
                         try {
-                            const productRes = await axiosClient.get(`/products/${item.product.id}`);
-                            const fullProduct = productRes.data;
-
+                            const fullProduct = item.product;
+                            const keyProduct = item.key;
                             const variants = fullProduct.variants || [];
-                            const selectedColor = item.product.selectedColor || variants[0]?.color;
-                            const selectedSize = item.product.selectedSize || variants[0]?.size;
+                            const selectedColor = item.product.color;
+                            const selectedSize = item.product.size;
 
                             const matchedVariant = variants.find(
                                 v => v.color === selectedColor && v.size === selectedSize
                             ) || variants[0];
 
                             return {
+                                key: keyProduct,
                                 id: fullProduct.id,
                                 name: fullProduct.name,
-                                thumbnails:
-                                    matchedVariant?.images?.length > 0
-                                        ? [...matchedVariant.images]
-                                        : [fullProduct.image],
+                                thumbnails: matchedVariant?.images?.length > 0 ? [...matchedVariant.images] : [fullProduct.image],
                                 price: fullProduct.price,
                                 discount: fullProduct.discount || 0,
                                 quantity: item.quantity,
                                 color: selectedColor,
                                 size: selectedSize,
+                                sku: fullProduct.sku || matchedVariant?.sku || "",
                             };
+
                         } catch (err) {
                             console.error(`❌ Error fetching product ${item.product.id}:`, err);
-                            return {
-                                id: item.product.id,
-                                name: item.product.name,
-                                thumbnails: item.product.thumbnails || [],
-                                price: item.product.price,
-                                discount: item.product.discount || 0,
-                                quantity: item.quantity,
-                                color: null,
-                                size: null,
-                            };
                         }
                     })
                 );
@@ -101,13 +90,14 @@ export const CartProvider = ({ children }) => {
             const payload = {
                 items: updatedCart.map((item) => ({
                     product: {
+                        key: item.key,
                         id: item.id,
                         name: item.name,
                         price: item.price,
                         discount: item.discount,
                         color: item.color,
                         size: item.size,
-                        thumbnails: item.thumbnails,
+                        image: item.thumbnails?.[0] || null,
                         sku: item.sku || null
                     },
                     quantity: item.quantity,
@@ -121,7 +111,7 @@ export const CartProvider = ({ children }) => {
                     )
                 )
             };
-
+            console.log(payload);
             await axiosClient.put(`/carts/user/${userId}`, payload);
             console.log("✅ Cart saved successfully");
         } catch (err) {

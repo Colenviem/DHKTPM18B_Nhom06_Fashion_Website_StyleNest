@@ -22,15 +22,13 @@ const Cart = () => {
     const handleChange = (updatedItem) => {
         setCartItems(prev => {
             const updatedCart = updatedItem.delete
-                ? prev.filter(ci => ci.id !== updatedItem.id)
-                : prev.map(ci => ci.id === updatedItem.id ? updatedItem : ci);
+                ? prev.filter(ci => ci.key !== updatedItem.key)
+                : prev.map(ci => ci.key === updatedItem.key ? updatedItem : ci);
 
             saveCart(updatedCart);
             return updatedCart;
         });
     };
-
-
 
     return (
         <div className="px-4 sm:px-8 lg:px-16 text-gray-700">
@@ -50,7 +48,7 @@ const Cart = () => {
                     <div className="lg:col-span-2 space-y-6">
                         {cartItems.map((item) => (
                             <CartItem
-                                key={item.id}
+                                key={item.key}
                                 item={item}
                                 onChange={handleChange}
                             />

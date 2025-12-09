@@ -60,11 +60,22 @@ public class OrderController {
             );
 
             List<Map<String, Object>> itemsList = (List<Map<String, Object>>) body.get("items");
-            Map<String, Integer> products = itemsList.stream()
-                    .collect(Collectors.toMap(
-                            item -> (String) item.get("productId"),
-                            item -> ((Number) item.get("quantity")).intValue()
-                    ));
+            List<Map<String, Object>> products = itemsList.stream()
+                    .map(item -> {
+                        Object productId = item.get("product") != null ? ((Map<String, Object>)item.get("product")).get("id") : null;
+                        if (productId == null) {
+                            productId = UUID.randomUUID().toString(); // hoặc throw lỗi rõ ràng
+                        }
+                        Object variantId = item.get("variantId");
+                        int quantity = ((Number) item.get("quantity")).intValue();
+
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("productId", productId);
+                        map.put("variantId", variantId);
+                        map.put("quantity", quantity);
+                        return map;
+                    }).collect(Collectors.toList());
+
 
             String paymentMethod = (String) body.get("paymentMethod");
             String couponCode = (String) body.get("couponCode");
