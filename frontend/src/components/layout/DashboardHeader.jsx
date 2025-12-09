@@ -33,11 +33,10 @@ const DashboardHeader = () => {
                     />
                     <div className="leading-tight">
                         <p className="font-medium text-gray-800">
-                            {authUser ? authUser.userName : 'Loading...'}
+                            {authUser ? authUser.firstName + authUser.lastName : 'Loading...'}
                         </p>
                         <p className="text-sm text-gray-500">
-                            {/*{authUser ? authUser.role : 'Guest'}*/}
-                            ADMIN
+                            {authUser ? authUser.role : 'Guest'}
                         </p>
                     </div>
 
