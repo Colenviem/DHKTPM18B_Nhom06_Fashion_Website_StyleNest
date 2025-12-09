@@ -182,13 +182,12 @@ const ProductDetail = () => {
                 selectedVariant?.images?.length > 0
                     ? selectedVariant.images
                     : [product.image],
-            colors: [...new Set(product.variants.map((v) => v.color))],
-            sizes: [...new Set(product.variants.map((v) => v.size))],
-            selectedColor,
-            selectedSize,
-            maxInStock,
+            sku: selectedVariant.sku,
+            color: selectedColor,
+            size: selectedSize,
             quantity,
         };
+
 
         console.log("👉 Dữ liệu gửi vào giỏ:", productData);
 
