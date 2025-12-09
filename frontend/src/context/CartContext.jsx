@@ -27,48 +27,31 @@ export const CartProvider = ({ children }) => {
                 const items = await Promise.all(
                     (cartRes.data?.items || []).map(async (item) => {
                         try {
-                            const productRes = await axiosClient.get(`/products/${item.product.id}`);
-                            const fullProduct = productRes.data;
-
+                            const fullProduct = item.product;
+                            const keyProduct = item.key;
                             const variants = fullProduct.variants || [];
-                            const selectedColor = item.product.selectedColor || variants[0]?.color;
-                            const selectedSize = item.product.selectedSize || variants[0]?.size;
+                            const selectedColor = item.product.color;
+                            const selectedSize = item.product.size;
 
                             const matchedVariant = variants.find(
                                 v => v.color === selectedColor && v.size === selectedSize
                             ) || variants[0];
 
                             return {
+                                key: keyProduct,
                                 id: fullProduct.id,
                                 name: fullProduct.name,
-                                thumbnails:
-                                    matchedVariant?.images?.length > 0
-                                        ? [...matchedVariant.images]
-                                        : [fullProduct.image],
+                                thumbnails: matchedVariant?.images?.length > 0 ? [...matchedVariant.images] : [fullProduct.image],
                                 price: fullProduct.price,
                                 discount: fullProduct.discount || 0,
                                 quantity: item.quantity,
-                                colors: [...new Set(variants.map(v => v.color))],
-                                sizes: [...new Set(variants.map(v => v.size))],
-                                selectedColor: selectedColor,
-                                selectedSize: selectedSize,
-                                maxInStock: matchedVariant?.inStock || 0
+                                color: selectedColor,
+                                size: selectedSize,
+                                sku: fullProduct.sku || matchedVariant?.sku || "",
                             };
+
                         } catch (err) {
                             console.error(`❌ Error fetching product ${item.product.id}:`, err);
-                            return {
-                                id: item.product.id,
-                                name: item.product.name,
-                                thumbnails: item.product.thumbnails || [],
-                                price: item.product.price,
-                                discount: item.product.discount || 0,
-                                quantity: item.quantity,
-                                colors: [],
-                                sizes: [],
-                                selectedColor: null,
-                                selectedSize: null,
-                                maxInStock: 0
-                            };
                         }
                     })
                 );
@@ -95,19 +78,27 @@ export const CartProvider = ({ children }) => {
         fetchData();
     }, [userId]);
 
+
+    const getCartItemKey = (item) =>
+        `${item.id}_${item.selectedColor || ""}_${item.selectedSize || ""}_${
+            item.sku || ""
+        }`;
+
     const saveCart = async (updatedCart = cartItems) => {
         setCartItems(updatedCart);
         try {
             const payload = {
-                items: updatedCart.map(item => ({
+                items: updatedCart.map((item) => ({
                     product: {
+                        key: item.key,
                         id: item.id,
                         name: item.name,
                         price: item.price,
                         discount: item.discount,
-                        selectedColor: item.selectedColor,
-                        selectedSize: item.selectedSize,
-                        thumbnails: item.thumbnails
+                        color: item.color,
+                        size: item.size,
+                        image: item.thumbnails?.[0] || null,
+                        sku: item.sku || null
                     },
                     quantity: item.quantity,
                     priceAtTime: Math.round(item.price * (1 - item.discount / 100))
@@ -115,19 +106,19 @@ export const CartProvider = ({ children }) => {
                 totalQuantity: updatedCart.reduce((sum, item) => sum + item.quantity, 0),
                 totalPrice: Math.round(
                     updatedCart.reduce(
-                        (sum, item) =>
-                            sum + item.quantity * (1 - item.discount / 100) * item.price,
+                        (sum, item) => sum + item.quantity * item.price * (1 - item.discount / 100),
                         0
                     )
                 )
             };
-
+            console.log(payload);
             await axiosClient.put(`/carts/user/${userId}`, payload);
             console.log("✅ Cart saved successfully");
         } catch (err) {
             console.error("❌ Lỗi khi lưu giỏ hàng:", err);
         }
     };
+
 
     const addToCart = (product, quantity) => {
         const qty = quantity ?? product.quantity ?? 1;
@@ -137,20 +128,17 @@ export const CartProvider = ({ children }) => {
             return;
         }
 
+        const productKey = getCartItemKey(product);
+
         const existingItem = cartItems.find(
-            item =>
-                item.id === product.id &&
-                item.selectedColor === product.selectedColor &&
-                item.selectedSize === product.selectedSize
+            item => getCartItemKey(item) === productKey
         );
 
         let updatedCart;
 
         if (existingItem) {
             updatedCart = cartItems.map(item =>
-                item.id === product.id &&
-                item.selectedColor === product.selectedColor &&
-                item.selectedSize === product.selectedSize
+                getCartItemKey(item) === productKey
                     ? { ...item, quantity: item.quantity + qty }
                     : item
             );
@@ -161,6 +149,7 @@ export const CartProvider = ({ children }) => {
         setCartItems(updatedCart);
         saveCart(updatedCart);
     };
+
 
 
     return (

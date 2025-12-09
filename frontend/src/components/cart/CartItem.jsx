@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 const CartItem = ({ item = {}, index, onChange }) => {
     const [quantity, setQuantity] = useState(item.quantity || 1);
 
-    const price = item.price || 0;
+    const price = item.priceAtTime || item.price || 0;
     const discount = item.discount || 0;
     const name = item.name || "Sản phẩm";
 
@@ -13,11 +13,8 @@ const CartItem = ({ item = {}, index, onChange }) => {
         ? item.thumbnails
         : ["https://via.placeholder.com/300x400?text=No+Image"];
 
-    const colors = Array.isArray(item.colors) ? item.colors : [];
-    const sizes = Array.isArray(item.sizes) ? item.sizes : [];
-
-    const selectedColor = item.selectedColor || colors[0];
-    const selectedSize = item.selectedSize || sizes[0];
+    const selectedColor = item.color;
+    const selectedSize = item.size;
 
     const COLOR_MAP = {
         red: "Đỏ",

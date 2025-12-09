@@ -55,9 +55,10 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "https://style-nest-frontend-n5wt0aus7.vercel.app",
                 "https://style-nest-frontend.vercel.app",
+                "https://style-nest-shop.vercel.app",
                 frontendUrl
         ));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
         configuration.setExposedHeaders(List.of("Authorization"));

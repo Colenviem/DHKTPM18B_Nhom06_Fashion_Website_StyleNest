@@ -183,22 +183,42 @@ const Checkout = () => {
             if (!itemsToCheckout || itemsToCheckout.length === 0) { alert("Không có sản phẩm để đặt hàng!"); return; }
 
             const orderPayload = {
-                userId: userId,
+                user: { id: userId, userName: selectedAddress.name },
                 paymentMethod: selectedPaymentMethod,
                 shippingAddress: {
-                    id: selectedAddress.id || null,
-                    name: selectedAddress.name || "Khách hàng",
+                    id: selectedAddress.id,
+                    name: selectedAddress.name,
                     street: `${selectedAddress.street}, ${selectedAddress.city || ""}`.trim(),
                     phoneNumber: selectedAddress.phone || selectedAddress.phoneNumber
                 },
-                items: itemsToCheckout.map(item => ({ productId: item.id, quantity: item.quantity || 1 })),
+                items: itemsToCheckout.map(item => ({
+                    id: `${item.id}-${item.sku}`,
+                    product: {
+                        id: item.id,
+                        key: item.key || "",
+                        name: item.name || "",
+                        image: item.thumbnails?.[0] || "",
+                        price: item.price,
+                        discount: item.discount || 0,
+                        sku: item.sku,
+                        color: item.color || "",
+                        size: item.size || ""
+                    },
+                    variantId: item.sku,
+                    quantity: item.quantity || 1,
+                    unitPrice: item.price
+                })),
+                status: "Pending",
                 discountAmount: discountValue || 0,
-                shippingFee: shippingFee,
-                note: note,
-                subtotal: subtotal,
+                shippingFee,
+                note: note || null,
+                subtotal,
                 totalAmount: total,
-                couponCode: appliedCoupon?.code || null
+                couponCode: couponCode || null
             };
+
+
+            console.log("Gửi checkout", orderPayload);
 
             const response = await axiosClient.post("/orders", orderPayload);
             const newOrderId = response.data.id;
@@ -359,14 +379,14 @@ const Checkout = () => {
                                             )}
                                             <div className="flex flex-col items-end text-sm">
                                                 {addr.isDefault ? <span className="text-[#6F47EB] border border-[#6F47EB] px-3 py-2 rounded mb-4 text-xs font-medium">Mặc Định</span> : <button className={`text-[${PRIMARY_COLOR}] border border-[${PRIMARY_COLOR}] px-3 py-2 rounded hover:bg-indigo-50 mb-4 text-xs transition-all duration-200 hover:scale-105`} onClick={() => setAddressAsDefault(addr.id)}>Thiết lập mặc định</button>}
-                                                <div className="flex gap-3"><button className={`text-[${PRIMARY_COLOR}] hover:text-[${PRIMARY_HOVER}] hover:underline`} onClick={(e) => handleEditAddress(addr, e)}>Sửa</button><button className={`text-[${PRIMARY_COLOR}] hover:text-[${PRIMARY_HOVER}] hover:underline`} onClick={(e) => handleDeleteAddress(addr.id, e)}>Xóa</button></div>
+                                                <div className="flex gap-3"><button className={`text-[${PRIMARY_COLOR}]] hover:underline`} onClick={(e) => handleEditAddress(addr, e)}>Sửa</button><button className={`text-[${PRIMARY_COLOR}] hover:underline`} onClick={(e) => handleDeleteAddress(addr.id, e)}>Xóa</button></div>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
-                                <button className={`w-full border-2 border-dashed border-gray-300 rounded-xl p-4 flex items-center justify-center text-[${PRIMARY_COLOR}] hover:border-[${PRIMARY_HOVER}] hover:bg-indigo-50 transition-all duration-200 hover:scale-[1.02]`} onClick={openNewAddressModal}><FiPlus className="h-5 w-5 mr-2" />Thêm Địa Chỉ Mới</button>
+                                <button className={`w-full border-2 border-dashed border-gray-300 rounded-xl p-4 flex items-center justify-center text-[${PRIMARY_COLOR}] hover:bg-indigo-50 transition-all duration-200 hover:scale-[1.02]`} onClick={openNewAddressModal}><FiPlus className="h-5 w-5 mr-2" />Thêm Địa Chỉ Mới</button>
                             </div>
-                            <div className="mt-8 flex justify-end gap-4"><button className="bg-gray-100 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-200" onClick={() => setShowAddressModal(false)}>Hủy</button><button className={`bg-[${PRIMARY_COLOR}] text-white px-6 py-2 rounded-lg hover:bg-[${PRIMARY_HOVER}]`} onClick={confirmAddressSelection}>Xác Nhận</button></div>
+                            <div className="mt-8 flex justify-end gap-4"><button className="bg-gray-100 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-200" onClick={() => setShowAddressModal(false)}>Hủy</button><button className={`bg-[${PRIMARY_COLOR}] text-white px-6 py-2 rounded-lg `} onClick={confirmAddressSelection}>Xác Nhận</button></div>
                         </div>
                     </div>
                 )}
@@ -402,13 +422,33 @@ const Checkout = () => {
                         <div className="col-span-2 text-right">Thành tiền</div>
                     </div>
                     {itemsToCheckout.map(item => (
-                        <div key={item.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b text-gray-700 hover:bg-gray-50">
-                            <div className="col-span-6 flex items-center gap-3"><img src={item.thumbnails?.[0]} alt={item.name} className="w-16 h-16 rounded-md object-cover bg-gray-100" /><p className="text-sm">{item.name}</p></div>
-                            <div className="col-span-2 text-right text-sm">{(item.price * (1 - (item.discount || 0)/100)).toLocaleString()} đ</div>
+                        <div
+                            key={`${item.id}-${item.color}-${item.size}`}
+                            className="grid grid-cols-12 gap-4 items-center py-3 border-b text-gray-700 hover:bg-gray-50"
+                        >
+                            <div className="col-span-6 flex flex-col gap-1">
+                                <div className="flex items-center gap-3">
+                                    <img
+                                        src={item.thumbnails?.[0]}
+                                        alt={item.name}
+                                        className="w-16 h-16 rounded-md object-cover bg-gray-100"
+                                    />
+                                    <p className="text-sm font-medium">{item.name}</p>
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                    Color: <span className="capitalize">{item.color}</span>, Size: {item.size}
+                                </p>
+                            </div>
+                            <div className="col-span-2 text-right text-sm">
+                                {(item.price * (1 - (item.discount || 0) / 100)).toLocaleString()} đ
+                            </div>
                             <div className="col-span-2 text-center text-sm">{item.quantity}</div>
-                            <div className="col-span-2 text-right font-semibold">{(item.price * (1 - (item.discount || 0)/100) * item.quantity).toLocaleString()} đ</div>
+                            <div className="col-span-2 text-right font-semibold">
+                                {(item.price * (1 - (item.discount || 0) / 100) * item.quantity).toLocaleString()} đ
+                            </div>
                         </div>
                     ))}
+
                 </div>
 
                 <div className="px-6 py-4 grid grid-cols-12 gap-4 items-center">

@@ -86,32 +86,90 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public Order createOrder(ShippingAddress address, Map<String, Integer> products, String paymentMethod, String couponCode) {
+    public Order createOrder(ShippingAddress address, List<Map<String, Object>> itemsList,
+                             String paymentMethod, String couponCode) {
         try {
             String userId = getCurrentUserId();
 
             User user = userRepo.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found: " + userId));
 
-            checkStock(products);
+            // Kiểm tra stock cho từng variant
+            for (Map<String, Object> itemMap : itemsList) {
+                String productId = (String) itemMap.get("productId");
+                String variantId = (String) itemMap.get("variantId");
+                int quantity = ((Number) itemMap.get("quantity")).intValue();
 
-            List<OrderItem> items = new ArrayList<>();
-            for (Map.Entry<String, Integer> e : products.entrySet()) {
-                items.add(createOrderItem(e.getKey(), e.getValue()));
+                Product product = productRepo.findById(productId)
+                        .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+
+                ProductVariant variant = product.getVariants().stream()
+                        .filter(v -> v.getSku().equals(variantId))
+                        .findFirst()
+                        .orElseThrow(() -> new RuntimeException("Variant not found: " + variantId));
+
+                if (variant.getInStock() < quantity) {
+                    throw new RuntimeException(
+                            "Not enough stock for variant " + variantId + ": requested " + quantity + ", available " + variant.getInStock()
+                    );
+                }
             }
 
-            long subtotal = calcSubtotal(items);
+            // Tạo list OrderItem
+            List<OrderItem> items = new ArrayList<>();
+            long subtotal = 0;
 
+            for (Map<String, Object> itemMap : itemsList) {
+                String productId = (String) itemMap.get("productId");
+                String variantId = (String) itemMap.get("variantId");
+                int quantity = ((Number) itemMap.get("quantity")).intValue();
+
+                Product product = productRepo.findById(productId).get();
+                ProductVariant variant = product.getVariants().stream()
+                        .filter(v -> v.getSku().equals(variantId))
+                        .findFirst()
+                        .get();
+
+                long price = Math.round(product.getPrice() * (100 - product.getDiscount()) / 100.0);
+                subtotal += price * quantity;
+
+                String image = (variant.getImages() != null && !variant.getImages().isEmpty())
+                        ? variant.getImages().get(0)
+                        : "";
+
+                ProductRef ref = new ProductRef(
+                        product.getId(),
+                        null,
+                        product.getName(),
+                        image,
+                        product.getPrice(),
+                        (int) product.getDiscount(),
+                        variant.getSku(),
+                        variant.getColor(),
+                        variant.getSize()
+                );
+
+
+                OrderItem orderItem = new OrderItem(
+                        product.getId() + "-" + variantId,
+                        ref,
+                        variant.getSku(),
+                        quantity,
+                        price
+                );
+
+                items.add(orderItem);
+            }
+
+            // Tạo địa chỉ sạch
             ShippingAddress cleanAddress = new ShippingAddress();
             cleanAddress.setName(address.getName());
             cleanAddress.setStreet(address.getStreet());
             cleanAddress.setPhoneNumber(address.getPhoneNumber());
 
-            UserRef userRef = new UserRef(
-                    user.getId(),
-                    user.getFirstName() + " " + user.getLastName()
-            );
+            UserRef userRef = new UserRef(user.getId(), user.getFirstName() + " " + user.getLastName());
 
+            // Tạo order
             Order order = new Order();
             order.setUser(userRef);
             order.setOrderNumber("ORD-" + UUID.randomUUID().toString().substring(0, 8));
@@ -121,26 +179,42 @@ public class OrderServiceImpl implements OrderService {
             order.setItems(items);
             order.setSubtotal(subtotal);
             order.setShippingFee(30000);
-            order.setDiscountAmount(0);
-            order.setCreatedAt(Instant.now());
-            order.setUpdatedAt(Instant.now());
 
+            // Áp dụng coupon
             long discountAmount = 0;
-
             if (couponCode != null && !couponCode.trim().isEmpty()) {
                 discountAmount = applyCoupon(order, couponCode.trim());
             }
-
             order.setDiscountAmount(discountAmount);
             order.setTotalAmount(subtotal + order.getShippingFee() - discountAmount);
 
-            reduceStock(products);
+            // Giảm stock từng variant
+            for (Map<String, Object> itemMap : itemsList) {
+                String productId = (String) itemMap.get("productId");
+                String variantId = (String) itemMap.get("variantId");
+                int quantity = ((Number) itemMap.get("quantity")).intValue();
+
+                Product product = productRepo.findById(productId).get();
+                ProductVariant variant = product.getVariants().stream()
+                        .filter(v -> v.getSku().equals(variantId))
+                        .findFirst()
+                        .get();
+
+                variant.setInStock(variant.getInStock() - quantity);
+                product.setSold(product.getSold() + quantity);
+                productRepo.save(product);
+            }
+
+            order.setCreatedAt(Instant.now());
+            order.setUpdatedAt(Instant.now());
+
             return orderRepo.save(order);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to create order: " + e.getMessage(), e);
         }
     }
+
 
     private long applyCoupon(Order order, String code) {
         Coupon coupon = couponRepo.findByCodeIgnoreCase(code)
@@ -211,13 +285,14 @@ public class OrderServiceImpl implements OrderService {
         }
 
         ProductRef ref = new ProductRef();
+
         ref.setId(product.getId());
         ref.setName(product.getName());
         ref.setImage(selectedVariant.getImages().get(0));
         ref.setPrice(finalPrice);
         ref.setDiscount((int) discountPercent);
-
-        return new OrderItem(ref, selectedVariant.getSku(), quantity, finalPrice);
+        String orderItemId = product.getId() + "-" + selectedVariant.getSku();
+        return new OrderItem(orderItemId, ref, selectedVariant.getSku(), quantity, finalPrice);
     }
 
 
@@ -226,8 +301,6 @@ public class OrderServiceImpl implements OrderService {
                 .mapToLong(i -> i.getQuantity() * i.getUnitPrice())
                 .sum();
     }
-
-
 
 
     @Override

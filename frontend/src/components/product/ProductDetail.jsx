@@ -15,7 +15,7 @@ import axiosClient from "../../api/axiosClient";
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, userId } = useContext(CartContext);
+  const { addToCart, userId, cartItems } = useContext(CartContext);
 
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -36,14 +36,12 @@ const ProductDetail = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewImages, setReviewImages] = useState([]);
   const [uploading, setUploading] = useState(false);
-
-  // Kiểm tra user đã mua sản phẩm chưa
+  
   const user = JSON.parse(localStorage.getItem("user"));
   const [hasPurchased, setHasPurchased] = useState(false);
   const [productPurchased, setProductPurchased] = useState(null);
   const [hasReviewed, setHasReviewed] = useState(false);
 
-  // Trạng thái chỉnh sửa review
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
@@ -143,55 +141,63 @@ const ProductDetail = () => {
     }
   }, [product, user]);
 
-  const handleAddToCart = () => {
-    if (!userId) {
-      openModal("⚠️ Bạn phải đăng nhập để thêm sản phẩm vào giỏ hàng!");
-      navigate("/login");
-      return;
-    }
+    const handleAddToCart = () => {
+        if (!userId) {
+            openModal("⚠️ Bạn phải đăng nhập để thêm sản phẩm vào giỏ hàng!");
+            navigate("/login");
+            return;
+        }
 
-    if (!product) return;
+        if (!product) return;
 
-    if (!selectedVariant || selectedVariant.inStock < quantity || quantity < 0) {
-      openModal(
-        `⚠️ Số lượng tồn kho không đủ! Chỉ còn ${
-          selectedVariant?.inStock || 0
-        } sản phẩm.`
-      );
-      return;
-    }
+        if (!selectedVariant || quantity <= 0) {
+            openModal("⚠️ Số lượng không hợp lệ!");
+            return;
+        }
 
-    const productData = {
-      id: product.id,
-      name: product.name,
+        const maxInStock = selectedVariant.inStock || 0;
 
-      price: product.price,
-      discount: product.discount,
+        const existingItem = cartItems.find(
+            (item) =>
+                item.id === product.id &&
+                item.selectedColor === selectedColor &&
+                item.selectedSize === selectedSize
+        );
 
-      thumbnails:
-        selectedVariant?.images?.length > 0
-          ? selectedVariant.images
-          : [product.image],
+        const newQuantity = (existingItem?.quantity || 0) + quantity;
 
-      colors: [...new Set(product.variants.map((v) => v.color))],
-      sizes: [...new Set(product.variants.map((v) => v.size))],
+        if (newQuantity > maxInStock) {
+            openModal(
+                `⚠️ Số lượng tồn kho không đủ! Chỉ còn ${maxInStock} sản phẩm.`
+            );
+            return;
+        }
 
-      selectedColor,
-      selectedSize,
+        const productData = {
+            key: `${product.id}-${selectedColor}-${selectedSize}`,
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            discount: product.discount,
+            thumbnails:
+                selectedVariant?.images?.length > 0
+                    ? selectedVariant.images
+                    : [product.image],
+            sku: selectedVariant.sku,
+            color: selectedColor,
+            size: selectedSize,
+            quantity,
+        };
 
-      maxInStock: selectedVariant?.inStock,
 
-      quantity: quantity,
+        console.log("👉 Dữ liệu gửi vào giỏ:", productData);
+
+        addToCart(productData);
+
+        openModal(`🛒 Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
     };
 
-    console.log("👉 Dữ liệu gửi vào giỏ:", productData);
-
-    addToCart(productData);
-
-    openModal(`🛒 Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
-  };
-
-  const updateSelectedVariant = (color, size) => {
+    const updateSelectedVariant = (color, size) => {
     if (!product?.variants) return;
 
     const found = product.variants.find(
@@ -572,23 +578,28 @@ const ProductDetail = () => {
               <span className="text-lg font-medium text-[#111827]">
                 Số lượng:
               </span>
-              <div className="flex items-center border border-gray-300 rounded-full">
-                <button
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="px-4 py-2 text-xl font-semibold text-[#4B5563] hover:bg-gray-100 rounded-l-full transition duration-150"
-                >
-                  -
-                </button>
-                <span className="px-4 text-lg font-bold text-[#111827]">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="px-4 py-2 text-xl font-semibold text-[#4B5563] hover:bg-gray-100 rounded-r-full transition duration-150"
-                >
-                  +
-                </button>
-              </div>
+                <div className="flex items-center border border-gray-300 rounded-full">
+                    <button
+                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                        className="px-4 py-2 text-xl font-semibold text-[#4B5563] hover:bg-gray-100 rounded-l-full transition duration-150"
+                    >
+                        -
+                    </button>
+                    <span className="px-4 text-lg font-bold text-[#111827]">
+                    {quantity}
+                  </span>
+                    <button
+                        onClick={() =>
+                            setQuantity((q) =>
+                                q < (selectedVariant?.inStock || 0) ? q + 1 : q
+                            )
+                        }
+                        className="px-4 py-2 text-xl font-semibold text-[#4B5563] hover:bg-gray-100 rounded-r-full transition duration-150"
+                    >
+                        +
+                    </button>
+                </div>
+
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-6">
