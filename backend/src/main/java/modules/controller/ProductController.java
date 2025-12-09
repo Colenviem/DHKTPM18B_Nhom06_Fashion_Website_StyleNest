@@ -95,4 +95,18 @@ public class ProductController {
         List<Product> results = service.searchProducts(keyword);
         return ResponseEntity.ok(results);
     }
+
+    @PatchMapping("/{id}/sold")
+    @CrossOrigin(origins = "http://localhost:5173") // cho dev
+    public ResponseEntity<Product> updateSold(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> payload) {
+
+        int increment = (int) payload.get("increment");
+        String sku = (String) payload.get("sku");
+
+        Product updatedProduct = service.incrementSoldAndDecrementStock(id, sku, increment);
+        return ResponseEntity.ok(updatedProduct);
+    }
+
 }

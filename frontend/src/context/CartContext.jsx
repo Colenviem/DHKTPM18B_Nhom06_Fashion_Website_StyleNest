@@ -95,11 +95,17 @@ export const CartProvider = ({ children }) => {
         fetchData();
     }, [userId]);
 
+
+    const getCartItemKey = (item) =>
+        `${item.id}_${item.selectedColor || ""}_${item.selectedSize || ""}_${
+            item.sku || ""
+        }`;
+
     const saveCart = async (updatedCart = cartItems) => {
         setCartItems(updatedCart);
         try {
             const payload = {
-                items: updatedCart.map(item => ({
+                items: updatedCart.map((item) => ({
                     product: {
                         id: item.id,
                         name: item.name,
@@ -107,7 +113,8 @@ export const CartProvider = ({ children }) => {
                         discount: item.discount,
                         selectedColor: item.selectedColor,
                         selectedSize: item.selectedSize,
-                        thumbnails: item.thumbnails
+                        thumbnails: item.thumbnails,
+                        sku: item.sku || null
                     },
                     quantity: item.quantity,
                     priceAtTime: Math.round(item.price * (1 - item.discount / 100))
@@ -115,8 +122,7 @@ export const CartProvider = ({ children }) => {
                 totalQuantity: updatedCart.reduce((sum, item) => sum + item.quantity, 0),
                 totalPrice: Math.round(
                     updatedCart.reduce(
-                        (sum, item) =>
-                            sum + item.quantity * (1 - item.discount / 100) * item.price,
+                        (sum, item) => sum + item.quantity * item.price * (1 - item.discount / 100),
                         0
                     )
                 )
@@ -129,6 +135,7 @@ export const CartProvider = ({ children }) => {
         }
     };
 
+
     const addToCart = (product, quantity) => {
         const qty = quantity ?? product.quantity ?? 1;
 
@@ -137,20 +144,17 @@ export const CartProvider = ({ children }) => {
             return;
         }
 
+        const productKey = getCartItemKey(product);
+
         const existingItem = cartItems.find(
-            item =>
-                item.id === product.id &&
-                item.selectedColor === product.selectedColor &&
-                item.selectedSize === product.selectedSize
+            item => getCartItemKey(item) === productKey
         );
 
         let updatedCart;
 
         if (existingItem) {
             updatedCart = cartItems.map(item =>
-                item.id === product.id &&
-                item.selectedColor === product.selectedColor &&
-                item.selectedSize === product.selectedSize
+                getCartItemKey(item) === productKey
                     ? { ...item, quantity: item.quantity + qty }
                     : item
             );
@@ -161,6 +165,7 @@ export const CartProvider = ({ children }) => {
         setCartItems(updatedCart);
         saveCart(updatedCart);
     };
+
 
 
     return (
