@@ -71,7 +71,6 @@ export const saveOrUpdateAccount = async (account, user, method) => {
         });
       }
     }
-
       return Promise.reject({
         type: "server",
         message: data.message || "Lỗi không xác định từ server",
@@ -85,3 +84,4 @@ export const saveOrUpdateAccount = async (account, user, method) => {
   //   });
   // }
 };
+
