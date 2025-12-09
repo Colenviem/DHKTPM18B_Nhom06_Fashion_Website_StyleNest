@@ -6,6 +6,7 @@ export const ProductsContext = createContext();
 export const ProductsProvider = ({ children }) => {
     const [productsData, setProductsData] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -30,6 +31,8 @@ export const ProductsProvider = ({ children }) => {
                 loading,
                 searchResults,
                 setSearchResults,
+                searchQuery,
+                setSearchQuery,
             }}
         >
             {children}

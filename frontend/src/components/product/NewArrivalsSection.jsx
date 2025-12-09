@@ -52,7 +52,7 @@ const NewArrivalsSection = ({ products, title, subtitle }) => {
   // ⭐ Lấy 6 sản phẩm đầu — trừ khi user nhấn Xem thêm
   const displayedProducts = showAll 
     ? filteredProducts
-    : filteredProducts.slice(0, 6);
+    : filteredProducts.slice(0, 8);
 
   const handleCategoryClick = (categoryName) => {
     const selected = categoryMap.find(c => c.name === categoryName);
@@ -95,7 +95,7 @@ const NewArrivalsSection = ({ products, title, subtitle }) => {
         )}
 
         {/* ⭐ Nút xem thêm */}
-        {filteredProducts.length > 6 && (
+        {filteredProducts.length > 8 && (
           <div className="text-center">
             <button
               onClick={() => setShowAll(!showAll)}

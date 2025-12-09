@@ -1,40 +1,68 @@
-// LoginHistorys.jsx
-const API_URL = "http://localhost:8080/api/login-history";
 
-// Ghi login cho CUSTOMER
-export async function addCustomerLogin(username) {
+import axiosClient from "../api/axiosClient";
+
+const API_URL = "/login-history"; // axiosClient đã có baseURL nên chỉ cần path
+
+export const addCustomerLogin = async (username) => {
   try {
-    const res = await fetch(`${API_URL}/customer/${username}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const response = await axiosClient.post(`${API_URL}/customer/${username}`);
+    return {
+      success: true,
+      data: response.data,
+      message: response.data?.message || "Ghi nhận đăng nhập thành công",
+    };
+  } catch (error) {
+    console.error("Lỗi khi ghi login khách hàng:", error);
+
+    // Xử lý lỗi giống các hàm khác trong dự án của bạn
+    if (error.response) {
+      const errData = error.response.data;
+      return {
+        success: false,
+        message: errData?.message || "Lỗi server khi ghi login",
+        status: error.response.status,
+      };
+    }
+
+    return {
+      success: false,
+      message: "Không thể kết nối đến server",
+    };
+  }
+};
+
+export const getTodayStats = async () => {
+  return axiosClient
+    .get("/login-history/stats/today")
+    .then((response) => ({
+      success: true,
+      data: response.data,
+    }))
+    .catch((error) => {
+      console.error("Lỗi lấy thống kê hôm nay:", error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "Không thể lấy thống kê đăng nhập hôm nay",
+      };
     });
-    return await res.json();
-  } catch (error) {
-    console.error("Error addCustomerLogin:", error);
-    return null;
-  }
-}
+};
 
-// Lấy thống kê hôm nay (group theo username)
-export async function getTodayStats() {
-  try {
-    const res = await fetch(`${API_URL}/stats/today`);
-    return await res.json();
-  } catch (error) {
-    console.error("Error getTodayStats:", error);
-    return null;
-  }
-}
-
-// Lấy thống kê hôm qua (group theo username)
-export async function getYesterdayStats() {
-  try {
-    const res = await fetch(`${API_URL}/stats/yesterday`);
-    return await res.json();
-  } catch (error) {
-    console.error("Error getYesterdayStats:", error);
-    return null;
-  }
-}
+export const getYesterdayStats = async () => {
+  return axiosClient
+    .get("/login-history/stats/yesterday")
+    .then((response) => ({
+      success: true,
+      data: response.data,
+    }))
+    .catch((error) => {
+      console.error("Lỗi lấy thống kê hôm qua:", error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "Không thể lấy thống kê đăng nhập hôm qua",
+      };
+    });
+};
