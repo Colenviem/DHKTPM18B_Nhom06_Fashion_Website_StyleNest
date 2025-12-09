@@ -793,7 +793,7 @@ function ProfilePage() {
 
     const statusText = {
         PENDING: 'Chờ xác nhận',
-        PAID: 'Đã thanh toán',      
+        PAID: 'Đã thanh toán',
         PROCESSING: 'Đang xử lý',
         SHIPPED: 'Đang giao',
         DELIVERED: 'Đã giao',
