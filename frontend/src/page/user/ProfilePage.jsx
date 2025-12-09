@@ -245,7 +245,15 @@ const ReturnRequestModal = ({ isOpen, onClose, order, onSubmit }) => {
 };
 
 // --- COMPONENT 2: CHI TIẾT ĐƠN HÀNG ---
+// --- COMPONENT 2: CHI TIẾT ĐƠN HÀNG (ĐÃ CHỈNH SỬA) ---
 const OrderDetail = ({ order, onBack, onReturnRequest }) => {
+
+    // Helper dịch phương thức thanh toán
+    const PAYMENT_METHODS = {
+        Credit: "Chuyển khoản (VietQR)",
+        Googlepay: "Google Pay",
+        Code: "Thanh toán khi nhận (COD)"
+    };
 
     const checkCanReturn = (ord) => {
         if (ord.status !== 'Delivered' && ord.status !== 'Completed') {
@@ -272,17 +280,22 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
 
     const returnStatus = checkCanReturn(order);
 
+    // Tìm hàm này trong ProfilePage.jsx
     const getStatusColor = (status) => {
         const statusColors = {
-            'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-            'Processing': 'bg-blue-100 text-blue-800 border-blue-300',
-            'Shipped': 'bg-purple-100 text-purple-800 border-purple-300',
+            'PENDING': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+            'PAID': 'bg-green-100 text-green-800 border-green-300',
+
+            'PROCESSING': 'bg-blue-100 text-blue-800 border-blue-300',
+            'SHIPPED': 'bg-purple-100 text-purple-800 border-purple-300',
             'Delivered': 'bg-green-100 text-green-800 border-green-300',
             'Completed': 'bg-green-100 text-green-800 border-green-300',
             'Cancelled': 'bg-red-100 text-red-800 border-red-300',
             'ReturnRequested': 'bg-orange-100 text-orange-800 border-orange-300',
         };
-        return statusColors[status] || 'bg-gray-100 text-gray-800 border-gray-300';
+
+        // Thêm toUpperCase() để chắc chắn bắt được cả 'Paid' lẫn 'PAID'
+        return statusColors[status] || statusColors[status?.toUpperCase()] || 'bg-gray-100 text-gray-800 border-gray-300';
     };
 
     const formatDate = (dateString) => new Date(dateString).toLocaleString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -296,7 +309,7 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <h2 className="text-2xl font-bold text-gray-900">Chi tiết đơn hàng</h2>
-                        <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>{order.status}</span>
+                        <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(order.status)} uppercase`}>{order.status}</span>
                     </div>
 
                     {returnStatus.can ? (
@@ -314,11 +327,12 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
                 </div>
             </motion.div>
 
+            {/* THÔNG TIN CHUNG */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex items-start gap-3">
                         <FiBox className="w-5 h-5 text-[#6F47EB] mt-1 flex-shrink-0" />
-                        <div><p className="text-sm text-gray-500">Mã đơn hàng</p><p className="font-semibold text-gray-900">{order.id}</p></div>
+                        <div><p className="text-sm text-gray-500">Mã đơn hàng</p><p className="font-semibold text-gray-900 break-all">{order.id || order.orderNumber}</p></div>
                     </div>
                     <div className="flex items-start gap-3">
                         <FiCalendar className="w-5 h-5 text-[#6F47EB] mt-1 flex-shrink-0" />
@@ -326,35 +340,53 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
                     </div>
                     <div className="flex items-start gap-3">
                         <FiCreditCard className="w-5 h-5 text-[#6F47EB] mt-1 flex-shrink-0" />
-                        <div><p className="text-sm text-gray-500">Phương thức thanh toán</p>{order.paymentMethod}</div>
+                        <div>
+                            <p className="text-sm text-gray-500">Phương thức thanh toán</p>
+                            {/* Sửa: Dùng mapping để hiển thị tiếng Việt */}
+                            <p className="font-semibold text-gray-900">{PAYMENT_METHODS[order.paymentMethod] || order.paymentMethod}</p>
+                        </div>
                     </div>
                     <div className="flex items-start gap-3">
                         <FiUser className="w-5 h-5 text-[#6F47EB] mt-1 flex-shrink-0" />
-                        <div><p className="text-sm text-gray-500">Người đặt</p><p className="font-semibold text-gray-900">{order.user?.userName}</p></div>
+                        <div><p className="text-sm text-gray-500">Người đặt</p><p className="font-semibold text-gray-900">{order.user?.userName || "Khách"}</p></div>
                     </div>
                 </div>
             </motion.div>
 
+            {/* ĐỊA CHỈ NHẬN HÀNG */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
                 <div className="flex items-start gap-3">
                     <FiMapPin className="w-5 h-5 text-[#6F47EB] mt-1 flex-shrink-0" />
-                    <div><h3 className="font-semibold text-gray-900 mb-2">Địa chỉ giao hàng</h3><p className="text-gray-700 font-medium">{order.shippingAddress?.name}</p><p className="text-gray-600">{order.shippingAddress?.street}, {order.shippingAddress?.city}</p><p className="text-gray-600 text-sm">SĐT: {order.shippingAddress?.phoneNumber}</p></div>
+                    <div>
+                        <h3 className="font-semibold text-gray-900 mb-2">Địa chỉ giao hàng</h3>
+                        <p className="text-gray-700 font-medium">{order.shippingAddress?.name}</p>
+                        {/* Sửa: Chỉ hiển thị street, không cộng thêm city để tránh lặp */}
+                        <p className="text-gray-600">{order.shippingAddress?.street}</p>
+                        <p className="text-gray-600 text-sm mt-1">SĐT: <span className="font-mono">{order.shippingAddress?.phoneNumber}</span></p>
+                    </div>
                 </div>
             </motion.div>
 
+            {/* DANH SÁCH SẢN PHẨM */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
                 <div className="flex items-center gap-2 mb-4"><FiPackage className="w-5 h-5 text-[#6F47EB]" /><h3 className="font-semibold text-gray-900">Sản phẩm ({order.items?.length || 0})</h3></div>
                 <div className="space-y-4">
                     {order.items?.map((item, idx) => (
                         <div key={idx} className="flex gap-4 p-4 rounded-xl bg-white border border-gray-200 hover:shadow-md transition-shadow">
-                            <div className="flex-shrink-0"><img src={item.product?.image} alt={item.product?.name} className="w-24 h-24 object-cover rounded-lg shadow-md" /></div>
-                            <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-gray-900 mb-2">{item.product?.name}</h4>
-                                <div className="space-y-1 text-sm">
-                                    {item.variantId && <p className="text-gray-600"><span className="font-medium">Mã sản phẩm:</span> {item.variantId}</p>}
-                                    <div className="flex flex-wrap gap-4 items-center">
-                                        <div><span className="text-gray-600 font-medium">Đơn giá: </span><span className="font-semibold">{(Number(item.unitPrice) || 0).toLocaleString('vi-VN')}₫</span></div>
-                                        <div><span className="text-gray-600 font-medium">Số lượng: </span><span className="px-2 py-0.5 rounded-full font-semibold">{item.quantity}</span></div>
+                            <div className="flex-shrink-0"><img src={item.product?.image} alt={item.product?.name} className="w-24 h-24 object-cover rounded-lg shadow-md border border-gray-100" /></div>
+                            <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                <div>
+                                    <h4 className="font-semibold text-gray-900 mb-1 line-clamp-2">{item.product?.name}</h4>
+                                    {item.variantId && <p className="text-xs text-gray-500 bg-gray-100 inline-block px-2 py-1 rounded">Phân loại: {item.variantId}</p>}
+                                </div>
+                                <div className="flex justify-between items-end mt-2">
+                                    <div className="text-sm text-gray-600">
+                                        <span className="font-medium">{(Number(item.unitPrice) || 0).toLocaleString('vi-VN')}₫</span>
+                                        <span className="text-gray-400 mx-2">x</span>
+                                        {item.quantity}
+                                    </div>
+                                    <div className="font-bold text-[#6F47EB]">
+                                        {(Number(item.unitPrice) * item.quantity).toLocaleString('vi-VN')}₫
                                     </div>
                                 </div>
                             </div>
@@ -363,21 +395,30 @@ const OrderDetail = ({ order, onBack, onReturnRequest }) => {
                 </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
-                <h3 className="font-semibold text-gray-900 mb-4">Tổng quan đơn hàng</h3>
-                <div className="space-y-3">
-                    <div className="flex justify-between text-gray-700"><div className="flex items-center gap-2"><FiTruck className="w-4 h-4" /><span>Phí vận chuyển</span></div><span className="font-semibold">{(Number(order.shippingFee) || 0).toLocaleString('vi-VN')}₫</span></div>
-                    {order.discountAmount > 0 && (<div className="flex justify-between text-green-600"><span>Giảm giá</span><span className="font-semibold">-{(Number(order.discountAmount) || 0).toLocaleString('vi-VN')}₫</span></div>)}
-                    <div className="flex justify-between text-gray-700">
-                        <div className="flex items-center gap-2">
-                            <span>Tổng tiền sản phẩm</span>
+            {/* TỔNG TIỀN */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 border border-gray-200 shadow-sm">
+                <h3 className="font-semibold text-gray-900 mb-4 border-b pb-2">Tổng quan thanh toán</h3>
+                <div className="space-y-3 text-sm">
+                    <div className="flex justify-between text-gray-600">
+                        <span>Tổng tiền hàng</span>
+                        <span className="font-medium text-gray-900">{(Number(order.subtotal) || 0).toLocaleString('vi-VN')}₫</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                        <div className="flex items-center gap-2"><FiTruck className="w-4 h-4" /><span>Phí vận chuyển</span></div>
+                        <span className="font-medium text-gray-900">{(Number(order.shippingFee) || 0).toLocaleString('vi-VN')}₫</span>
+                    </div>
+                    {order.discountAmount > 0 && (
+                        <div className="flex justify-between text-green-600 bg-green-50 p-2 rounded">
+                            <span>Mã giảm giá</span>
+                            <span className="font-bold">-{(Number(order.discountAmount) || 0).toLocaleString('vi-VN')}₫</span>
                         </div>
-                        <span className="font-semibold">
-                            {(Number(order.subtotal) || 0).toLocaleString('vi-VN')}₫
+                    )}
+                    <div className="pt-3 border-t-2 border-gray-200 flex justify-between items-center mt-2">
+                        <span className="text-base font-bold text-gray-900">Tổng thanh toán</span>
+                        <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            {(Number(order.totalAmount) || 0).toLocaleString('vi-VN')}₫
                         </span>
                     </div>
-
-                    <div className="pt-3 border-t-2 border-gray-300 flex justify-between items-center"><span className="text-base font-bold text-gray-900">Tổng tiền</span><span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{(Number(order.totalAmount) || 0).toLocaleString('vi-VN')}₫</span></div>
                 </div>
             </motion.div>
         </div>
@@ -751,10 +792,15 @@ function ProfilePage() {
     };
 
     const statusText = {
-        PENDING: 'Chờ xử lý',
+        PENDING: 'Chờ xác nhận',
+        PAID: 'Đã thanh toán',      
         PROCESSING: 'Đang xử lý',
         SHIPPED: 'Đang giao',
-        Delivered: 'Đã giao',
+        DELIVERED: 'Đã giao',
+        Delivered: 'Đã giao',       // Dự phòng nếu DB lưu kiểu cũ
+        COMPLETED: 'Hoàn thành',
+        Completed: 'Hoàn thành',
+        CANCELLED: 'Đã hủy',
         Cancelled: 'Đã hủy',
         ReturnRequested: 'Yêu cầu trả hàng'
     }

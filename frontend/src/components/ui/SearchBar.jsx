@@ -1,21 +1,33 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import React, { useContext, useState, useEffect, useRef, use } from "react";
 import { FiSearch, FiX } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ProductsContext } from "../../context/ProductsContext";
 import axiosClient from "../../api/axiosClient";
 
 
 const SearchBar = ({ isSearchOpen, toggleSearch }) => {
+  const location = useLocation();
   const [keyword, setKeyword] = useState("");
 
   const navigate = useNavigate();
-  const { setSearchResults } = useContext(ProductsContext);
+  const { setSearchResults, setSearchQuery } = useContext(ProductsContext);
   const searchRef = useRef(null);
+
+  useEffect(() => {
+    const isProductDetailPage = location.pathname.startsWith("/fashion") || location.pathname.startsWith("/product/");
+
+    if (!isProductDetailPage) {
+        setSearchQuery("");
+        setSearchResults([]);
+        setKeyword("");
+    }
+  }, [location.pathname, setSearchResults, setSearchQuery]);
 
   const handleSearch = async () => {
     console.log("Searching for:", keyword);
     if (keyword.trim() === "") {
       setSearchResults([]);
+      setSearchQuery("");
       return;
     }
 
@@ -24,6 +36,7 @@ const SearchBar = ({ isSearchOpen, toggleSearch }) => {
           params: { keyword: keyword },
         })
         .then((response) => {
+          setSearchQuery(keyword);
           setSearchResults(response.data);
           console.log("Search results:", response.data);
         })

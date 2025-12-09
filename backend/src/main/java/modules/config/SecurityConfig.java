@@ -93,8 +93,9 @@ public class SecurityConfig {
                                 "/api/cloudinary/uploadImage",
                                 "/api/payment/**",
                                 "/api/payment/sepay/**",
+                                "/api/returns/**",
+                                "/api/login-history/**",
                                 "/api/products/**"
-
                         ).permitAll()
 
                         // Các Endpoint GET Public khác
@@ -109,6 +110,11 @@ public class SecurityConfig {
                         // Các Endpoint Đặt hàng (Cần xem xét lại logic này, thường đặt hàng phải login)
                         .requestMatchers(HttpMethod.PUT, "/api/orders/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/orders/**").permitAll()
+
+                        // Test
+                        .requestMatchers(HttpMethod.PUT,"/api/reviews/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/reviews/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // === CÁC ENDPOINT BẮT BUỘC ĐĂNG NHẬP ===
                         .requestMatchers("/api/returns/**").authenticated()

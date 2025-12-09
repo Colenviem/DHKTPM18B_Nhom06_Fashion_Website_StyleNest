@@ -3,13 +3,10 @@ import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
 import { FiUsers, FiShoppingBag, FiTrendingUp, FiClock } from 'react-icons/fi';
 
-// Import context thống kê
 import { useStatisticalContext } from '../../context/StatisticalContext';
 
-// Import các hàm API LoginHistory
 import { getTodayStats, getYesterdayStats } from "../../context/LoginHistorys";
 
-// Tính phần trăm tăng trưởng
 const calculateGrowth = (current, previous) => {
     if (previous === 0) return current > 0 ? 100 : 0;
     return parseFloat((((current - previous) / previous) * 100).toFixed(1));
@@ -34,7 +31,6 @@ function StatCards() {
     const [yesterdayLogins, setYesterdayLogins] = useState(0);
     const [loadingLogin, setLoadingLogin] = useState(true);
 
-    // Gọi API lấy số lần đăng nhập
     useEffect(() => {
         async function loadLoginStats() {
             setLoadingLogin(true);
@@ -42,8 +38,8 @@ function StatCards() {
             const todayData = await getTodayStats();
             const yesterdayData = await getYesterdayStats();
 
-            const today = todayData?.length || 0;
-            const yesterday = yesterdayData?.length || 0;
+            const today = todayData?.data?.length || 0;
+            const yesterday = yesterdayData?.data?.length || 0;
 
             setTodayLogins(today);
             setYesterdayLogins(yesterday);
@@ -80,9 +76,6 @@ function StatCards() {
     const salesGrowthPercent = calculateGrowth(thisWeekAmount, lastWeekAmount);
 
 
-    // ================================
-    // 3️⃣ TẠO CÁC THẺ CARD
-    // ================================
     const cardUsers = {
         title: "Total Users Today",
         value: todayLogins,

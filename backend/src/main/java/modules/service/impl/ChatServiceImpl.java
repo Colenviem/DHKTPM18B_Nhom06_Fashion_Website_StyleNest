@@ -4,6 +4,9 @@ import modules.config.AiToolsConfig; // 1. IMPORT CLASS NÀY
 import modules.dto.chat.ChatRequest;
 import modules.service.ChatService;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.retry.NonTransientAiException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
