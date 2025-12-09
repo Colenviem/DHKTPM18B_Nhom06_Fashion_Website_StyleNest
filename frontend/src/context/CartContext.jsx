@@ -48,11 +48,8 @@ export const CartProvider = ({ children }) => {
                                 price: fullProduct.price,
                                 discount: fullProduct.discount || 0,
                                 quantity: item.quantity,
-                                colors: [...new Set(variants.map(v => v.color))],
-                                sizes: [...new Set(variants.map(v => v.size))],
-                                selectedColor: selectedColor,
-                                selectedSize: selectedSize,
-                                maxInStock: matchedVariant?.inStock || 0
+                                color: selectedColor,
+                                size: selectedSize,
                             };
                         } catch (err) {
                             console.error(`❌ Error fetching product ${item.product.id}:`, err);
@@ -63,11 +60,8 @@ export const CartProvider = ({ children }) => {
                                 price: item.product.price,
                                 discount: item.product.discount || 0,
                                 quantity: item.quantity,
-                                colors: [],
-                                sizes: [],
-                                selectedColor: null,
-                                selectedSize: null,
-                                maxInStock: 0
+                                color: null,
+                                size: null,
                             };
                         }
                     })
@@ -111,8 +105,8 @@ export const CartProvider = ({ children }) => {
                         name: item.name,
                         price: item.price,
                         discount: item.discount,
-                        selectedColor: item.selectedColor,
-                        selectedSize: item.selectedSize,
+                        color: item.color,
+                        size: item.size,
                         thumbnails: item.thumbnails,
                         sku: item.sku || null
                     },
