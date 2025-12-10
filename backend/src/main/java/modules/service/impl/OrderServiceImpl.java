@@ -434,11 +434,6 @@ public class OrderServiceImpl implements OrderService {
                 nonPendingTotalAmount += order.getTotalAmount();
             }
         }
-
-        // Log kết quả thực tế (chỉ để debug)
-        System.out.println("NON-PENDING ORDERS in range: " + nonPendingCount);
-        System.out.println("NON-PENDING TOTAL AMOUNT in range: " + nonPendingTotalAmount);
-
         return new WeeklyStatResultRepuest(nonPendingCount, nonPendingTotalAmount);
     }
 
@@ -466,16 +461,10 @@ public class OrderServiceImpl implements OrderService {
     }
     @Override
     public List<Order> getOrdersByMonthAndYear(int year, int month) {
-        // Kiểm tra logic nghiệp vụ cơ bản (ví dụ: tháng phải từ 1 đến 12)
         if (month < 1 || month > 12) {
             throw new IllegalArgumentException("Tháng không hợp lệ. Phải từ 1 đến 12.");
         }
-
-        // Gọi hàm từ Repository
         List<Order> orders =orderRepo.findAllByMonthAndYear(year, month);
-
-        // Có thể thêm logic nghiệp vụ khác ở đây nếu cần (ví dụ: lọc thêm, tính toán tổng,...)
-
         return orders;
     }
 
@@ -487,7 +476,6 @@ public class OrderServiceImpl implements OrderService {
             Product product = productRepo.findById(productId)
                     .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
 
-            // Giả sử check variant đầu tiên (hoặc sửa FE để gửi variantId)
             if (product.getVariants() == null || product.getVariants().isEmpty()) {
                 throw new RuntimeException("Product has no variants: " + productId);
             }

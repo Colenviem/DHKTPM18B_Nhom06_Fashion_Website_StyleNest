@@ -47,6 +47,8 @@ const AuthIcons = ({ toggleSearch }) => {
     }, []);
 
     const handleLogout = () => {
+        const confirmLogout = window.confirm("Bạn có chắc chắn muốn đăng xuất không?");
+         if (confirmLogout) {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
 
@@ -55,6 +57,7 @@ const AuthIcons = ({ toggleSearch }) => {
 
         setAuthUser(null);
         navigate("/login");
+         }
     };
 
     // --- Các class CSS ---

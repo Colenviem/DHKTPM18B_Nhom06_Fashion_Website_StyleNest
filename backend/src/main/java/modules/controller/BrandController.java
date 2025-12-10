@@ -34,6 +34,8 @@ public class BrandController {
 
     @PostMapping
     public Brand createBrand(@RequestBody Brand brand) {
+        brand.setActive(true);
+        brand.setFeatured(true);
         return brandService.save(brand);
     }
 
