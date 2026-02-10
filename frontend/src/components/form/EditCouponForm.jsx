@@ -74,8 +74,6 @@ const EditCouponForm = ({ coupon, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("token");
-
     if (
       errors.codeError ||
       errors.discountError ||
@@ -90,9 +88,11 @@ const EditCouponForm = ({ coupon, onClose }) => {
     try {
       const dataToSend = {
         ...formData,
-        expirationDate: formData.expirationDate + ":00Z",
+        expirationDate: new Date(formData.expirationDate).toISOString(),
         usedCount: formData.usedCount,
       };
+
+      console.log("Sending data:", dataToSend);
 
       const response = await axiosClient.put(
           `/coupons/${coupon.id}`,
